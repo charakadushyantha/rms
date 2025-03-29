@@ -1,0 +1,212 @@
+/* Enhanced Login Page Styles
+   Add this CSS file to your project and link it in your HTML 
+   This adds dark mode, accessibility features, and language support */
+
+   :root {
+    --primary-color: #3366cc;
+    --primary-hover: #264d99;
+    --secondary-color: #f8f9fa;
+    --text-color: #212529;
+    --text-muted: #6c757d;
+    --border-color: #e1e1e1;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --input-bg: #f8f9fa;
+    --body-bg: #f8f9fa;
+    --white: #ffffff;
+    --google-color: #DB4437;
+    --feature-1: #7288E0;
+    --feature-2: #F57E82;
+    --feature-3: #72DDE0;
+    --feature-4: #4a89dc;
+    --font-base: 16px;
+  }
+  
+  [data-theme="dark"] {
+    --primary-color: #4d79de;
+    --primary-hover: #5f87e8;
+    --secondary-color: #2d3748;
+    --text-color: #e2e8f0;
+    --text-muted: #a0aec0;
+    --border-color: #4a5568;
+    --shadow-color: rgba(0, 0, 0, 0.3);
+    --input-bg: #2d3748;
+    --body-bg: #1a202c;
+    --white: #2d3748;
+    --google-color: #ea4335;
+    --feature-1: #5269b3;
+    --feature-2: #d65f62;
+    --feature-3: #5badae;
+    --feature-4: #3b6bb0;
+  }
+  
+  body {
+    background-color: var(--body-bg);
+    color: var(--text-color);
+    font-size: var(--font-base);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  .login-form-container {
+    background-color: var(--white);
+    position: relative;
+    color: var(--text-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  .form-control {
+    border: 1px solid var(--border-color);
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    transition: all 0.3s ease;
+  }
+  
+  .form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(51, 102, 204, 0.25);
+    background-color: var(--white);
+  }
+  
+  .btn-login {
+    background-color: var(--primary-color);
+  }
+  
+  .btn-login:hover {
+    background-color: var(--primary-hover);
+  }
+  
+  .btn-google {
+    color: var(--google-color);
+    border: 1px solid var(--google-color);
+  }
+  
+  .btn-google:hover {
+    background-color: var(--google-color);
+    color: var(--white);
+  }
+  
+  .or-divider, .welcome-text p, .signup-link {
+    color: var(--text-muted);
+  }
+  
+  .or-divider::before, .or-divider::after {
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .forgot-password a, .signup-link a {
+    color: var(--primary-color);
+  }
+  
+  /* High contrast mode */
+  [data-contrast="high"] {
+    --primary-color: #ffff00;
+    --primary-hover: #e6e600;
+    --text-color: #ffffff;
+    --body-bg: #000000;
+    --white: #000000;
+    --border-color: #ffffff;
+    --text-muted: #ffffff;
+    --input-bg: #000000;
+    --google-color: #ffffff;
+  }
+  
+  /* Custom controls for theme, language, and accessibility */
+  .top-controls {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    display: flex;
+    gap: 10px;
+    z-index: 1000;
+  }
+  
+  .btn-control {
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    width: 36px;
+    height: 36px;
+  }
+  
+  .btn-control:hover {
+    color: var(--primary-color);
+    transform: translateY(-2px);
+    background-color: var(--input-bg);
+  }
+  
+  .btn-control:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+  }
+  
+  /* Dropdown menus for language and accessibility */
+  .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: var(--white);
+    border-radius: 10px;
+    box-shadow: 0 5px 15px var(--shadow-color);
+    padding: 10px;
+    z-index: 1000;
+    display: none;
+    min-width: 180px;
+    margin-top: 5px;
+  }
+  
+  .dropdown-menu.show {
+    display: block;
+  }
+  
+  .dropdown-item {
+    padding: 8px 15px;
+    cursor: pointer;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    color: var(--text-color);
+  }
+  
+  .dropdown-item:hover {
+    background-color: var(--input-bg);
+  }
+  
+  .language-flag {
+    width: 20px;
+    height: 15px;
+    object-fit: cover;
+  }
+  
+  /* Skip to content link for accessibility */
+  .skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--primary-color);
+    color: white;
+    padding: 8px;
+    z-index: 1001;
+    transition: top 0.3s ease;
+  }
+  
+  .skip-link:focus {
+    top: 0;
+  }
+  
+  /* RTL text direction support */
+  [dir="rtl"] {
+    text-align: right;
+  }
+  
+  [dir="rtl"] .forgot-password {
+    text-align: left;
+  }
