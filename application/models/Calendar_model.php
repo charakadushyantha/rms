@@ -80,5 +80,31 @@ class Calendar_model extends CI_Model
     return $this->db->count_all_results(TBL_CALENDAR);
   }
 
+  public function get_interview_stats()
+  {
+      $username = $this->session->userdata('username');
+      
+      // Query to get interview stats for specific recruiter
+      $this->db->select('ce_interview_round, COUNT(*) as total_interviews');
+      $this->db->from(TBL_CALENDAR);
+      $this->db->where('ce_rec_username', $username);
+      $this->db->group_by('ce_interview_round');
+      
+      $query = $this->db->get();
+      return $query->result_array();
+  }
+  
+  public function get_all_interview_stats()
+  {
+      // Query to get interview stats for all recruiters
+      $this->db->select('ce_rec_username, ce_interview_round, COUNT(*) as total_interviews');
+      $this->db->from(TBL_CALENDAR);
+      $this->db->group_by(array('ce_rec_username', 'ce_interview_round'));
+      
+      $query = $this->db->get();
+      return $query->result_array();
+  }
+
+
 }
  ?>

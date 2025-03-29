@@ -123,6 +123,63 @@ define('R_SCHEDULE_URL',BASE_URL.'/index.php/R_dashboard/Rschedule_view');
 define('R_STATUS_URL',BASE_URL.'/index.php/R_dashboard/Rstatus_view');
 define('R_LOGOUT_URL',BASE_URL.'/index.php/R_dashboard/logout');
 
+//To be implemented
+define('R_REPORTS_URL',BASE_URL.'/index.php/R_dashboard/Rreports_view');
+define('A_REPORTS_URL',BASE_URL.'/index.php/A_dashboard/Areports_view');
+
+// define('R_CANDIDATE_STATUS_URL',BASE_URL.'/index.php/R_dashboard/Rstatus_view');
+// define('R_HISTORY_URL',BASE_URL.'/index.php/R_dashboard/Rhistory_view');
+// define('R_TIMESHEET_URL',BASE_URL.'/index.php/R_dashboard/Rtime_sheet_view');
+// define('R_CANDIDATE_DETAILS_URL',BASE_URL.'/index.php/R_dashboard/Rcandidate_details_view');
+// define('R_CANDIDATE_STATUS_URL',BASE_URL.'/index.php/R_dashboard/Rcandidate_status_view');
+// define('R_CANDIDATE_SCHEDULE_URL',BASE_URL.'/index.php/R_dashboard/Rcandidate_schedule_view');
+// define('R_CANDIDATE_SCHEDULE_PROC_URL',BASE_URL.'/index.php/R_dashboard/schedule_proc');
+// define('R_CANDIDATE_STATUS_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_status_proc');
+// define('R_CANDIDATE_DETAILS_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_details_proc');
+// define('R_CANDIDATE_SCHEDULE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_schedule_proc');
+// define('R_CANDIDATE_STATUS_UPDATE_URL',BASE_URL.'/index.php/R_dashboard/candidate_status_update');
+// define('R_CANDIDATE_SCHEDULE_UPDATE_URL',BASE_URL.'/index.php/R_dashboard/candidate_schedule_update');
+// define('R_CANDIDATE_DETAILS_UPDATE_URL',BASE_URL.'/index.php/R_dashboard/candidate_details_update');
+// define('R_CANDIDATE_STATUS_DELETE_URL',BASE_URL.'/index.php/R_dashboard/candidate_status_delete');
+// define('R_CANDIDATE_SCHEDULE_DELETE_URL',BASE_URL.'/index.php/R_dashboard/candidate_schedule_delete');
+// define('R_CANDIDATE_DETAILS_DELETE_URL',BASE_URL.'/index.php/R_dashboard/candidate_details_delete');
+// define('R_CANDIDATE_STATUS_UPDATE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_status_update_proc');
+// define('R_CANDIDATE_SCHEDULE_UPDATE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_schedule_update_proc');
+// define('R_CANDIDATE_DETAILS_UPDATE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_details_update_proc');
+// define('R_CANDIDATE_STATUS_DELETE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_status_delete_proc');
+// define('R_CANDIDATE_SCHEDULE_DELETE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_schedule_delete_proc');
+// define('R_CANDIDATE_DETAILS_UPDATE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_details_update_proc');
+// define('R_CANDIDATE_STATUS_UPDATE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_status_update_proc');
+// define('R_CANDIDATE_SCHEDULE_UPDATE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_schedule_update_proc');
+// define('R_CANDIDATE_DETAILS_DELETE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_details_delete_proc');
+// define('R_CANDIDATE_STATUS_DELETE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_status_delete_proc');
+// define('R_CANDIDATE_SCHEDULE_DELETE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_schedule_delete_proc');
+// define('R_CANDIDATE_DETAILS_UPDATE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_details_update_proc');
+// define('R_CANDIDATE_STATUS_UPDATE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_status_update_proc');
+// define('R_CANDIDATE_SCHEDULE_UPDATE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_schedule_update_proc');
+// define('R_CANDIDATE_DETAILS_DELETE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_details_delete_proc');
+// define('R_CANDIDATE_STATUS_DELETE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_status_delete_proc');
+// define('R_CANDIDATE_SCHEDULE_DELETE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_schedule_delete_proc');
+// define('R_CANDIDATE_DETAILS_UPDATE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_details_update_proc');
+// define('R_CANDIDATE_STATUS_UPDATE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_status_update_proc');
+// define('R_CANDIDATE_SCHEDULE_UPDATE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_schedule_update_proc');
+// define('R_CANDIDATE_DETAILS_DELETE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_details_delete_proc');
+// define('R_CANDIDATE_STATUS_DELETE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_status_delete_proc');
+// define('R_CANDIDATE_SCHEDULE_DELETE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_schedule_delete_proc');
+// define('R_CANDIDATE_DETAILS_UPDATE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_details_update_proc');
+// define('R_CANDIDATE_STATUS_UPDATE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_status_update_proc');
+// define('R_CANDIDATE_SCHEDULE_UPDATE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_schedule_update_proc');
+// define('R_CANDIDATE_DETAILS_DELETE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_details_delete_proc');
+// define('R_CANDIDATE_STATUS_DELETE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_status_delete_proc');
+// define('R_CANDIDATE_SCHEDULE_DELETE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_schedule_delete_proc');
+// define('R_CANDIDATE_DETAILS_UPDATE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_details_update_proc');
+// define('R_CANDIDATE_STATUS_UPDATE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_status_update_proc');
+// define('R_CANDIDATE_SCHEDULE_UPDATE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_schedule_update_proc');
+// define('R_CANDIDATE_DETAILS_DELETE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_details_delete_proc');
+// define('R_CANDIDATE_STATUS_DELETE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_status_delete_proc');
+// define('R_CANDIDATE_SCHEDULE_DELETE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_schedule_delete_proc');
+// define('R_CANDIDATE_DETAILS_UPDATE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_details_update_proc');
+// define('R_CANDIDATE_STATUS_UPDATE_PROC_URL',BASE_URL.'/index.php/R_dashboard/candidate_status_update_proc');
 
 
 define('A_DASHBOARD_URL',BASE_URL.'/index.php/A_dashboard');
@@ -133,3 +190,4 @@ define('A_SCANDIDATE_URL',BASE_URL.'/index.php/A_dashboard/Ascandidate_view');
 define('A_HISTORY_URL',BASE_URL.'/index.php/A_dashboard/Ahistory_view');
 define('A_TIMESHEET_URL',BASE_URL.'/index.php/A_dashboard/Atime_sheet_view');
 define('A_LOGOUT_URL',BASE_URL.'/index.php/A_dashboard/logout');
+

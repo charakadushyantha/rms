@@ -127,8 +127,8 @@ chart.render();
             <div class="row">
                 <div class="col-lg-5 col-md-5 col-sm-6 col-xs-12">
                     <div class="compnay-logo">
-                        <a href="http://www.honeycombsoftwares.com/" class="clogo"><img src="<?php echo COMPANY_LOGO; ?>" alt="Company Logo" class="img-fluid h-10 d-block" /></a>
-                        <a href="http://www.honeycombsoftwares.com/" class="cname"><img src="<?php echo COMPANY_NAME; ?>" alt="Company Name" class="img-fluid h-20 d-block" /></a>
+                        <a href="https://charaka.cmsads24.com/" class="clogo"><img src="<?php echo COMPANY_LOGO; ?>" alt="Company Logo" class="img-fluid h-10 d-block" /></a>
+                        <a href="https://charaka.cmsads24.com/" class="cname"><img src="<?php echo COMPANY_NAME; ?>" alt="Company Name" class="img-fluid h-20 d-block" /></a>
                     </div>
                 </div>
                 <div class="col-lg-7 col-md-7 col-sm-6 col-xs-12">
@@ -173,6 +173,9 @@ chart.render();
                         </li>
                         <li><a href="<?php echo A_RECRUITER_URL; ?>"><i class="fas fa-user-plus"></i>Add Recruiter</a>
                         </li>
+                        <!-- Add this new Reports tab -->
+                        <li><a href="<?php echo A_REPORTS_URL; ?>"><i class="fa fa-chart-bar"></i>Reports</a>
+                        </li>                        
                     </ul>
                     <div class="tab-content custom-menu-content">
                       <!-- Starting of Home tab -->

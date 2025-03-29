@@ -115,8 +115,29 @@ class A_dashboard extends CI_Controller
     }
   }
 
-
-
+  public function Areports_view()
+  {
+      $data['uname'] = $this->session->userdata('username');
+      
+      // Temporary dummy data
+      $data['job_stats'] = array(
+          array('cd_job_title' => 'Software Developer', 'total_count' => 15, 'shortlisted' => 8, 'selected' => 3, 'in_review' => 4),
+          array('cd_job_title' => 'UI/UX Designer', 'total_count' => 10, 'shortlisted' => 5, 'selected' => 2, 'in_review' => 3)
+      );
+      
+      $data['interview_stats'] = array(
+          array('ce_rec_username' => 'recruiter1', 'ce_interview_round' => 0.25, 'total_interviews' => 12),
+          array('ce_rec_username' => 'recruiter1', 'ce_interview_round' => 0.5, 'total_interviews' => 8),
+          array('ce_rec_username' => 'recruiter2', 'ce_interview_round' => 0.25, 'total_interviews' => 10)
+      );
+      
+      $data['recruiter_stats'] = array(
+          array('u_username' => 'recruiter1', 'u_email' => 'rec1@example.com', 'total_candidates' => 25, 'candidates_selected' => 8),
+          array('u_username' => 'recruiter2', 'u_email' => 'rec2@example.com', 'total_candidates' => 18, 'candidates_selected' => 5)
+      );
+      
+      $this->load->view('Admin_dashboard_view/Areports', $data);
+  }
 
 }
 
