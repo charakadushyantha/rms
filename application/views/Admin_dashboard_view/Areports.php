@@ -83,7 +83,8 @@
                         </li>
                         <li><a href="<?php echo A_RECRUITER_URL; ?>"><i class="fas fa-user-plus"></i>Add Recruiter</a>
                         </li>
-                        <li><a href="<?php echo A_REPORTS_URL; ?>"><i class="fa fa-chart-bar"></i>Reports</a>
+                        <?php /* <li><a href="<?php echo A_REPORTS_URL; ?>"><i class="fa fa-chart-bar"></i>Reports</a> */ ?>
+
                         </li>
                     </ul>
                     <div class="tab-content custom-menu-content">
