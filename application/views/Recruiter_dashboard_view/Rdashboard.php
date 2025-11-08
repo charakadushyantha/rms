@@ -1,16 +1,10 @@
 <?php
 // Set page-specific variables
 $data['page_title'] = 'Recruiter Dashboard';
-$data['page_specific_css'] = [
-    'assets/modern/css/components/dashboard-cards.css',
-    'assets/modern/css/components/charts.css'
-];
-$data['page_specific_js'] = [
-    'assets/modern/js/charts/dashboard-charts.js'
-];
+$data['use_charts'] = true;
 
-// Load the header template
-$this->load->view('templates/header', $data);
+// Load the recruiter header template
+$this->load->view('templates/recruiter_header', $data);
 ?>
 
 <!-- Page Heading -->
@@ -788,5 +782,5 @@ function exportPieData() {
 // Add the custom script to data
 $data['custom_script'] = $custom_script;
 
-// Load the footer template
-$this->load->view('templates/footer', $data);
+// Load the recruiter footer template
+$this->load->view('templates/recruiter_footer', $data);

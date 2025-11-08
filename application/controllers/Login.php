@@ -6,12 +6,14 @@ class Login extends CI_Controller {
 
 	public function index()
 	{
-		$this->load->view('login');
+		$this->load->view('login_new'); // Using new modern UI
+		// To use old design: $this->load->view('login');
 	}
 
 	public function signup()
 	{
-		$this->load->view('signup');
+		$this->load->view('signup_new'); // Using new modern UI
+		// To use old design: $this->load->view('signup');
 	}
 
 	public function signupproc()
@@ -207,7 +209,8 @@ class Login extends CI_Controller {
 
 	public function forgotpassword()
 	{
-		$this->load->view('forgotpassword');
+		$this->load->view('forgotpassword_new'); // Using new modern UI
+		// To use old design: $this->load->view('forgotpassword');
 	}
 
 	public function forgot_pass_process()
@@ -250,19 +253,19 @@ class Login extends CI_Controller {
 	            ";
 	         $this->email->message($message);
 	         if($this->email->send()){
-						 $data['smsg'] = "Your reset Password Link has been sent on your Email.";
-						 $this->load->view('forgotpass',$data);
+						 // Use new modern success page
+						 $this->load->view('forgot_password_success');
 					 }
 					 else {
 						 $data['fmsg'] = "Mail is not sent , Please try again.";
-						 $this->load->view('forgotpass',$data);
+						 $this->load->view('forgotpassword_new',$data);
 					 }
 
 
 		}
 		else {
 			$data['efailed'] = "There is no Account exists which connected to entered Email.";
-			$this->load->view('forgotpass',$data);
+			$this->load->view('forgotpassword_new',$data);
 		}
 	}
 
@@ -271,7 +274,8 @@ class Login extends CI_Controller {
 	public function reset_password()
 	{
 		$data['semail'] = $this->uri->segment(3);
-		$this->load->view('resetpassword',$data);
+		$this->load->view('resetpassword_new',$data); // Using new modern UI
+		// To use old design: $this->load->view('resetpassword',$data);
 	}
 
 	public function reset_password_process()

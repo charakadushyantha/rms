@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Force Init Test</title>
+</head>
+<body>
+    <h1>Force Initialization Test</h1>
+    <p id="status">Initializing...</p>
+
+    <script>
+        // Define config FIRST
+        window.chatbotConfig = {
+            baseUrl: 'http://localhost/rms/',
+            position: 'bottom-right',
+            color: '#00ff00',  // GREEN
+            title: 'Forced Bot',
+            welcomeMessage: 'This is force initialized'
+        };
+        
+        console.log('Config set:', window.chatbotConfig);
+    </script>
+
+    <!-- Load script -->
+    <script src="Assets/js/chatbot.js"></script>
+
+    <script>
+        // Force initialize after a delay
+        setTimeout(() => {
+            console.log('Checking after 1 second...');
+            
+            // Check if it auto-initialized
+            let widget = document.getElementById('chatbot-widget');
+            
+            if (widget) {
+                document.getElementById('status').innerHTML = '✅ Chatbot auto-initialized! Look for GREEN button in bottom-right!';
+                console.log('Widget found:', widget);
+            } else {
+                document.getElementById('status').innerHTML = '⚠️ Auto-init failed. Forcing manual init...';
+                console.log('Widget not found, forcing init...');
+                
+                // Force manual initialization
+                try {
+                    const bot = new RecruitmentChatbot(window.chatbotConfig);
+                    document.getElementById('status').innerHTML += '<br>✅ Manual init successful! Look for GREEN button!';
+                    console.log('Manual init successful');
+                } catch (e) {
+                    document.getElementById('status').innerHTML += '<br>❌ Manual init failed: ' + e.message;
+                    console.error('Manual init error:', e);
+                }
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

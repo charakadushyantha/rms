@@ -169,7 +169,17 @@ $(this).attr('placeholder','Password');
 });
 </script>
 
-
+<!-- AI Chatbot Widget - Inline -->
+<script>
+const chatbotConfig = {
+    baseUrl: '<?php echo base_url(); ?>',
+    position: 'bottom-right',
+    color: '#007bff',
+    title: 'Recruitment Assistant',
+    welcomeMessage: 'Hi! I\'m your AI Recruitment Assistant. How can I help you today?'
+};
+</script>
+<script src="<?php echo base_url('Assets/js/chatbot.js'); ?>"></script>
 
 </body>
 </html>

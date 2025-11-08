@@ -127,8 +127,8 @@ chart.render();
             <div class="row">
                 <div class="col-lg-5 col-md-5 col-sm-6 col-xs-12">
                     <div class="compnay-logo">
-                        <a href="http://www.honeycombsoftwares.com/" class="clogo"><img src="<?php echo COMPANY_LOGO; ?>" alt="Henoycomb Company Logo" class="img-fluid h-10 d-block" /></a>
-                        <a href="http://www.honeycombsoftwares.com/" class="cname"><img src="<?php echo COMPANY_NAME; ?>" alt="Henoycomb Company Name" class="img-fluid h-20 d-block" /></a>
+                        <a href="https://cmsads24.com/" class="clogo"><img src="<?php echo COMPANY_LOGO; ?>" alt="Henoycomb Company Logo" class="img-fluid h-10 d-block" /></a>
+                        <a href="https://cmsads24.com/" class="cname"><img src="<?php echo COMPANY_NAME; ?>" alt="Henoycomb Company Name" class="img-fluid h-20 d-block" /></a>
                     </div>
                 </div>
                 <div class="col-lg-7 col-md-7 col-sm-6 col-xs-12">
@@ -452,7 +452,7 @@ chart.render();
             <div class="row">
                 <div class="col-lg-12">
                     <div class="footer-copy-right">
-                        <p>Copyright &#169; 2019 Henoycomb softwers pvt. ltd. all rights reserved.</p>
+                        <p>Copyright &#169; 2025 Charaka Creations. all rights reserved.</p>
                		</div>
                 </div>
             </div>

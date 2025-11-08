@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chatbot Debug</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .debug { background: #f0f0f0; padding: 10px; margin: 10px 0; border-left: 4px solid #007bff; }
+        .error { border-left-color: red; background: #ffe0e0; }
+        .success { border-left-color: green; background: #e0ffe0; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Chatbot Debug Page</h1>
+    <div id="debug-output"></div>
+
+    <script>
+        const output = document.getElementById('debug-output');
+        
+        function log(message, type = 'debug') {
+            output.innerHTML += `<div class="${type}">${message}</div>`;
+        }
+
+        // Step 1: Check if JavaScript works
+        log('✅ Step 1: JavaScript is running', 'success');
+
+        // Step 2: Define config
+        const chatbotConfig = {
+            baseUrl: 'http://localhost/rms/',
+            position: 'bottom-right',
+            color: '#ff0000',  // RED for visibility
+            title: 'Debug Bot',
+            welcomeMessage: 'Debug test'
+        };
+        log('✅ Step 2: Config defined: ' + JSON.stringify(chatbotConfig), 'success');
+
+        // Step 3: Try to load script
+        log('⏳ Step 3: Loading chatbot.js...', 'debug');
+        
+        const script = document.createElement('script');
+        script.src = 'Assets/js/chatbot.js';
+        script.onload = function() {
+            log('✅ Step 4: chatbot.js loaded successfully!', 'success');
+            
+            // Step 5: Check if class exists
+            if (typeof RecruitmentChatbot !== 'undefined') {
+                log('✅ Step 5: RecruitmentChatbot class found!', 'success');
+                
+                // Step 6: Try to initialize manually
+                try {
+                    log('⏳ Step 6: Initializing chatbot manually...', 'debug');
+                    const bot = new RecruitmentChatbot(chatbotConfig);
+                    log('✅ Step 7: Chatbot initialized! Look for RED button in bottom-right!', 'success');
+                } catch (e) {
+                    log('❌ Step 7: Error initializing: ' + e.message, 'error');
+                }
+            } else {
+                log('❌ Step 5: RecruitmentChatbot class NOT found!', 'error');
+            }
+        };
+        script.onerror = function() {
+            log('❌ Step 4: Failed to load chatbot.js!', 'error');
+            log('❌ Check if file exists at: Assets/js/chatbot.js', 'error');
+        };
+        
+        document.head.appendChild(script);
+    </script>
+</body>
+</html>

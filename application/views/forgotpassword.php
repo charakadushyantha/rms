@@ -370,7 +370,7 @@
     <div class="row fpblock container">
         <div class="fpdiv col-md-12 col-lg-12 col-sm-12 col-xs-12 text-center rounded-lg">
           <div class="companylogo mt-4">
-              <img src="<?php echo COMPANY_NAME; ?>" alt="HenoyComb Pvt. Ltd." class="img-fluid" />
+              <img src="<?php echo COMPANY_NAME; ?>" alt="Charaka Creations" class="img-fluid" />
           </div>
             <div class="fptitle text-center mt-2 container">
                 <h2>Forgot Password</h2>

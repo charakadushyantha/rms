@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manual Button Test</title>
+    <style>
+        .test-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: red;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 9999;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .test-button:hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <h1>Manual Button Test</h1>
+    <p>You should see a RED button in the bottom-right corner.</p>
+    <p>If you see it, then CSS positioning works on your browser.</p>
+    <p>If you DON'T see it, there might be a browser or CSS issue.</p>
+
+    <!-- Manual button -->
+    <button class="test-button" onclick="alert('Button clicked! It works!')">💬</button>
+
+    <hr>
+    <h2>Now testing chatbot...</h2>
+    <div id="status">Loading chatbot...</div>
+
+    <script>
+        // Config
+        const chatbotConfig = {
+            baseUrl: 'http://localhost/rms/',
+            position: 'bottom-right',
+            color: '#0000ff',  // BLUE
+            title: 'Test',
+            welcomeMessage: 'Test'
+        };
+        
+        console.log('Config defined:', chatbotConfig);
+    </script>
+
+    <!-- Load chatbot -->
+    <script src="Assets/js/chatbot.js" onload="scriptLoaded()" onerror="scriptError()"></script>
+
+    <script>
+        function scriptLoaded() {
+            document.getElementById('status').innerHTML = '✅ Script loaded!';
+            console.log('Script loaded');
+            
+            setTimeout(() => {
+                const widget = document.getElementById('chatbot-widget');
+                const button = document.getElementById('chatbot-toggle');
+                
+                if (widget && button) {
+                    document.getElementById('status').innerHTML += '<br>✅ Chatbot widget created!<br>✅ Look for BLUE button (below the RED one)';
+                    console.log('Widget found:', widget);
+                    console.log('Button found:', button);
+                } else {
+                    document.getElementById('status').innerHTML += '<br>❌ Chatbot widget NOT created!';
+                    console.log('Widget:', widget);
+                    console.log('Button:', button);
+                }
+            }, 2000);
+        }
+        
+        function scriptError() {
+            document.getElementById('status').innerHTML = '❌ Script failed to load!';
+        }
+    </script>
+</body>
+</html>

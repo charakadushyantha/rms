@@ -42,38 +42,67 @@ class R_dashboard extends CI_Controller
     public function Rcalendar_view()
     {
       $data['uname'] = $this->session->userdata('username');
-      $this->load->view('Recruiter_dashboard_view/Rcalendar',$data);
+      $this->load->view('Recruiter_dashboard_view/Rcalendar_new',$data); // Using new modern UI
+      // To use old design: $this->load->view('Recruiter_dashboard_view/Rcalendar',$data);
     }
 
     public function Rcandidate_view()
     {
       $data['uname'] = $this->session->userdata('username');
-      $this->load->view('Recruiter_dashboard_view/Rcandidate',$data);
+      $data['page_title'] = 'Add Candidate';
+      $this->load->view('templates/recruiter_header', $data);
+      $this->load->view('Recruiter_dashboard_view/Rcandidate_content',$data);
+      $this->load->view('templates/recruiter_footer', $data);
     }
 
     public function Rstatus_view()
     {
       $data['uname'] = $this->session->userdata('username');
       $data['can_details']=$this->Candidate_model->get_candidate($data);
-      $this->load->view('Recruiter_dashboard_view/Rstatus',$data);
+      $data['page_title'] = 'Pipeline';
+      $this->load->view('templates/recruiter_header', $data);
+      $this->load->view('Recruiter_dashboard_view/Rstatus_content',$data);
+      $this->load->view('templates/recruiter_footer', $data);
     }
 
     public function Raccount_details_view()
     {
       $data['uname'] = $this->session->userdata('username');
+      
+      // Get user details including profile picture from users table
+      $user_data = $this->db->select('u_email, profile_picture')
+                            ->where('u_username', $data['uname'])
+                            ->get(TBL_USERS)
+                            ->row();
+      
+      // Get additional profile details if exists
       if($this->profile_record_model->check_rec_details($data))
       {
-        $data['rec_details'] = $this->profile_record_model->check_rec_details($data);
+        $profile_details = $this->profile_record_model->check_rec_details($data);
+        if(!empty($profile_details)) {
+          $profile_details = is_array($profile_details) ? $profile_details[0] : $profile_details;
+          $data['recruiter_details'] = (object) array_merge((array)$user_data, (array)$profile_details);
+        } else {
+          $data['recruiter_details'] = $user_data;
+        }
+      } else {
+        $data['recruiter_details'] = $user_data;
       }
-      $this->load->view('Recruiter_dashboard_view/RecruiterAccountDetails',$data);
+      
+      $data['page_title'] = 'My Account';
+      $this->load->view('templates/recruiter_header', $data);
+      $this->load->view('Recruiter_dashboard_view/Raccount_details_content',$data);
+      $this->load->view('templates/recruiter_footer', $data);
     }
 
     public function Rscandidate_view()
     {
       $data['uname'] = $this->session->userdata('username');
       $data['can_details']=$this->Candidate_model->get_selected_candidate($data);
-
-      $this->load->view('Recruiter_dashboard_view/Rscandidate',$data);
+      $data['page_title'] = 'Selected Candidates';
+      $this->load->view('templates/recruiter_header', $data);
+      $this->load->view('Recruiter_dashboard_view/Rscandidate_content',$data);
+      $this->load->view('templates/recruiter_footer', $data);
     }
 
     public function Rschedule_view()
@@ -246,11 +275,127 @@ class R_dashboard extends CI_Controller
       $this->load->view('Recruiter_dashboard_view/Rschedule',$data);
     }
 
+    public function upload_profile_picture()
+    {
+        if (!$this->session->userdata('authenticated')) {
+            redirect(LOGIN_URL);
+        }
 
+        $config['upload_path'] = './uploads/profiles/';
+        $config['allowed_types'] = 'gif|jpg|png|jpeg';
+        $config['max_size'] = 2048; // 2MB
+        $config['encrypt_name'] = TRUE;
 
+        // Create directory if it doesn't exist
+        if (!is_dir($config['upload_path'])) {
+            mkdir($config['upload_path'], 0777, TRUE);
+        }
 
+        $this->load->library('upload', $config);
 
+        if ($this->upload->do_upload('profile_picture')) {
+            $upload_data = $this->upload->data();
+            $filename = $upload_data['file_name'];
 
+            // Update database with profile picture filename
+            $username = $this->session->userdata('username');
+            
+            // Get old profile picture before update
+            $old_pic = $this->db->select('profile_picture')
+                                ->where('u_username', $username)
+                                ->get(TBL_USERS)
+                                ->row();
+            
+            // Update with new picture
+            $this->db->where('u_username', $username);
+            $this->db->update(TBL_USERS, array('profile_picture' => $filename));
+
+            // Delete old profile picture if exists
+            if ($old_pic && isset($old_pic->profile_picture) && $old_pic->profile_picture && $old_pic->profile_picture != $filename) {
+                $old_file = './uploads/profiles/' . $old_pic->profile_picture;
+                if (file_exists($old_file)) {
+                    unlink($old_file);
+                }
+            }
+
+            $this->session->set_flashdata('success_msg', 'Profile picture updated successfully!');
+        } else {
+            $this->session->set_flashdata('error_msg', $this->upload->display_errors());
+        }
+
+        redirect('R_dashboard/Raccount_details_view');
+    }
+
+    public function update_profile()
+    {
+        if (!$this->session->userdata('authenticated')) {
+            redirect(LOGIN_URL);
+        }
+
+        $username = $this->session->userdata('username');
+        $email = $this->input->post('email');
+        $phone = $this->input->post('phone');
+        $gender = $this->input->post('gender');
+
+        $update_data = array(
+            'u_email' => $email
+        );
+
+        $this->db->where('u_username', $username);
+        $this->db->update(TBL_USERS, $update_data);
+
+        // Update personal info if exists in profile table
+        $this->db->where('pi_username', $username);
+        $pi_exists = $this->db->get(TBL_PROFILE)->num_rows();
+
+        if ($pi_exists > 0) {
+            $this->db->where('pi_username', $username);
+            $this->db->update(TBL_PROFILE, array(
+                'pi_phone' => $phone,
+                'pi_gender' => $gender,
+                'pi_email' => $email
+            ));
+        } else {
+            $this->db->insert(TBL_PROFILE, array(
+                'pi_username' => $username,
+                'pi_phone' => $phone,
+                'pi_gender' => $gender,
+                'pi_email' => $email,
+                'pi_role' => 'Recruiter'
+            ));
+        }
+
+        $this->session->set_flashdata('success_msg', 'Profile updated successfully!');
+        redirect('R_dashboard/Raccount_details_view');
+    }
+
+    public function change_password()
+    {
+        if (!$this->session->userdata('authenticated')) {
+            redirect(LOGIN_URL);
+        }
+
+        $username = $this->session->userdata('username');
+        $current_password = $this->input->post('current_password');
+        $new_password = $this->input->post('new_password');
+
+        // Verify current password
+        $user = $this->db->where('u_username', $username)
+                        ->where('u_password', md5($current_password))
+                        ->get(TBL_USERS)
+                        ->row();
+
+        if ($user) {
+            $this->db->where('u_username', $username);
+            $this->db->update(TBL_USERS, array('u_password' => md5($new_password)));
+            
+            $this->session->set_flashdata('success_msg', 'Password changed successfully!');
+        } else {
+            $this->session->set_flashdata('error_msg', 'Current password is incorrect!');
+        }
+
+        redirect('R_dashboard/Raccount_details_view');
+    }
 
 }
 

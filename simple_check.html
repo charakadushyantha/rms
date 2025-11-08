@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Check</title>
+</head>
+<body>
+    <h1>Chatbot Check</h1>
+    <p>Wait 3 seconds for alert...</p>
+
+    <script>
+        const chatbotConfig = {
+            baseUrl: 'http://localhost/rms/',
+            position: 'bottom-right',
+            color: '#ff0000',
+            title: 'Test',
+            welcomeMessage: 'Test'
+        };
+    </script>
+    <script src="Assets/js/chatbot.js"></script>
+
+    <script>
+        setTimeout(() => {
+            const widget = document.getElementById('chatbot-widget');
+            const button = document.getElementById('chatbot-toggle');
+            
+            let message = '';
+            
+            if (widget) {
+                message += 'WIDGET EXISTS!\n\n';
+                const styles = window.getComputedStyle(widget);
+                message += 'Display: ' + styles.display + '\n';
+                message += 'Visibility: ' + styles.visibility + '\n';
+                message += 'Position: ' + styles.position + '\n';
+                message += 'Z-index: ' + styles.zIndex + '\n';
+                message += 'Bottom: ' + styles.bottom + '\n';
+                message += 'Right: ' + styles.right + '\n';
+                
+                if (button) {
+                    message += '\nBUTTON EXISTS!\n';
+                    const btnStyles = window.getComputedStyle(button);
+                    message += 'Button Display: ' + btnStyles.display + '\n';
+                    message += 'Button Width: ' + btnStyles.width + '\n';
+                    message += 'Button Height: ' + btnStyles.height + '\n';
+                    
+                    // Try to make it super visible
+                    button.style.width = '100px';
+                    button.style.height = '100px';
+                    button.style.backgroundColor = 'red';
+                    button.style.position = 'fixed';
+                    button.style.bottom = '20px';
+                    button.style.right = '20px';
+                    button.style.zIndex = '999999';
+                    button.style.display = 'block';
+                    button.style.visibility = 'visible';
+                    button.style.opacity = '1';
+                    button.style.border = '5px solid yellow';
+                    
+                    message += '\nMADE BUTTON HUGE AND RED!\nLook in bottom-right corner!';
+                } else {
+                    message += '\nBUTTON NOT FOUND!';
+                }
+            } else {
+                message += 'WIDGET NOT FOUND!\nChatbot did not initialize!';
+            }
+            
+            alert(message);
+            
+            // Also log to console
+            console.log(message);
+            console.log('Widget element:', widget);
+            console.log('Button element:', button);
+            
+        }, 3000);
+    </script>
+</body>
+</html>

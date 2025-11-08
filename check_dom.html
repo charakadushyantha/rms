@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DOM Check</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .info { background: #e3f2fd; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #c8e6c9; }
+        .error { background: #ffcdd2; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>🔍 DOM & Visibility Check</h1>
+    <div id="output"></div>
+    
+    <button onclick="checkWidget()">🔄 Check Widget</button>
+    <button onclick="forceShow()">👁️ Force Show Widget</button>
+    <button onclick="highlightWidget()">✨ Highlight Widget</button>
+
+    <script>
+        const chatbotConfig = {
+            baseUrl: 'http://localhost/rms/',
+            position: 'bottom-right',
+            color: '#ff0000',
+            title: 'Test',
+            welcomeMessage: 'Test'
+        };
+    </script>
+    <script src="Assets/js/chatbot.js"></script>
+
+    <script>
+        function log(msg, type = 'info') {
+            document.getElementById('output').innerHTML += `<div class="${type}">${msg}</div>`;
+        }
+
+        setTimeout(() => {
+            log('Checking after 2 seconds...', 'info');
+            checkWidget();
+        }, 2000);
+
+        function checkWidget() {
+            document.getElementById('output').innerHTML = '';
+            
+            // Check if widget exists
+            const widget = document.getElementById('chatbot-widget');
+            if (widget) {
+                log('✅ Widget element EXISTS in DOM', 'success');
+                log('Widget HTML: ' + widget.outerHTML.substring(0, 200) + '...', 'info');
+                
+                // Check computed styles
+                const styles = window.getComputedStyle(widget);
+                log('Position: ' + styles.position, 'info');
+                log('Display: ' + styles.display, 'info');
+                log('Visibility: ' + styles.visibility, 'info');
+                log('Z-index: ' + styles.zIndex, 'info');
+                log('Bottom: ' + styles.bottom, 'info');
+                log('Right: ' + styles.right, 'info');
+                log('Width: ' + styles.width, 'info');
+                log('Height: ' + styles.height, 'info');
+                
+                // Check button
+                const button = document.getElementById('chatbot-toggle');
+                if (button) {
+                    log('✅ Button EXISTS', 'success');
+                    const btnStyles = window.getComputedStyle(button);
+                    log('Button display: ' + btnStyles.display, 'info');
+                    log('Button visibility: ' + btnStyles.visibility, 'info');
+                    log('Button width: ' + btnStyles.width, 'info');
+                    log('Button height: ' + btnStyles.height, 'info');
+                    log('Button background: ' + btnStyles.backgroundColor, 'info');
+                } else {
+                    log('❌ Button NOT FOUND', 'error');
+                }
+            } else {
+                log('❌ Widget element NOT FOUND in DOM!', 'error');
+                log('Chatbot might not have initialized', 'error');
+            }
+        }
+
+        function forceShow() {
+            const widget = document.getElementById('chatbot-widget');
+            if (widget) {
+                widget.style.display = 'block';
+                widget.style.visibility = 'visible';
+                widget.style.opacity = '1';
+                widget.style.zIndex = '999999';
+                
+                const button = document.getElementById('chatbot-toggle');
+                if (button) {
+                    button.style.display = 'block';
+                    button.style.visibility = 'visible';
+                    button.style.opacity = '1';
+                }
+                
+                log('✅ Forced widget to show!', 'success');
+                checkWidget();
+            } else {
+                log('❌ Cannot force show - widget not found', 'error');
+            }
+        }
+
+        function highlightWidget() {
+            const widget = document.getElementById('chatbot-widget');
+            if (widget) {
+                widget.style.border = '5px solid red';
+                widget.style.background = 'yellow';
+                
+                const button = document.getElementById('chatbot-toggle');
+                if (button) {
+                    button.style.border = '5px solid blue';
+                    button.style.transform = 'scale(2)';
+                }
+                
+                log('✅ Widget highlighted!', 'success');
+            }
+        }
+    </script>
+</body>
+</html>

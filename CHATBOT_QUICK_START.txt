@@ -1,0 +1,199 @@
+================================================================================
+  AI RECRUITMENT OFFICER CHATBOT - QUICK START GUIDE
+================================================================================
+
+🎯 WHAT YOU GOT:
+- Complete AI chatbot integration for your recruitment system
+- Modern chat widget (bottom-right corner)
+- Admin panel to view all conversations
+- Powered by OpenAI GPT (ChatGPT technology)
+
+================================================================================
+  SETUP IN 3 STEPS (5 MINUTES)
+================================================================================
+
+STEP 1: CREATE DATABASE TABLES
+-------------------------------
+Run this command in your terminal:
+
+    mysql -u root -p rmsdb < Database/chatbot_schema.sql
+
+Or open phpMyAdmin and run the SQL from: Database/chatbot_schema.sql
+
+
+STEP 2: GET & ADD API KEY
+--------------------------
+1. Go to: https://platform.openai.com/api-keys
+2. Sign up/login (free account works)
+3. Click "Create new secret key"
+4. Copy the key (starts with sk-...)
+5. Edit: application/config/chatbot.php
+6. Replace 'YOUR_API_KEY_HERE' with your actual key
+
+
+STEP 3: ADD TO YOUR PAGES
+--------------------------
+Add this line before </body> tag in any page:
+
+    <?php $this->load->view('chatbot_widget'); ?>
+
+Example pages to add it:
+- application/views/login.php
+- application/views/signup.php
+- application/views/Admin_dashboard_view/admin_dashboard.php
+
+
+STEP 4: TEST IT!
+----------------
+Visit: http://localhost/rms/chatbot_test
+
+Look for the blue chat button in bottom-right corner.
+Click it and type: "What job openings do you have?"
+
+================================================================================
+  FILES CREATED
+================================================================================
+
+Controllers:
+  ✓ application/controllers/Chatbot.php
+  ✓ application/controllers/Admin_chatbot.php
+  ✓ application/controllers/Chatbot_test.php
+
+Models:
+  ✓ application/models/Chatbot_model.php
+
+Views:
+  ✓ application/views/chatbot_widget.php
+  ✓ application/views/chatbot_test.php
+  ✓ application/views/Admin_dashboard_view/admin_chatbot_sessions.php
+  ✓ application/views/Admin_dashboard_view/admin_chatbot_detail.php
+
+Config:
+  ✓ application/config/chatbot.php
+
+Assets:
+  ✓ Assets/js/chatbot.js
+
+Database:
+  ✓ Database/chatbot_schema.sql
+
+Documentation:
+  ✓ CHATBOT_README.md (Overview)
+  ✓ CHATBOT_SETUP_GUIDE.md (Detailed guide)
+  ✓ CHATBOT_INTEGRATION_EXAMPLE.md (Code examples)
+  ✓ CHATBOT_QUICK_START.txt (This file)
+
+================================================================================
+  IMPORTANT URLS
+================================================================================
+
+Test Page:    http://localhost/rms/chatbot_test
+Admin Panel:  http://localhost/rms/admin_chatbot
+API Endpoint: http://localhost/rms/chatbot/send_message
+
+================================================================================
+  CUSTOMIZATION
+================================================================================
+
+Change Colors/Position:
+  Edit: application/config/chatbot.php
+  
+  $config['widget_color'] = '#007bff';      // Your brand color
+  $config['widget_position'] = 'bottom-right';  // or 'bottom-left'
+  $config['widget_title'] = 'Recruitment Assistant';
+
+Customize AI Responses:
+  Edit: application/controllers/Chatbot.php
+  Find: _get_system_prompt() function
+  Add your company info, job openings, benefits, etc.
+
+================================================================================
+  COST
+================================================================================
+
+Using GPT-3.5-turbo (recommended):
+  - ~$0.002 per conversation
+  - ~$6/month for 100 conversations/day
+  - ~$30/month for 500 conversations/day
+
+Very affordable! You can start with $5 credit from OpenAI.
+
+================================================================================
+  TROUBLESHOOTING
+================================================================================
+
+Chat button not showing?
+  → Check browser console (F12) for errors
+  → Verify Assets/js/chatbot.js exists
+  → Clear browser cache
+
+"API key not configured" error?
+  → Check application/config/chatbot.php
+  → Make sure key starts with sk-
+  → Verify key at https://platform.openai.com
+
+Database errors?
+  → Run Database/chatbot_schema.sql
+  → Check database connection in application/config/database.php
+  → Verify database name is 'rmsdb'
+
+================================================================================
+  SAMPLE QUESTIONS TO TEST
+================================================================================
+
+Try asking the chatbot:
+  • "What job openings do you have?"
+  • "How do I apply for a position?"
+  • "Tell me about the interview process"
+  • "What benefits does the company offer?"
+  • "How long does hiring take?"
+  • "What documents do I need to apply?"
+
+================================================================================
+  ADMIN FEATURES
+================================================================================
+
+View all chat conversations:
+  1. Login as admin
+  2. Go to: http://localhost/rms/admin_chatbot
+  3. See all chat sessions
+  4. Click "View" to see full conversation
+
+================================================================================
+  NEXT STEPS
+================================================================================
+
+1. ✓ Import database tables
+2. ✓ Add OpenAI API key
+3. ✓ Test at /chatbot_test
+4. ✓ Add widget to login page
+5. ✓ Customize AI prompt with your company info
+6. ✓ Add to other pages (signup, dashboard)
+7. ✓ Monitor conversations in admin panel
+8. ✓ Gather feedback and improve
+
+================================================================================
+  NEED HELP?
+================================================================================
+
+Read the detailed guides:
+  → CHATBOT_README.md - Overview and features
+  → CHATBOT_SETUP_GUIDE.md - Complete setup instructions
+  → CHATBOT_INTEGRATION_EXAMPLE.md - Code examples
+
+Check logs:
+  → Browser console (F12)
+  → application/logs/ folder
+
+Test page:
+  → http://localhost/rms/chatbot_test
+
+================================================================================
+
+🎉 YOU'RE ALL SET! The chatbot is ready to help your candidates.
+
+Questions? Check the documentation files or test at /chatbot_test
+
+Happy recruiting! 🚀
+
+================================================================================

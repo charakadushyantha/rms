@@ -304,6 +304,12 @@
                         Calendar
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link <?= $this->uri->segment(1) == 'realtime_dashboard' ? 'active' : '' ?>" href="<?= base_url('realtime_dashboard') ?>">
+                        <i class="fas fa-fw fa-chart-line"></i>
+                        <span style="background: linear-gradient(90deg, #4ade80, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;">Real-Time Dashboard</span>
+                    </a>
+                </li>
                 <?php else: ?>
                 <!-- Recruiter Menu Items -->
                 <li class="nav-item">
@@ -340,6 +346,12 @@
                     <a class="nav-link <?= $this->uri->segment(2) == 'Rscandidate_view' ? 'active' : '' ?>" href="<?= base_url('R_dashboard/Rscandidate_view') ?>">
                         <i class="fas fa-fw fa-check-circle"></i>
                         Selected Candidates
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <?= $this->uri->segment(1) == 'realtime_dashboard' ? 'active' : '' ?>" href="<?= base_url('realtime_dashboard') ?>">
+                        <i class="fas fa-fw fa-chart-line"></i>
+                        <span style="background: linear-gradient(90deg, #4ade80, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;">Real-Time Dashboard</span>
                     </a>
                 </li>
                 <?php endif; ?>

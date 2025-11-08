@@ -284,7 +284,7 @@
     <div class="row rnPassblock container">
         <div class="rnPassdiv col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center rounded-lg">
             <div class="companylogo mt-4">
-                <img src="<?php echo COMPANY_NAME; ?>" alt="HenoyComb Pvt. Ltd." class="img-fluid" />
+                <img src="<?php echo COMPANY_NAME; ?>" alt="Charaka Creations" class="img-fluid" />
             </div>
             <div class="rnPasstitle text-center mt-2 container">
                 <h2>Reset your Password</h2>

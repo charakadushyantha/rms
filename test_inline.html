@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Inline Chatbot Test</title>
+</head>
+<body>
+    <h1>Chatbot Inline Test</h1>
+    <p>Look for the blue button in bottom-right corner!</p>
+    
+    <div id="test-output"></div>
+
+    <script>
+        // Test if script can run
+        document.getElementById('test-output').innerHTML = '✅ JavaScript is working!<br>';
+        
+        // Check if chatbot.js loaded
+        setTimeout(() => {
+            if (typeof RecruitmentChatbot !== 'undefined') {
+                document.getElementById('test-output').innerHTML += '✅ Chatbot class loaded!<br>';
+                document.getElementById('test-output').innerHTML += '✅ Look for blue button in bottom-right!<br>';
+            } else {
+                document.getElementById('test-output').innerHTML += '❌ Chatbot class NOT loaded<br>';
+                document.getElementById('test-output').innerHTML += '❌ Check if Assets/js/chatbot.js exists<br>';
+            }
+        }, 1000);
+    </script>
+
+    <!-- Chatbot Config -->
+    <script>
+        const chatbotConfig = {
+            baseUrl: 'http://localhost/rms/',
+            position: 'bottom-right',
+            color: '#007bff',
+            title: 'Test Bot',
+            welcomeMessage: 'Hello! This is a test.'
+        };
+    </script>
+
+    <!-- Load Chatbot -->
+    <script src="Assets/js/chatbot.js"></script>
+</body>
+</html>
