@@ -61,8 +61,8 @@
             <div class="row">
                 <div class="col-lg-5 col-md-5 col-sm-6 col-xs-12">
                   <div class="compnay-logo">
-                    <a href="https://charaka.cmsads24.com/" class="clogo"><img src="<?php echo COMPANY_LOGO; ?>" alt="Company Logo" class="img-fluid"/></a>
-                    <a href="https://charaka.cmsads24.com/" class="cname"><img src="<?php echo COMPANY_NAME; ?>" alt="Company Name" class="img-fluid" /></a>
+                    <a href="http://www.honeycombsoftwares.com/" class="clogo"><img src="<?php echo COMPANY_LOGO; ?>" alt="Henoycomb Company Logo" class="img-fluid"/></a>
+                    <a href="http://www.honeycombsoftwares.com/" class="cname"><img src="<?php echo COMPANY_NAME; ?>" alt="Henoycomb Company Name" class="img-fluid" /></a>
                   </div>
                 </div>
                 <div class="col-lg-7 col-md-7 col-sm-6 col-xs-12">
@@ -264,7 +264,7 @@
                             <div class="row">
                                 <div class="col-lg-12">
                                     <div class="logo img-fluid">
-                                        <a href="https://charaka.cmsads24.com/"><img src="<?php echo COMPANY_NAME; ?>"
+                                        <a href="http://www.honeycombsoftwares.com/"><img src="<?php echo COMPANY_NAME; ?>"
                                                 alt="" />
                                         </a>
                                     </div>
@@ -375,7 +375,7 @@
             <div class="row">
                 <div class="col-lg-12">
                     <div class="footer-copy-right">
-                        <p>Copyright &#169; RMS System UCSC MIT 2024 by Charaka. all rights reserved.</p>
+                        <p>Copyright &#169; 2019 Henoycomb softwers pvt. ltd. all rights reserved.</p>
 
                     </div>
                 </div>

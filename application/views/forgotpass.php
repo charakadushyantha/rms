@@ -81,7 +81,7 @@
             <?php
             if(isset($smsg))
             {
-              echo '<div class="row col-12 container resetnotice alert alert-info text-center">'.'<img src="'.COMPANY_NAME.'" alt="RMS System UCSC MIT 2024 by Charaka Dushyantha" class=" container img-fluid">'.
+              echo '<div class="row col-12 container resetnotice alert alert-info text-center">'.'<img src="'.COMPANY_NAME.'" alt="Henoycomb Pvt. Ltd." class=" container img-fluid">'.
         '<span>'.$smsg. '<br/> <a href="forgotpassword">'."Click to go back".'</a></span>
     </div>';
             }

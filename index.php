@@ -68,6 +68,11 @@ switch (ENVIRONMENT)
 	case 'development':
 		error_reporting(-1);
 		ini_set('display_errors', 1);
+		// Suppress PHP 8.2+ dynamic property deprecation warnings for CodeIgniter compatibility
+		if (version_compare(PHP_VERSION, '8.2.0', '>='))
+		{
+			error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
+		}
 	break;
 
 	case 'testing':

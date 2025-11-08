@@ -1,0 +1,132 @@
+2025-11-08 19:41:08 - The following SMTP error was encountered: 0 php_network_getaddresses: getaddrinfo for ssl failed: No such host is known. <br />Unable to send email using PHP SMTP. Your server might not be configured to send mail using this method.<br /><pre>Date: Sat, 8 Nov 2025 19:41:06 +0100
+From: &quot;RMS Admin&quot; &lt;charakaucsc@gmail.com&gt;
+Return-Path: &lt;charakaucsc@gmail.com&gt;
+To: charakaucsc@gmail.com
+Subject: =?UTF-8?Q?Activation=20of=20Recruiter=20Account?=
+Reply-To: &lt;charakaucsc@gmail.com&gt;
+User-Agent: CodeIgniter
+X-Sender: charakaucsc@gmail.com
+X-Mailer: CodeIgniter
+X-Priority: 3 (Normal)
+Message-ID: &lt;690f8ec24af7a@gmail.com&gt;
+Mime-Version: 1.0
+
+
+Content-Type: multipart/alternative; boundary=&quot;B_ALT_690f8ec24af87&quot;
+
+This is a multi-part message in MIME format.
+Your email application may not support this format.
+
+--B_ALT_690f8ec24af87
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+New Recruiter Registration
+Username: ucsc
+Email: charakaucsc@gmail.com
+Activate Recruiter Account
+
+
+--B_ALT_690f8ec24af87
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+=0A=09=09=09=09&lt;html&gt;=0A=09=09=09=09&lt;head&gt;=0A=09=09=09=09=09&lt;title&gt;Activate=
+ Recruiter&lt;/title&gt;=0A=09=09=09=09&lt;/head&gt;=0A=09=09=09=09&lt;body&gt;=0A=09=09=09=
+=09=09&lt;h3&gt;New Recruiter Registration&lt;/h3&gt;=0A=09=09=09=09=09&lt;p&gt;&lt;strong&gt;Usern=
+ame:&lt;/strong&gt; ucsc&lt;/p&gt;=0A=09=09=09=09=09&lt;p&gt;&lt;strong&gt;Email:&lt;/strong&gt; charakau=
+csc@gmail.com&lt;/p&gt;=0A=09=09=09=09=09&lt;p&gt;&lt;a href=3D&#039;http://localhost/rms/index=
+.php/Login/activate_rec/ucsc&#039; style=3D&#039;background-color: #4CAF50; color: wh=
+ite; padding: 10px 20px; text-decoration: none; border-radius: 5px;&#039;&gt;Activa=
+te Recruiter Account&lt;/a&gt;&lt;/p&gt;=0A=09=09=09=09&lt;/body&gt;=0A=09=09=09=09&lt;/html&gt;
+
+--B_ALT_690f8ec24af87--</pre>
+
+2025-11-08 19:46:31 - The following SMTP error was encountered: 0 php_network_getaddresses: getaddrinfo for ssl failed: No such host is known. <br />Unable to send email using PHP SMTP. Your server might not be configured to send mail using this method.<br /><pre>Date: Sat, 8 Nov 2025 19:46:29 +0100
+From: &quot;RMS Admin&quot; &lt;charakaucsc@gmail.com&gt;
+Return-Path: &lt;charakaucsc@gmail.com&gt;
+To: charakaucsc@gmail.com
+Subject: =?UTF-8?Q?Activation=20of=20Recruiter=20Account?=
+Reply-To: &lt;charakaucsc@gmail.com&gt;
+User-Agent: CodeIgniter
+X-Sender: charakaucsc@gmail.com
+X-Mailer: CodeIgniter
+X-Priority: 3 (Normal)
+Message-ID: &lt;690f90051bba1@gmail.com&gt;
+Mime-Version: 1.0
+
+
+Content-Type: multipart/alternative; boundary=&quot;B_ALT_690f90051bbad&quot;
+
+This is a multi-part message in MIME format.
+Your email application may not support this format.
+
+--B_ALT_690f90051bbad
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+New Recruiter Registration
+Username: ucsc
+Email: charakaucsc@gmail.com
+Activate Recruiter Account
+
+
+--B_ALT_690f90051bbad
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+=0A=09=09=09=09&lt;html&gt;=0A=09=09=09=09&lt;head&gt;=0A=09=09=09=09=09&lt;title&gt;Activate=
+ Recruiter&lt;/title&gt;=0A=09=09=09=09&lt;/head&gt;=0A=09=09=09=09&lt;body&gt;=0A=09=09=09=
+=09=09&lt;h3&gt;New Recruiter Registration&lt;/h3&gt;=0A=09=09=09=09=09&lt;p&gt;&lt;strong&gt;Usern=
+ame:&lt;/strong&gt; ucsc&lt;/p&gt;=0A=09=09=09=09=09&lt;p&gt;&lt;strong&gt;Email:&lt;/strong&gt; charakau=
+csc@gmail.com&lt;/p&gt;=0A=09=09=09=09=09&lt;p&gt;&lt;a href=3D&#039;http://localhost/rms/index=
+.php/Login/activate_rec/ucsc&#039; style=3D&#039;background-color: #4CAF50; color: wh=
+ite; padding: 10px 20px; text-decoration: none; border-radius: 5px;&#039;&gt;Activa=
+te Recruiter Account&lt;/a&gt;&lt;/p&gt;=0A=09=09=09=09&lt;/body&gt;=0A=09=09=09=09&lt;/html&gt;
+
+--B_ALT_690f90051bbad--</pre>
+
+2025-11-08 19:47:32 - The following SMTP error was encountered: 0 php_network_getaddresses: getaddrinfo for ssl failed: No such host is known. <br />Unable to send email using PHP SMTP. Your server might not be configured to send mail using this method.<br /><pre>Date: Sat, 8 Nov 2025 19:47:29 +0100
+From: &quot;RMS Admin&quot; &lt;charakaucsc@gmail.com&gt;
+Return-Path: &lt;charakaucsc@gmail.com&gt;
+To: charakaucsc@gmail.com
+Subject: =?UTF-8?Q?Activation=20of=20Recruiter=20Account?=
+Reply-To: &lt;charakaucsc@gmail.com&gt;
+User-Agent: CodeIgniter
+X-Sender: charakaucsc@gmail.com
+X-Mailer: CodeIgniter
+X-Priority: 3 (Normal)
+Message-ID: &lt;690f9041e372b@gmail.com&gt;
+Mime-Version: 1.0
+
+
+Content-Type: multipart/alternative; boundary=&quot;B_ALT_690f9041e3738&quot;
+
+This is a multi-part message in MIME format.
+Your email application may not support this format.
+
+--B_ALT_690f9041e3738
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+New Recruiter Registration
+Username: ucsc
+Email: charakaucsc@gmail.com
+Activate Recruiter Account
+
+
+--B_ALT_690f9041e3738
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+=0A=09=09=09=09&lt;html&gt;=0A=09=09=09=09&lt;head&gt;=0A=09=09=09=09=09&lt;title&gt;Activate=
+ Recruiter&lt;/title&gt;=0A=09=09=09=09&lt;/head&gt;=0A=09=09=09=09&lt;body&gt;=0A=09=09=09=
+=09=09&lt;h3&gt;New Recruiter Registration&lt;/h3&gt;=0A=09=09=09=09=09&lt;p&gt;&lt;strong&gt;Usern=
+ame:&lt;/strong&gt; ucsc&lt;/p&gt;=0A=09=09=09=09=09&lt;p&gt;&lt;strong&gt;Email:&lt;/strong&gt; charakau=
+csc@gmail.com&lt;/p&gt;=0A=09=09=09=09=09&lt;p&gt;&lt;a href=3D&#039;http://localhost/rms/index=
+.php/Login/activate_rec/ucsc&#039; style=3D&#039;background-color: #4CAF50; color: wh=
+ite; padding: 10px 20px; text-decoration: none; border-radius: 5px;&#039;&gt;Activa=
+te Recruiter Account&lt;/a&gt;&lt;/p&gt;=0A=09=09=09=09&lt;/body&gt;=0A=09=09=09=09&lt;/html&gt;
+
+--B_ALT_690f9041e3738--</pre>
+

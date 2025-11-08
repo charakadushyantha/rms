@@ -1,0 +1,54 @@
+================================================================================
+                    EMAIL FIX APPLIED - READY TO TEST
+================================================================================
+
+PROBLEM IDENTIFIED:
+-------------------
+The error log showed: "php_network_getaddresses: getaddrinfo for ssl failed"
+
+This was caused by using 'ssl://smtp.gmail.com' as the hostname, which PHP 
+couldn't resolve properly.
+
+SOLUTION APPLIED:
+-----------------
+1. Changed SMTP host from 'ssl://smtp.gmail.com' to 'smtp.gmail.com'
+2. Changed port from 465 (SSL) to 587 (TLS) - more reliable
+3. Changed encryption from 'ssl' to 'tls'
+4. Updated both sendmail() and forgot_pass_process() functions
+
+NEW CONFIGURATION:
+------------------
+Protocol: SMTP
+Host: smtp.gmail.com (without ssl:// prefix)
+Port: 587
+Encryption: TLS
+Username: charakaucsc@gmail.com
+Password: Your App Password (from Google)
+
+FILES MODIFIED:
+---------------
+✓ application/controllers/Login.php - Updated email configuration
+✓ application/config/email.php - Fixed hostname
+✓ application/config/config.php - Enabled logging
+
+NEXT STEPS:
+-----------
+1. Make sure you updated SENDER_PASSWORD in application/config/constants.php
+   with your 16-character App Password from Google
+
+2. Try creating a new account now
+
+3. If it still fails, check email_error.log for the new error message
+
+4. The account will be created even if email fails, so you can still login
+
+VERIFICATION:
+-------------
+✓ PHP can connect to smtp.gmail.com:587
+✓ OpenSSL is enabled
+✓ DNS resolution works
+✓ All required extensions loaded
+
+The email should work now!
+
+================================================================================

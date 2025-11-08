@@ -127,40 +127,7 @@ class Candidate_model extends CI_Model
   }
 
 
- //repprt details
- public function get_job_stats()
- {
-     $username = $this->session->userdata('username');
-     
-     // Query to get stats for specific recruiter
-     $this->db->select('cd_job_title, COUNT(*) as total_count, 
-                     SUM(CASE WHEN cd_status = "Shortlisted" THEN 1 ELSE 0 END) as shortlisted,
-                     SUM(CASE WHEN cd_status = "Selected" THEN 1 ELSE 0 END) as selected,
-                     SUM(CASE WHEN cd_status = "In Review" THEN 1 ELSE 0 END) as in_review,
-                     SUM(CASE WHEN cd_status = "Interested" THEN 1 ELSE 0 END) as interested');
-     $this->db->from(TBL_CANDIDATE_DETAILS);
-     $this->db->where('cd_rec_username', $username);
-     $this->db->group_by('cd_job_title');
-     
-     $query = $this->db->get();
-     return $query->result_array();
- }
  
- public function get_all_job_stats()
- {
-     // Query to get stats for all recruiters
-     $this->db->select('cd_job_title, COUNT(*) as total_count, 
-                     SUM(CASE WHEN cd_status = "Shortlisted" THEN 1 ELSE 0 END) as shortlisted,
-                     SUM(CASE WHEN cd_status = "Selected" THEN 1 ELSE 0 END) as selected,
-                     SUM(CASE WHEN cd_status = "In Review" THEN 1 ELSE 0 END) as in_review,
-                     SUM(CASE WHEN cd_status = "Interested" THEN 1 ELSE 0 END) as interested');
-     $this->db->from(TBL_CANDIDATE_DETAILS);
-     $this->db->group_by('cd_job_title');
-     
-     $query = $this->db->get();
-     return $query->result_array();
- }
-
 
 }
 

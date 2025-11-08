@@ -87,18 +87,5 @@ class Signup_model extends CI_Model {
 
 
 
-// report  model
-public function get_recruiter_stats()
-{
-    // Query to get stats about recruiters
-    $this->db->select('u.u_username, u.u_email, COUNT(cd.cd_id) as total_candidates, 
-                       SUM(CASE WHEN cd.cd_status = "Selected" THEN 1 ELSE 0 END) as candidates_selected');
-    $this->db->from(TBL_USERS . ' as u');
-    $this->db->join(TBL_CANDIDATE_DETAILS . ' as cd', 'u.u_username = cd.cd_rec_username', 'left');
-    $this->db->where('u.u_role', 'Recruiter');
-    $this->db->group_by(array('u.u_username', 'u.u_email'));
-    
-    $query = $this->db->get();
-    return $query->result_array();
-}
+
 }

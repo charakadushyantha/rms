@@ -136,46 +136,64 @@ class Login extends CI_Controller {
 		$rec_username = $this->input->post('username');
 		$rec_email   = $this->input->post('useremail');
 
+		try {
+			// Load email configuration
+			$config = array(
+				'protocol'    => 'smtp',
+				'smtp_host'   => 'smtp.gmail.com',
+				'smtp_port'   => 587,
+				'smtp_timeout' => 60,
+				'smtp_user'   => SENDER_EMAIL,
+				'smtp_pass'   => SENDER_PASSWORD,
+				'smtp_crypto' => 'tls',
+				'charset'     => 'utf-8',
+				'newline'     => "\r\n",
+				'mailtype'    => 'html',
+				'validation'  => TRUE,
+				'crlf'        => "\r\n",
+				'wordwrap'    => TRUE
+			);
+			
+			$this->load->library('email', $config);
 
-    $subject = "Activation of Recruiter Account ";
-    $config['protocol']    = 'smtp';
-    $config['smtp_host']    = 'ssl://smtp.gmail.com';
-    $config['smtp_port']    = '465';
-    $config['smtp_timeout'] = '60';
-    $config['smtp_user']    =  SENDER_EMAIL;  //Important
-    $config['smtp_pass']    =  SENDER_PASSWORD;  //Important
-    $config['charset']    = 'utf-8';
-    $config['newline']    = "\r\n";
-    $config['mailtype'] = 'html'; // or html
-    $config['validation'] = TRUE; // bool whether to validate email or not
-
-		$this->load->library('email', $config);
-    $this->email->initialize($config);
-
-      $this->email->set_newline("\r\n");
-      $this->email->from(SENDER_EMAIL);
-      $this->email->to(SENDER_EMAIL);
-      $this->email->subject($subject);
-      $message = 	"
-            <html>
-            <head>
-              <title>Activate Recruiter</title>
-            </head>
-            <body>
-							 <h3>Recruiter Username : ".$rec_username ."<br/>
-												Recruiter Email : ".$rec_email."</h3>
-              <h4><a href='http://localhost/rms/index.php/Login/activate_rec/".$rec_username."'>Activate Recruiter Account</a></h4>
-            </body>
-            </html>
-            ";
-         $this->email->message($message);
-         if($this->email->send())
-				 {
-					 return TRUE;
-				 }
-				 else {
-				 	return FALSE;
-				 }
+			$this->email->from(SENDER_EMAIL, 'RMS Admin');
+			$this->email->to(SENDER_EMAIL);
+			$this->email->subject('Activation of Recruiter Account');
+			
+			$message = "
+				<html>
+				<head>
+					<title>Activate Recruiter</title>
+				</head>
+				<body>
+					<h3>New Recruiter Registration</h3>
+					<p><strong>Username:</strong> ".$rec_username."</p>
+					<p><strong>Email:</strong> ".$rec_email."</p>
+					<p><a href='".BASE_URL."/index.php/Login/activate_rec/".$rec_username."' style='background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Activate Recruiter Account</a></p>
+				</body>
+				</html>
+			";
+			
+			$this->email->message($message);
+			
+			if($this->email->send())
+			{
+				log_message('info', 'Email sent successfully to: ' . SENDER_EMAIL);
+				return TRUE;
+			}
+			else {
+				// Log the error for debugging
+				$error = $this->email->print_debugger();
+				log_message('error', 'Email sending failed: ' . $error);
+				// Also log to a file for easier debugging
+				file_put_contents('email_error.log', date('Y-m-d H:i:s') . " - " . $error . "\n\n", FILE_APPEND);
+				return FALSE;
+			}
+		} catch (Exception $e) {
+			log_message('error', 'Email exception: ' . $e->getMessage());
+			file_put_contents('email_error.log', date('Y-m-d H:i:s') . " - Exception: " . $e->getMessage() . "\n\n", FILE_APPEND);
+			return FALSE;
+		}
 	}
 
 
@@ -197,19 +215,23 @@ class Login extends CI_Controller {
 		if($this->Login_model->email_exists())
 		{
 	    $subject = "Forgot Password ";
-	    $config['protocol']    = 'smtp';
-	    $config['smtp_host']    = 'ssl://smtp.gmail.com';
-	    $config['smtp_port']    = '465';
-	    $config['smtp_timeout'] = '60';
-	    $config['smtp_user']    = SENDER_EMAIL;    //Important
-	    $config['smtp_pass']    = SENDER_PASSWORD;  //Important
-	    $config['charset']    = 'utf-8';
-	    $config['newline']    = "\r\n";
-	    $config['mailtype'] = 'html'; // or html
-	    $config['validation'] = TRUE; // bool whether to validate email or not
+	    $config = array(
+				'protocol'    => 'smtp',
+				'smtp_host'   => 'smtp.gmail.com',
+				'smtp_port'   => 587,
+				'smtp_timeout' => 60,
+				'smtp_user'   => SENDER_EMAIL,
+				'smtp_pass'   => SENDER_PASSWORD,
+				'smtp_crypto' => 'tls',
+				'charset'     => 'utf-8',
+				'newline'     => "\r\n",
+				'mailtype'    => 'html',
+				'validation'  => TRUE,
+				'crlf'        => "\r\n",
+				'wordwrap'    => TRUE
+			);
 
 			$this->load->library('email', $config);
-	    $this->email->initialize($config);
 
 	      $this->email->set_newline("\r\n");
 	      $this->email->from(SENDER_EMAIL);

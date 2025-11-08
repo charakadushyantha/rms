@@ -1,0 +1,97 @@
+================================================================================
+                    QUICK FIX FOR EMAIL ERROR
+================================================================================
+
+PROBLEM: Gmail is rejecting your password because it's not an App Password.
+
+YOUR CURRENT SETTINGS:
+Email: charakaucsc@gmail.com
+Password: MIT@UCSC@2020 (This is a regular password - WON'T WORK!)
+
+================================================================================
+                         SOLUTION (5 MINUTES)
+================================================================================
+
+STEP 1: Enable 2-Factor Authentication
+---------------------------------------
+1. Go to: https://myaccount.google.com/security
+2. Click "2-Step Verification"
+3. Follow the steps to enable it (you'll need your phone)
+
+STEP 2: Generate App Password
+------------------------------
+1. Go to: https://myaccount.google.com/apppasswords
+2. In "Select app" dropdown: Choose "Mail"
+3. In "Select device" dropdown: Choose "Windows Computer" (or Other)
+4. Click "Generate"
+5. You'll see a 16-character password like: "abcd efgh ijkl mnop"
+6. COPY THIS PASSWORD!
+
+STEP 3: Update Your Code
+-------------------------
+1. Open: application/config/constants.php
+2. Find line 94 (around there)
+3. Change this:
+   define('SENDER_PASSWORD','MIT@UCSC@2020');
+   
+   To this (use YOUR generated password):
+   define('SENDER_PASSWORD','abcd efgh ijkl mnop');
+   
+4. Save the file
+
+STEP 4: Test
+------------
+1. Try creating a new account
+2. Check if email is sent
+3. If still failing, check: email_error.log
+
+================================================================================
+                    ALTERNATIVE: USE MAILTRAP (EASIER!)
+================================================================================
+
+If Gmail is too complicated, use Mailtrap for testing:
+
+1. Sign up FREE at: https://mailtrap.io
+2. Go to your inbox and copy credentials
+3. Update application/config/email.php:
+
+   $config['smtp_host']   = 'smtp.mailtrap.io';
+   $config['smtp_port']   = 2525;
+   $config['smtp_user']   = 'your_mailtrap_username';
+   $config['smtp_pass']   = 'your_mailtrap_password';
+   $config['smtp_crypto'] = 'tls';
+
+4. Update application/config/constants.php:
+   define('SENDER_EMAIL','test@example.com');
+   define('SENDER_PASSWORD','not_used_with_mailtrap');
+
+Mailtrap will catch all emails - perfect for testing!
+
+================================================================================
+                         DEBUGGING TOOLS
+================================================================================
+
+1. Test SMTP Connection:
+   http://localhost/rms/test_email.php
+
+2. Check Error Logs:
+   - application/logs/log-2025-03-21.php
+   - email_error.log (in root folder)
+
+3. Verify OpenSSL is enabled:
+   Open: C:\xampp\php\php.ini
+   Find: extension=openssl
+   Make sure there's NO semicolon before it
+   Restart Apache
+
+================================================================================
+                         NEED HELP?
+================================================================================
+
+After trying to create an account, check these files and share the errors:
+1. email_error.log
+2. application/logs/log-YYYY-MM-DD.php
+
+The error message will tell us exactly what's wrong!
+
+================================================================================
