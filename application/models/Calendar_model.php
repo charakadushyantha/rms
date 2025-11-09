@@ -17,16 +17,26 @@ class Calendar_model extends CI_Model
 
   public function add_event()
   {
+    // Convert datetime-local format (YYYY-MM-DDTHH:MM) to MySQL datetime format (YYYY-MM-DD HH:MM:SS)
+    $start_date = str_replace('T', ' ', $this->input->post('sdate')) . ':00';
+    $end_date = str_replace('T', ' ', $this->input->post('edate')) . ':00';
+    
     $data = array(
       'ce_rec_username' => $this->session->userdata('username'),
       'ce_can_name' => $this->input->post('can_name'),
-      'ce_start_date' => $this->input->post('sdate'),
-      'ce_end_date' => $this->input->post('edate'),
+      'ce_start_date' => $start_date,
+      'ce_end_date' => $end_date,
       'ce_interviewer' => $this->input->post('Interviewer'),
       'ce_id'          => $this->input->post('can_id')
     );
-      $res = $this->db->insert(TBL_CALENDAR, $data);
-      return $res;
+    
+    // Add interview_round if provided
+    if($this->input->post('interview_round')) {
+      $data['ce_interview_round'] = $this->input->post('interview_round');
+    }
+    
+    $res = $this->db->insert(TBL_CALENDAR, $data);
+    return $res;
   }
 
   public function update_event($id, $data)

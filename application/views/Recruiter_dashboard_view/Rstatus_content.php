@@ -175,6 +175,36 @@
   background: #e5e7eb;
 }
 
+.btn-view {
+  background: #10b981;
+  color: white;
+}
+
+.btn-view:hover:not(:disabled) {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+.btn-reschedule {
+  background: #f59e0b;
+  color: white;
+}
+
+.btn-reschedule:hover:not(:disabled) {
+  background: #d97706;
+  transform: translateY(-1px);
+}
+
+.btn-cancel {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-cancel:hover:not(:disabled) {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
 .empty-state {
   text-align: center;
   padding: 3rem 2rem;
@@ -185,6 +215,72 @@
   font-size: 3rem;
   margin-bottom: 1rem;
   opacity: 0.5;
+}
+
+/* SweetAlert2 Custom Styles */
+.swal2-popup {
+  border-radius: 16px;
+  padding: 2rem;
+  font-family: 'Inter', sans-serif;
+}
+
+.swal2-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.swal2-html-container {
+  font-size: 1rem;
+  color: #6b7280;
+}
+
+.swal2-confirm {
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  transition: all 0.3s;
+}
+
+.swal2-confirm:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.swal2-cancel {
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+}
+
+.swal2-icon {
+  border-width: 3px;
+}
+
+.swal2-icon.swal2-success .swal2-success-ring {
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.swal2-icon.swal2-success [class^='swal2-success-line'] {
+  background-color: #10b981;
+}
+
+.swal2-icon.swal2-error {
+  border-color: #ef4444;
+}
+
+.swal2-icon.swal2-error [class^='swal2-x-mark-line'] {
+  background-color: #ef4444;
+}
+
+.swal2-icon.swal2-warning {
+  border-color: #f59e0b;
+  color: #f59e0b;
+}
+
+.swal2-timer-progress-bar {
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
 }
 
 @media (max-width: 768px) {
@@ -205,6 +301,10 @@
   .modern-table th,
   .modern-table td {
     padding: 0.75rem 0.5rem;
+  }
+  
+  .swal2-popup {
+    padding: 1.5rem;
   }
 }
 </style>
@@ -231,16 +331,33 @@
             <th>Email</th>
             <th>Phone</th>
             <th>Status</th>
-            <th>Scheduled</th>
+            <th>Interview Status</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           <?php if(isset($can_details) && $can_details->num_rows() > 0): ?>
-            <?php $i = 1; foreach ($can_details->result_array() as $row): ?>
+            <?php 
+            $i = 1; 
+            foreach ($can_details->result_array() as $row): 
+              // Get interview details if scheduled
+              $interview = null;
+              if($row['cd_interview_status'] == 1) {
+                $interview = $this->db->select('ce_id, ce_start_date, ce_end_date, ce_interviewer, ce_interview_round')
+                                      ->where('ce_id', $row['cd_id'])
+                                      ->get(TBL_CALENDAR)
+                                      ->row();
+              }
+            ?>
               <tr>
                 <td><?php echo $i++; ?></td>
-                <td><strong><?php echo htmlspecialchars($row['cd_name']); ?></strong></td>
+                <td>
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <img src="<?= base_url('Assets/Admin_Dashboard/img/profile/' . ($row['cd_gender'] === 'Female' ? 'femaleprofile.png' : 'maleprofile.png')) ?>" 
+                         style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
+                    <strong><?php echo htmlspecialchars($row['cd_name']); ?></strong>
+                  </div>
+                </td>
                 <td><?php echo htmlspecialchars($row['cd_job_title']); ?></td>
                 <td><?php echo htmlspecialchars($row['cd_email']); ?></td>
                 <td><?php echo htmlspecialchars($row['cd_phone']); ?></td>
@@ -256,31 +373,68 @@
                     <?php echo htmlspecialchars($status); ?>
                   </span>
                 </td>
-                <td style="text-align: center;">
-                  <?php if($row['cd_interview_status'] == 1): ?>
-                    <i class="fas fa-check-circle check-icon"></i>
+                <td>
+                  <?php if($row['cd_interview_status'] == 1 && $interview): ?>
+                    <div style="font-size: 0.85rem;">
+                      <div style="display: flex; align-items: center; gap: 5px; margin-bottom: 4px;">
+                        <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                        <strong>Scheduled</strong>
+                      </div>
+                      <div style="color: #6b7280; font-size: 0.8rem;">
+                        <div><i class="far fa-calendar"></i> <?php echo date('M d, Y', strtotime($interview->ce_start_date)); ?></div>
+                        <div><i class="far fa-clock"></i> <?php echo date('h:i A', strtotime($interview->ce_start_date)); ?></div>
+                        <div><i class="fas fa-user-tie"></i> <?php echo htmlspecialchars($interview->ce_interviewer); ?></div>
+                        <?php if(isset($interview->ce_interview_round)): ?>
+                          <div><i class="fas fa-layer-group"></i> Round <?php echo round($interview->ce_interview_round * 4); ?></div>
+                        <?php endif; ?>
+                      </div>
+                    </div>
                   <?php else: ?>
-                    <i class="fas fa-times-circle times-icon"></i>
+                    <div style="display: flex; align-items: center; gap: 5px; color: #9ca3af;">
+                      <i class="fas fa-times-circle"></i>
+                      <span>Not Scheduled</span>
+                    </div>
                   <?php endif; ?>
                 </td>
                 <td>
-                  <div style="display: flex; gap: 0.5rem;">
+                  <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                     <?php if($row['cd_interview_status'] == 1): ?>
-                      <button class="btn-action btn-schedule" disabled>
-                        <i class="fas fa-calendar-check"></i>
-                        Scheduled
+                      <button 
+                        class="btn-action btn-view" 
+                        onclick="viewInterviewDetails(<?php echo $row['cd_id']; ?>)"
+                        title="View interview details"
+                      >
+                        <i class="fas fa-eye"></i>
+                        View
+                      </button>
+                      <button 
+                        class="btn-action btn-reschedule" 
+                        onclick="rescheduleInterview(<?php echo $row['cd_id']; ?>)"
+                        title="Reschedule this interview"
+                      >
+                        <i class="fas fa-calendar-alt"></i>
+                        Reschedule
+                      </button>
+                      <button 
+                        class="btn-action btn-cancel" 
+                        onclick="cancelInterview(<?php echo $row['cd_id']; ?>)"
+                        title="Cancel this interview"
+                      >
+                        <i class="fas fa-times"></i>
+                        Cancel
                       </button>
                     <?php else: ?>
                       <button 
                         class="btn-action btn-schedule" 
                         onclick="scheduleInterview(<?php echo $row['cd_id']; ?>)"
                         <?php echo ($row['cd_status'] != 'Interested') ? 'disabled' : ''; ?>
+                        title="<?php echo ($row['cd_status'] != 'Interested') ? 'Candidate must be interested to schedule' : 'Schedule an interview'; ?>"
                       >
                         <i class="fas fa-calendar-plus"></i>
                         Schedule
                       </button>
                     <?php endif; ?>
-                    <button class="btn-action btn-edit" onclick="editCandidate(<?php echo $row['cd_id']; ?>)">
+                    <button class="btn-action btn-edit" onclick="editCandidate(<?php echo $row['cd_id']; ?>)" title="Edit candidate details">
                       <i class="fas fa-edit"></i>
                       Edit
                     </button>
@@ -303,67 +457,6 @@
     </div>
   </div>
 </div>
-
-<script>
-// Search functionality
-document.getElementById('searchInput').addEventListener('keyup', function() {
-  const searchTerm = this.value.toLowerCase();
-  const table = document.getElementById('candidateTable');
-  const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
-  
-  for(let row of rows) {
-    const text = row.textContent.toLowerCase();
-    row.style.display = text.includes(searchTerm) ? '' : 'none';
-  }
-});
-
-function scheduleInterview(candidateId) {
-  // Fetch candidate details
-  fetch('<?= base_url("R_dashboard/get_candidate_details/") ?>' + candidateId)
-    .then(response => response.json())
-    .then(data => {
-      if(data.success) {
-        // Populate schedule modal
-        document.getElementById('schedule_candidate_id').value = data.candidate.cd_id;
-        document.getElementById('schedule_candidate_name').value = data.candidate.cd_name;
-        document.getElementById('schedule_position').value = data.candidate.cd_job_title;
-        
-        // Show modal
-        const modal = new bootstrap.Modal(document.getElementById('scheduleInterviewModal'));
-        modal.show();
-      }
-    });
-}
-
-function editCandidate(candidateId) {
-  // Fetch candidate details via AJAX
-  fetch('<?= base_url("R_dashboard/get_candidate_details/") ?>' + candidateId)
-    .then(response => response.json())
-    .then(data => {
-      if(data.success) {
-        // Populate edit modal with candidate data
-        document.getElementById('edit_candidate_id').value = data.candidate.cd_id;
-        document.getElementById('edit_candidate_name').value = data.candidate.cd_name;
-        document.getElementById('edit_candidate_email').value = data.candidate.cd_email;
-        document.getElementById('edit_candidate_phone').value = data.candidate.cd_phone;
-        document.getElementById('edit_job_title').value = data.candidate.cd_job_title;
-        document.getElementById('edit_source').value = data.candidate.cd_source;
-        document.getElementById('edit_candidate_status').value = data.candidate.cd_status;
-        
-        // Show modal
-        const modal = new bootstrap.Modal(document.getElementById('editCandidateModal'));
-        modal.show();
-      } else {
-        alert('Failed to load candidate details');
-      }
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      alert('Error loading candidate details');
-    });
-}
-</script>
-
 <!-- Schedule Interview Modal -->
 <div class="modal fade" id="scheduleInterviewModal" tabindex="-1">
   <div class="modal-dialog">
@@ -374,7 +467,7 @@ function editCandidate(candidateId) {
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <form action="<?= base_url('R_dashboard/schedule_interview') ?>" method="post">
+      <form action="<?= base_url('R_dashboard/schedule_interview') ?>" method="post" id="scheduleInterviewForm">
         <div class="modal-body">
           <input type="hidden" name="candidate_id" id="schedule_candidate_id">
           
@@ -403,7 +496,6 @@ function editCandidate(candidateId) {
             <label class="form-label">Interviewer(s) <span style="color: red;">*</span></label>
             <select class="form-select" name="interviewers[]" id="interviewers" multiple required style="min-height: 100px;">
               <?php
-              // Get all users who can be interviewers (admins and recruiters)
               $interviewers = $this->db->select('u_username, u_email, u_role')
                                        ->where_in('u_role', array('Admin', 'Recruiter'))
                                        ->get(TBL_USERS)
@@ -460,71 +552,6 @@ function editCandidate(candidateId) {
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
           <button type="submit" class="btn btn-primary-modern btn-modern">
             <i class="fas fa-calendar-check me-2"></i>Schedule Interview
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- Edit Candidate Modal -->
-<div class="modal fade" id="editCandidateModal" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Edit Candidate</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <form action="<?= base_url('R_dashboard/update_candidate') ?>" method="post">
-        <div class="modal-body">
-          <input type="hidden" name="candidate_id" id="edit_candidate_id">
-          
-          <div class="mb-3">
-            <label class="form-label">Full Name</label>
-            <input type="text" class="form-control" name="candidate_name" id="edit_candidate_name" required>
-          </div>
-          
-          <div class="mb-3">
-            <label class="form-label">Email</label>
-            <input type="email" class="form-control" name="candidate_email" id="edit_candidate_email" required>
-          </div>
-          
-          <div class="mb-3">
-            <label class="form-label">Phone</label>
-            <input type="tel" class="form-control" name="candidate_phone" id="edit_candidate_phone" required>
-          </div>
-          
-          <div class="mb-3">
-            <label class="form-label">Position</label>
-            <input type="text" class="form-control" name="job_title" id="edit_job_title" required>
-          </div>
-          
-          <div class="mb-3">
-            <label class="form-label">Source</label>
-            <select class="form-select" name="source" id="edit_source">
-              <option value="LinkedIn">LinkedIn</option>
-              <option value="Indeed">Indeed</option>
-              <option value="Company Website">Company Website</option>
-              <option value="Referral">Referral</option>
-              <option value="Job Fair">Job Fair</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-          
-          <div class="mb-3">
-            <label class="form-label">Status</label>
-            <select class="form-select" name="candidate_status" id="edit_candidate_status">
-              <option value="Interested">Interested</option>
-              <option value="Not Picking up Call">Not Picking up Call</option>
-              <option value="Not Interested">Not Interested</option>
-              <option value="Call Back Later">Call Back Later</option>
-            </select>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary-modern btn-modern">
-            <i class="fas fa-save me-2"></i>Update Candidate
           </button>
         </div>
       </form>

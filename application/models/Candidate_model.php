@@ -25,7 +25,7 @@ class Candidate_model extends CI_Model
   public function last_candidate($data)
   {
    // $query = $this->db->query("select cd_name from ".TBL_CANDIDATE_DETAILS." where cd_rec_username =".$data['uname']." order by cd_id DESC limit 5");
-    $this->db->select('cd_name');
+    $this->db->select('cd_id, cd_name, cd_email, cd_phone, cd_gender, cd_job_title, cd_source, cd_status, cd_resume_link');
     $this->db->where('cd_rec_username',$data['uname']);
     $this->db->order_by('cd_id','DESC');
     $this->db->limit(5);

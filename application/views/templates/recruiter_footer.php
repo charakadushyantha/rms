@@ -14,6 +14,9 @@
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <!-- DataTables JS (if needed) -->
     <?php if(isset($use_datatable) && $use_datatable): ?>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
@@ -34,18 +37,26 @@
     
     <!-- Main Script -->
     <script>
-        // Sidebar Toggle
-        document.getElementById('sidebarToggle').addEventListener('click', function() {
+        // Sidebar Toggle - with null check
+        function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const mainContent = document.getElementById('mainContent');
             
-            if (window.innerWidth <= 768) {
-                sidebar.classList.toggle('mobile-show');
-            } else {
-                sidebar.classList.toggle('collapsed');
-                mainContent.classList.toggle('expanded');
+            if (sidebar && mainContent) {
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.toggle('mobile-show');
+                } else {
+                    sidebar.classList.toggle('collapsed');
+                    mainContent.classList.toggle('expanded');
+                }
             }
-        });
+        }
+        
+        // Attach to toggle button if it exists
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', toggleSidebar);
+        }
 
         // Close sidebar on mobile when clicking outside
         document.addEventListener('click', function(event) {
@@ -53,7 +64,7 @@
                 const sidebar = document.getElementById('sidebar');
                 const sidebarToggle = document.getElementById('sidebarToggle');
                 
-                if (!sidebar.contains(event.target) && !sidebarToggle.contains(event.target)) {
+                if (sidebar && sidebarToggle && !sidebar.contains(event.target) && !sidebarToggle.contains(event.target)) {
                     sidebar.classList.remove('mobile-show');
                 }
             }
@@ -97,7 +108,59 @@
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });
+        
+        // SweetAlert2 Toast Configuration - wait for Swal to load
+        if (typeof Swal !== 'undefined') {
+            window.Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer)
+                    toast.addEventListener('mouseleave', Swal.resumeTimer)
+                },
+                customClass: {
+                    popup: 'colored-toast'
+                }
+            });
+        } else {
+            console.error('SweetAlert2 not loaded!');
+        }
     </script>
+    
+    <style>
+        /* Toast custom styles */
+        .colored-toast.swal2-icon-success {
+            background-color: #d1fae5 !important;
+            color: #065f46 !important;
+        }
+        
+        .colored-toast.swal2-icon-error {
+            background-color: #fee2e2 !important;
+            color: #991b1b !important;
+        }
+        
+        .colored-toast.swal2-icon-warning {
+            background-color: #fef3c7 !important;
+            color: #92400e !important;
+        }
+        
+        .colored-toast.swal2-icon-info {
+            background-color: #dbeafe !important;
+            color: #1e40af !important;
+        }
+        
+        .colored-toast .swal2-title {
+            color: inherit !important;
+            font-size: 1rem !important;
+        }
+        
+        .colored-toast .swal2-icon {
+            border-color: currentColor !important;
+        }
+    </style>
     
     <?php if(isset($custom_script)): ?>
     <script>

@@ -164,8 +164,9 @@ class R_dashboard extends CI_Controller
 
     public function Rschedule_view()
     {
-      $data['uname'] = $this->session->userdata('username');
-      $this->load->view('Recruiter_dashboard_view/Rschedule',$data);
+      // Redirect to pipeline page where scheduling is done via modal
+      $this->session->set_flashdata('info_msg', 'Select a candidate from the list below to schedule an interview.');
+      redirect('R_dashboard/Rstatus_view');
     }
 
     public function schedule_proc()
@@ -175,10 +176,12 @@ class R_dashboard extends CI_Controller
         if($this->Calendar_model->add_event())
         {
           $this->Candidate_model->update_interview_status();
+          $this->session->set_flashdata('success_msg', 'Interview scheduled successfully!');
           redirect(R_CALENDAR_URL);
         }
         else {
-          // not inserted in database
+          $this->session->set_flashdata('msg', 'Failed to schedule interview. Please try again.');
+          redirect(R_SCHEDULE_URL);
         }
       }
       else {
@@ -348,10 +351,10 @@ class R_dashboard extends CI_Controller
 
     public function schedule_btn_action()
     {
-      $data['can_id'] = $this->uri->segment(3);
-      $data['uname'] = $this->session->userdata('username');
-      $data['can_name'] = $this->Candidate_model->get_cname($data);
-      $this->load->view('Recruiter_dashboard_view/Rschedule',$data);
+      $can_id = $this->uri->segment(3);
+      // Redirect to pipeline page with candidate ID to auto-open modal
+      $this->session->set_flashdata('schedule_candidate_id', $can_id);
+      redirect('R_dashboard/Rstatus_view');
     }
 
     public function upload_profile_picture()
@@ -572,6 +575,88 @@ class R_dashboard extends CI_Controller
         }
 
         redirect('R_dashboard/Raccount_details_view');
+    }
+
+    public function get_interview_details($candidate_id)
+    {
+        if (!$this->session->userdata('authenticated')) {
+            echo json_encode(['success' => false, 'message' => 'Not authenticated']);
+            return;
+        }
+
+        // Get candidate and interview details
+        $this->db->select('cd.*, ce.*');
+        $this->db->from(TBL_CANDIDATE_DETAILS . ' cd');
+        $this->db->join(TBL_CALENDAR . ' ce', 'cd.cd_id = ce.ce_id', 'left');
+        $this->db->where('cd.cd_id', $candidate_id);
+        $interview = $this->db->get()->row_array();
+
+        if ($interview) {
+            echo json_encode(['success' => true, 'interview' => $interview]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Interview not found']);
+        }
+    }
+
+    public function reschedule_interview()
+    {
+        if (!$this->session->userdata('authenticated')) {
+            redirect(LOGIN_URL);
+        }
+
+        $candidate_id = $this->input->post('candidate_id');
+        $interview_date = $this->input->post('interview_date');
+        $interview_time = $this->input->post('interview_time');
+        $interview_round = $this->input->post('interview_round');
+        $interviewer = $this->input->post('interviewer');
+
+        // Combine date and time
+        $start_datetime = $interview_date . ' ' . $interview_time;
+        
+        // Calculate end time (1 hour later)
+        $end_datetime = date('Y-m-d H:i:s', strtotime($start_datetime . ' +1 hour'));
+
+        // Update the interview in calendar
+        $update_data = array(
+            'ce_start_date' => $start_datetime,
+            'ce_end_date' => $end_datetime,
+            'ce_interviewer' => $interviewer,
+            'ce_interview_round' => $interview_round
+        );
+
+        $this->db->where('ce_id', $candidate_id);
+        
+        if ($this->db->update(TBL_CALENDAR, $update_data)) {
+            $this->session->set_flashdata('success_msg', 'Interview rescheduled successfully!');
+        } else {
+            $this->session->set_flashdata('error_msg', 'Failed to reschedule interview.');
+        }
+
+        redirect('R_dashboard/Rstatus_view');
+    }
+
+    public function cancel_interview()
+    {
+        if (!$this->session->userdata('authenticated')) {
+            echo json_encode(['success' => false, 'message' => 'Not authenticated']);
+            return;
+        }
+
+        $candidate_id = $this->input->post('candidate_id');
+
+        // Delete from calendar
+        $this->db->where('ce_id', $candidate_id);
+        $calendar_deleted = $this->db->delete(TBL_CALENDAR);
+
+        // Update candidate interview status
+        $this->db->where('cd_id', $candidate_id);
+        $candidate_updated = $this->db->update(TBL_CANDIDATE_DETAILS, array('cd_interview_status' => 0));
+
+        if ($calendar_deleted && $candidate_updated) {
+            echo json_encode(['success' => true, 'message' => 'Interview cancelled successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to cancel interview']);
+        }
     }
 
 }
