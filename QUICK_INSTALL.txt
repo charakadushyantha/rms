@@ -1,0 +1,109 @@
+QUICK INSTALLATION GUIDE - Company Settings Module
+==================================================
+
+ERROR: Table 'rmsdb.departments' doesn't exist
+SOLUTION: Create the tables using one of these methods:
+
+METHOD 1: PHP Installer (EASIEST - RECOMMENDED)
+------------------------------------------------
+1. Open your browser
+2. Go to: http://localhost/rms/install_company_settings.php
+3. Wait for success message
+4. Click "Go to Company Settings"
+5. Delete install_company_settings.php file
+
+METHOD 2: phpMyAdmin (MANUAL)
+------------------------------
+1. Open: http://localhost/phpmyadmin
+2. Click on database "rmsdb" in left sidebar
+3. Click "SQL" tab at the top
+4. Copy ALL the SQL below and paste it
+5. Click "Go" button
+
+--- COPY FROM HERE ---
+
+CREATE TABLE IF NOT EXISTS `company_settings` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `company_name` varchar(255) NOT NULL,
+  `company_email` varchar(255) NOT NULL,
+  `company_phone` varchar(50) DEFAULT NULL,
+  `company_logo` varchar(255) DEFAULT NULL,
+  `company_address` text DEFAULT NULL,
+  `company_city` varchar(100) DEFAULT NULL,
+  `company_state` varchar(100) DEFAULT NULL,
+  `company_country` varchar(100) DEFAULT NULL,
+  `company_postal_code` varchar(20) DEFAULT NULL,
+  `registration_number` varchar(100) DEFAULT NULL,
+  `tax_id` varchar(100) DEFAULT NULL,
+  `website` varchar(255) DEFAULT NULL,
+  `business_hours_start` time DEFAULT '09:00:00',
+  `business_hours_end` time DEFAULT '17:00:00',
+  `financial_year_start` date DEFAULT NULL,
+  `financial_year_end` date DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `departments` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `department_name` varchar(255) NOT NULL,
+  `department_head` varchar(255) DEFAULT NULL,
+  `description` text DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `branches` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `branch_name` varchar(255) NOT NULL,
+  `branch_code` varchar(50) NOT NULL,
+  `address` text DEFAULT NULL,
+  `city` varchar(100) DEFAULT NULL,
+  `state` varchar(100) DEFAULT NULL,
+  `country` varchar(100) DEFAULT NULL,
+  `postal_code` varchar(20) DEFAULT NULL,
+  `phone` varchar(50) DEFAULT NULL,
+  `email` varchar(255) DEFAULT NULL,
+  `manager` varchar(255) DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `branch_code` (`branch_code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO `company_settings` (`company_name`, `company_email`, `company_phone`, `website`, `business_hours_start`, `business_hours_end`) 
+VALUES ('Your Company Name', 'info@company.com', '+1-234-567-8900', 'https://www.company.com', '09:00:00', '17:00:00');
+
+INSERT INTO `departments` (`department_name`, `department_head`, `description`) VALUES
+('Human Resources', 'HR Manager', 'Manages recruitment, employee relations, and HR policies'),
+('Information Technology', 'IT Manager', 'Manages technology infrastructure and software development'),
+('Finance', 'Finance Manager', 'Handles financial planning, accounting, and budgeting'),
+('Marketing', 'Marketing Manager', 'Manages marketing campaigns and brand strategy');
+
+INSERT INTO `branches` (`branch_name`, `branch_code`, `city`, `state`, `country`, `phone`, `email`, `manager`) VALUES
+('Head Office', 'HQ001', 'New York', 'NY', 'USA', '+1-234-567-8900', 'hq@company.com', 'John Doe'),
+('Branch Office', 'BR001', 'Los Angeles', 'CA', 'USA', '+1-234-567-8901', 'la@company.com', 'Jane Smith');
+
+--- COPY UNTIL HERE ---
+
+METHOD 3: MySQL Command Line
+-----------------------------
+1. Open Command Prompt
+2. Navigate to: cd D:\dev\servers\xampp\htdocs\rms
+3. Run: D:\dev\servers\xampp\mysql\bin\mysql -u root -p rmsdb < database_migrations/company_settings_tables.sql
+4. Enter your MySQL password when prompted
+
+After Installation:
+-------------------
+- Access Company Settings: http://localhost/rms/Setup/company_settings
+- Create uploads folder: mkdir uploads\company
+- Delete install_company_settings.php for security
+
+Need Help?
+----------
+If you still get errors, check:
+1. Database name is correct (rmsdb)
+2. MySQL service is running
+3. Database user has CREATE TABLE permissions

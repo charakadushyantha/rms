@@ -17,6 +17,9 @@
     <!-- SweetAlert2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
+    <!-- Pipeline Functions -->
+    <script src="<?= base_url('Assets/js/pipeline-functions.js') ?>"></script>
+    
     <!-- DataTables JS (if needed) -->
     <?php if(isset($use_datatable) && $use_datatable): ?>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>

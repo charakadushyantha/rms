@@ -110,9 +110,57 @@ class Login extends CI_Controller {
 							echo "data fatch error";
 						}
 				}
+				else if($this->Login_model->check_interviewer_status())
+				{
+					$username = $this->input->post('username');
+            $password =$this->input->post('userpass');
+
+            $user = $this->Login_model->get_data($username, $password);
+
+            if($user){
+                $userdata = array(
+                    'id' => $user->u_id,
+                    'username' => $user->u_username,
+                    'email' => $user->u_email,
+										'Role' => $user->u_role,
+                    'authenticated' => TRUE
+                );
+
+          			$this->session->set_userdata($userdata);
+								// Redirect to Interviewer dashboard
+								redirect(base_url('I_dashboard'));
+										}
+						else {
+							echo "data fatch error";
+						}
+				}
+				else if($this->Login_model->check_candidate_status())
+				{
+					$username = $this->input->post('username');
+            $password =$this->input->post('userpass');
+
+            $user = $this->Login_model->get_data($username, $password);
+
+            if($user){
+                $userdata = array(
+                    'id' => $user->u_id,
+                    'username' => $user->u_username,
+                    'email' => $user->u_email,
+										'Role' => $user->u_role,
+                    'authenticated' => TRUE
+                );
+
+          			$this->session->set_userdata($userdata);
+								// Redirect to Candidate dashboard
+								redirect(base_url('C_dashboard'));
+										}
+						else {
+							echo "data fatch error";
+						}
+				}
 				else {
 					// Account is not activated
-					$this->session->set_flashdata('msgad','Account is not activated');
+					$this->session->set_flashdata('msgad','Account is not activated. Please contact administrator.');
 					redirect(LOGIN_URL);
 				}
 
@@ -203,7 +251,8 @@ class Login extends CI_Controller {
 	{
 		$uname = $this->uri->segment(3);
 		$this->db->where('u_username',$uname);
-		$this->db->update(TBL_USERS,array('u_status'=> 1));
+		// Use new string status instead of numeric
+		$this->db->update(TBL_USERS,array('u_status'=> 'Active'));
 		redirect(LOGIN_URL);
 	}
 
@@ -294,6 +343,13 @@ class Login extends CI_Controller {
 		}
 	}
 
-
+	public function logout()
+	{
+		// Destroy session
+		$this->session->sess_destroy();
+		
+		// Redirect to login page
+		redirect(LOGIN_URL);
+	}
 
 }

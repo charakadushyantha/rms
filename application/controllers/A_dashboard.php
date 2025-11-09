@@ -278,4 +278,3 @@ class A_dashboard extends CI_Controller
   }
 
 }
-?>

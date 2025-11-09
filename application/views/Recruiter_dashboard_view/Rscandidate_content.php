@@ -384,8 +384,119 @@ document.getElementById('searchInput').addEventListener('keyup', function() {
 });
 
 function viewCandidate(candidateId) {
-  // Add your view candidate details functionality
-  window.location.href = '<?php echo base_url("R_dashboard/view_candidate_details/"); ?>' + candidateId;
+  // Fetch candidate details via AJAX
+  $.ajax({
+    url: '<?php echo base_url("R_dashboard/get_candidate_details"); ?>',
+    type: 'POST',
+    data: { candidate_id: candidateId },
+    dataType: 'json',
+    success: function(response) {
+      if(response.success) {
+        const candidate = response.candidate;
+        let modalContent = `
+          <div class="modal fade" id="candidateModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+              <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, #f97316, #fb923c); color: white;">
+                  <h5 class="modal-title"><i class="fas fa-user-circle me-2"></i>Candidate Details</h5>
+                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <div class="detail-item">
+                        <label><i class="fas fa-user me-2"></i>Full Name</label>
+                        <p>${candidate.cd_name || 'N/A'}</p>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="detail-item">
+                        <label><i class="fas fa-briefcase me-2"></i>Job Title</label>
+                        <p>${candidate.cd_job_title || 'N/A'}</p>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="detail-item">
+                        <label><i class="fas fa-envelope me-2"></i>Email</label>
+                        <p>${candidate.cd_email || 'N/A'}</p>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="detail-item">
+                        <label><i class="fas fa-phone me-2"></i>Phone</label>
+                        <p>${candidate.cd_phone || 'N/A'}</p>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="detail-item">
+                        <label><i class="fas fa-venus-mars me-2"></i>Gender</label>
+                        <p>${candidate.cd_gender || 'N/A'}</p>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="detail-item">
+                        <label><i class="fas fa-info-circle me-2"></i>Status</label>
+                        <p><span class="badge bg-success">${candidate.cd_status || 'N/A'}</span></p>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="detail-item">
+                        <label><i class="fas fa-calendar me-2"></i>Interview Status</label>
+                        <p>${candidate.cd_interview_status == 1 ? '<span class="badge bg-info">Scheduled</span>' : '<span class="badge bg-secondary">Not Scheduled</span>'}</p>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="detail-item">
+                        <label><i class="fas fa-source me-2"></i>Source</label>
+                        <p>${candidate.cd_source || 'N/A'}</p>
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <div class="detail-item">
+                        <label><i class="fas fa-align-left me-2"></i>Description</label>
+                        <p>${candidate.cd_description || 'No description available'}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                  <a href="mailto:${candidate.cd_email}" class="btn btn-primary">
+                    <i class="fas fa-envelope me-2"></i>Contact
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        // Remove existing modal if any
+        $('#candidateModal').remove();
+        
+        // Append and show modal
+        $('body').append(modalContent);
+        $('#candidateModal').modal('show');
+        
+        // Clean up modal after it's hidden
+        $('#candidateModal').on('hidden.bs.modal', function() {
+          $(this).remove();
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: response.message || 'Failed to load candidate details'
+        });
+      }
+    },
+    error: function() {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to fetch candidate details'
+      });
+    }
+  });
 }
 
 function contactCandidate(email) {

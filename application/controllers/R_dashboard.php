@@ -502,7 +502,7 @@ class R_dashboard extends CI_Controller
         // Check if calendar table exists and what columns it has
         $tables = $this->db->list_tables();
         
-        if (in_array('calendar', $tables)) {
+        if (in_array('calendar_events', $tables) || in_array('calendar', $tables)) {
             // Insert into calendar
             $calendar_data = array(
                 'can_id' => $candidate_id,
@@ -513,7 +513,8 @@ class R_dashboard extends CI_Controller
             );
 
             // Check if created_at column exists
-            $fields = $this->db->list_fields('calendar');
+            $table_name = in_array('calendar_events', $tables) ? 'calendar_events' : 'calendar';
+            $fields = $this->db->list_fields($table_name);
             if (in_array('created_at', $fields)) {
                 $calendar_data['created_at'] = date('Y-m-d H:i:s');
             }
@@ -527,7 +528,7 @@ class R_dashboard extends CI_Controller
                 $calendar_data['interview_type'] = $interview_type;
             }
 
-            $this->db->insert('calendar', $calendar_data);
+            $this->db->insert($table_name, $calendar_data);
         }
 
         // Update candidate interview status and round (if column exists)
@@ -660,6 +661,3 @@ class R_dashboard extends CI_Controller
     }
 
 }
-
-
- ?>

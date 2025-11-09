@@ -64,7 +64,9 @@ class Signup_model extends CI_Model {
     $new_member_insert_data = array(
       'u_username' => $this->input->post('username'),
       'u_email'    => $this->input->post('useremail'),
-      'u_password' => md5($this->input->post('userpass'))
+      'u_password' => md5($this->input->post('userpass')),
+      'u_role'     => 'Recruiter', // Set default role
+      'u_status'   => 'Pending' // New users need activation
     );
 
     $insert = $this->db->insert(TBL_USERS,$new_member_insert_data);
@@ -79,7 +81,8 @@ class Signup_model extends CI_Model {
       'u_username' => $this->input->post('rec_username'),
       'u_email'    => $this->input->post('rec_email'),
       'u_password' => md5($this->input->post('rec_password')),
-      'u_status' => 1
+      'u_role'     => 'Recruiter', // Set default role
+      'u_status'   => 'Active' // This method seems to be for direct activation
     );
 
     $insert = $this->db->insert(TBL_USERS,$new_rec);

@@ -36,7 +36,11 @@ class Login_model extends CI_Model {
     $this->db->where('u_username',$this->input->post('username'));
     $this->db->where('u_password',md5($this->input->post('userpass')));
     $this->db->where('u_role','Recruiter');
-    $this->db->where('u_status',1);
+    // Only allow Active status (not Pending, Inactive, or Suspended)
+    $this->db->group_start();
+    $this->db->where('u_status', '1'); // Legacy active
+    $this->db->or_where('u_status', 'Active');
+    $this->db->group_end();
     $result = $this->db->get(TBL_USERS);
     if($result->num_rows() == 0)
     {
@@ -53,7 +57,51 @@ class Login_model extends CI_Model {
     $this->db->where('u_username',$this->input->post('username'));
     $this->db->where('u_password',md5($this->input->post('userpass')));
     $this->db->where('u_role','Admin');
-    $this->db->where('u_status',1);
+    // Only allow Active status (not Pending, Inactive, or Suspended)
+    $this->db->group_start();
+    $this->db->where('u_status', '1'); // Legacy active
+    $this->db->or_where('u_status', 'Active');
+    $this->db->group_end();
+    $result = $this->db->get(TBL_USERS);
+    if($result->num_rows() == 0)
+    {
+      return FALSE;
+    }
+    else {
+      return TRUE;
+    }
+  }
+
+  public function check_interviewer_status()
+  {
+    $this->db->where('u_username',$this->input->post('username'));
+    $this->db->where('u_password',md5($this->input->post('userpass')));
+    $this->db->where('u_role','Interviewer');
+    // Only allow Active status (not Pending, Inactive, or Suspended)
+    $this->db->group_start();
+    $this->db->where('u_status', '1'); // Legacy active
+    $this->db->or_where('u_status', 'Active');
+    $this->db->group_end();
+    $result = $this->db->get(TBL_USERS);
+    if($result->num_rows() == 0)
+    {
+      return FALSE;
+    }
+    else {
+      return TRUE;
+    }
+  }
+
+  public function check_candidate_status()
+  {
+    $this->db->where('u_username',$this->input->post('username'));
+    $this->db->where('u_password',md5($this->input->post('userpass')));
+    $this->db->where('u_role','Candidate');
+    // Only allow Active status (not Pending, Inactive, or Suspended)
+    $this->db->group_start();
+    $this->db->where('u_status', '1'); // Legacy active
+    $this->db->or_where('u_status', 'Active');
+    $this->db->group_end();
     $result = $this->db->get(TBL_USERS);
     if($result->num_rows() == 0)
     {

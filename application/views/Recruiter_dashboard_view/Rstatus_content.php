@@ -558,3 +558,213 @@
     </div>
   </div>
 </div>
+
+<!-- View Interview Modal -->
+<div class="modal fade" id="viewInterviewModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-eye me-2"></i>Interview Details
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label text-muted">Candidate Name</label>
+          <p class="fw-bold" id="view_candidate_name"></p>
+        </div>
+        
+        <div class="mb-3">
+          <label class="form-label text-muted">Position</label>
+          <p class="fw-bold" id="view_position"></p>
+        </div>
+        
+        <div class="mb-3">
+          <label class="form-label text-muted">Interview Date</label>
+          <p class="fw-bold" id="view_interview_date"></p>
+        </div>
+        
+        <div class="mb-3">
+          <label class="form-label text-muted">Interview Time</label>
+          <p class="fw-bold" id="view_interview_time"></p>
+        </div>
+        
+        <div class="mb-3">
+          <label class="form-label text-muted">Interviewer</label>
+          <p class="fw-bold" id="view_interviewer"></p>
+        </div>
+        
+        <div class="mb-3">
+          <label class="form-label text-muted">Interview Round</label>
+          <p class="fw-bold" id="view_round"></p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Reschedule Interview Modal -->
+<div class="modal fade" id="rescheduleInterviewModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-calendar-alt me-2"></i>Reschedule Interview
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="<?= base_url('R_dashboard/reschedule_interview') ?>" method="post" id="rescheduleInterviewForm">
+        <div class="modal-body">
+          <input type="hidden" name="candidate_id" id="reschedule_candidate_id">
+          
+          <div class="mb-3">
+            <label class="form-label">Candidate Name</label>
+            <input type="text" class="form-control" id="reschedule_candidate_name" readonly style="background: #f5f5f5;">
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Position</label>
+            <input type="text" class="form-control" id="reschedule_position" readonly style="background: #f5f5f5;">
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Interview Round <span style="color: red;">*</span></label>
+            <select class="form-select" name="interview_round" id="reschedule_round" required>
+              <option value="">Select Round</option>
+              <option value="0.25">Initial Screening</option>
+              <option value="0.5">First Round - Technical</option>
+              <option value="0.75">Second Round - HR</option>
+              <option value="1">Final Round</option>
+            </select>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Interviewer <span style="color: red;">*</span></label>
+            <select class="form-select" name="interviewer" id="reschedule_interviewer" required>
+              <option value="">Select Interviewer</option>
+              <?php
+              $interviewers = $this->db->select('u_username, u_email, u_role')
+                                       ->where_in('u_role', ['Admin', 'Recruiter', 'Interviewer'])
+                                       ->get(TBL_USERS)
+                                       ->result();
+              foreach($interviewers as $interviewer):
+              ?>
+                <option value="<?= $interviewer->u_username ?>">
+                  <?= $interviewer->u_username ?> (<?= $interviewer->u_role ?>)
+                </option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">New Date <span style="color: red;">*</span></label>
+                <input type="date" class="form-control" name="interview_date" id="reschedule_date" required min="<?= date('Y-m-d') ?>">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">New Time <span style="color: red;">*</span></label>
+                <select class="form-select" name="interview_time" id="reschedule_time" required>
+                  <option value="">Select Time</option>
+                  <option value="09:00:00">09:00 AM</option>
+                  <option value="09:30:00">09:30 AM</option>
+                  <option value="10:00:00">10:00 AM</option>
+                  <option value="10:30:00">10:30 AM</option>
+                  <option value="11:00:00">11:00 AM</option>
+                  <option value="11:30:00">11:30 AM</option>
+                  <option value="12:00:00">12:00 PM</option>
+                  <option value="13:00:00">01:00 PM</option>
+                  <option value="13:30:00">01:30 PM</option>
+                  <option value="14:00:00">02:00 PM</option>
+                  <option value="14:30:00">02:30 PM</option>
+                  <option value="15:00:00">03:00 PM</option>
+                  <option value="15:30:00">03:30 PM</option>
+                  <option value="16:00:00">04:00 PM</option>
+                  <option value="16:30:00">04:30 PM</option>
+                  <option value="17:00:00">05:00 PM</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Reason for Rescheduling</label>
+            <textarea class="form-control" name="reschedule_reason" rows="2" placeholder="Optional: Explain why you're rescheduling..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-warning text-white">
+            <i class="fas fa-calendar-alt me-2"></i>Reschedule Interview
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Candidate Modal -->
+<div class="modal fade" id="editCandidateModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-edit me-2"></i>Edit Candidate
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="<?= base_url('R_dashboard/update_candidate') ?>" method="post" id="editCandidateForm">
+        <div class="modal-body">
+          <input type="hidden" name="candidate_id" id="edit_candidate_id">
+          
+          <div class="mb-3">
+            <label class="form-label">Name <span style="color: red;">*</span></label>
+            <input type="text" class="form-control" name="candidate_name" id="edit_candidate_name" required>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Email <span style="color: red;">*</span></label>
+            <input type="email" class="form-control" name="candidate_email" id="edit_candidate_email" required>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Phone <span style="color: red;">*</span></label>
+            <input type="text" class="form-control" name="candidate_phone" id="edit_candidate_phone" required>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Position <span style="color: red;">*</span></label>
+            <input type="text" class="form-control" name="job_title" id="edit_job_title" required>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Source</label>
+            <input type="text" class="form-control" name="source" id="edit_source">
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Status <span style="color: red;">*</span></label>
+            <select class="form-select" name="candidate_status" id="edit_candidate_status" required>
+              <option value="Interested">Interested</option>
+              <option value="Not Interested">Not Interested</option>
+              <option value="Not Picking up Call">Not Picking up Call</option>
+              <option value="Call Back Later">Call Back Later</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save me-2"></i>Update Candidate
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

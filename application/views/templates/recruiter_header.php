@@ -46,9 +46,9 @@
     
     <style>
         :root {
-            --primary-color: #667eea;
-            --primary-dark: #5568d3;
-            --secondary-color: #764ba2;
+            --primary-color: #f97316;
+            --primary-dark: #ea580c;
+            --secondary-color: #fb923c;
             --success-color: #1cc88a;
             --info-color: #36b9cc;
             --warning-color: #f6c23e;
@@ -255,7 +255,7 @@
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background: var(--primary-color);
+            background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
             display: flex;
             align-items: center;
             justify-content: center;

@@ -14,6 +14,9 @@
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <!-- DataTables JS (if needed) -->
     <?php if(isset($use_datatable) && $use_datatable): ?>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>

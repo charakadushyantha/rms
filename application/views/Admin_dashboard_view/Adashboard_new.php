@@ -143,7 +143,8 @@ $this->load->view('templates/admin_header', $data);
                             <td><?= $row['cd_phone'] ?></td>
                             <td>
                                 <?php
-                                $progress = $row['ce_interview_round'] * 100;
+                                $round = isset($row['ce_interview_round']) ? $row['ce_interview_round'] : 0;
+                                $progress = $round * 100;
                                 $progressClass = 'bg-info';
                                 if ($progress >= 75) $progressClass = 'bg-success';
                                 elseif ($progress >= 50) $progressClass = 'bg-warning';
@@ -155,7 +156,7 @@ $this->load->view('templates/admin_header', $data);
                             </td>
                             <td>
                                 <?php
-                                $round = $row['ce_interview_round'];
+                                $round = isset($row['ce_interview_round']) ? $row['ce_interview_round'] : 0;
                                 if ($round == 0) {
                                     echo '<span class="badge bg-secondary">Not Started</span>';
                                 } elseif ($round == 0.25) {
@@ -170,7 +171,10 @@ $this->load->view('templates/admin_header', $data);
                                 ?>
                             </td>
                             <td class="text-center">
-                                <?php if ($row['ce_interview_round'] == 1): ?>
+                                <?php 
+                                $round = isset($row['ce_interview_round']) ? $row['ce_interview_round'] : 0;
+                                if ($round == 1): 
+                                ?>
                                     <i class="fas fa-check-circle text-success" style="font-size: 20px;"></i>
                                 <?php else: ?>
                                     <i class="fas fa-times-circle text-danger" style="font-size: 20px;"></i>
