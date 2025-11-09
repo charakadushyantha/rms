@@ -257,6 +257,28 @@ if(isset($admin_details)) {
     </div>
 </div>
 
+<!-- Upload Confirm Modal -->
+<div class="modal fade" id="uploadConfirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Upload Profile Picture</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="cancelUpload()"></button>
+            </div>
+            <div class="modal-body text-center">
+                <p class="mb-3">Upload this image as your profile picture?</p>
+                <img id="previewImage" src="" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="cancelUpload()">Cancel</button>
+                <button type="button" class="btn btn-primary-modern btn-modern" onclick="confirmUpload()" data-bs-dismiss="modal">
+                    <i class="fas fa-upload me-2"></i>Upload
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Change Password Modal -->
 <div class="modal fade" id="changePasswordModal" tabindex="-1">
     <div class="modal-dialog">
@@ -311,8 +333,9 @@ if(isset($admin_details)) {
 <?php
 $custom_script = "
 // Profile picture upload
+let selectedFile = null;
+
 function uploadProfilePicture() {
-    const form = document.getElementById('profilePicForm');
     const fileInput = document.getElementById('profilePicInput');
     const file = fileInput.files[0];
     
@@ -321,23 +344,61 @@ function uploadProfilePicture() {
     // Validate file type
     const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
     if (!allowedTypes.includes(file.type)) {
-        alert('Please select a valid image file (JPG, PNG, or GIF)');
+        showCustomAlert('Please select a valid image file (JPG, PNG, or GIF)', 'error');
         fileInput.value = '';
         return;
     }
     
     // Validate file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
-        alert('File size must be less than 2MB');
+        showCustomAlert('File size must be less than 2MB', 'error');
         fileInput.value = '';
         return;
     }
     
-    if (confirm('Upload this image as your profile picture?')) {
-        form.submit();
-    } else {
-        fileInput.value = '';
-    }
+    // Store file and show preview
+    selectedFile = file;
+    showUploadConfirmModal(file);
+}
+
+function showUploadConfirmModal(file) {
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        document.getElementById('previewImage').src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('uploadConfirmModal'));
+    modal.show();
+}
+
+function confirmUpload() {
+    const form = document.getElementById('profilePicForm');
+    form.submit();
+}
+
+function cancelUpload() {
+    const fileInput = document.getElementById('profilePicInput');
+    fileInput.value = '';
+    selectedFile = null;
+}
+
+function showCustomAlert(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-\${type === 'error' ? 'danger' : 'success'} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        <i class=\"fas fa-\${type === 'error' ? 'exclamation-circle' : 'check-circle'} me-2\"></i>\${message}
+        <button type=\"button\" class=\"btn-close\" data-bs-dismiss=\"alert\"></button>
+    `;
+    
+    const container = document.querySelector('.content-area');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
 }
 
 // Toggle password visibility

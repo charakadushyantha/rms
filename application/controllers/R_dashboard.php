@@ -55,6 +55,63 @@ class R_dashboard extends CI_Controller
       $this->load->view('templates/recruiter_footer', $data);
     }
 
+    public function add_candidate_process()
+    {
+        if (!$this->session->userdata('authenticated')) {
+            redirect(base_url('Login'));
+        }
+
+        $username = $this->session->userdata('username');
+        
+        // Handle file upload if resume is provided
+        $resume_filename = '';
+        if (!empty($_FILES['resume']['name'])) {
+            $config['upload_path'] = './uploads/resumes/';
+            $config['allowed_types'] = 'pdf|doc|docx';
+            $config['max_size'] = 5120; // 5MB
+            $config['encrypt_name'] = TRUE;
+
+            // Create directory if it doesn't exist
+            if (!is_dir($config['upload_path'])) {
+                mkdir($config['upload_path'], 0777, TRUE);
+            }
+
+            $this->load->library('upload', $config);
+
+            if ($this->upload->do_upload('resume')) {
+                $upload_data = $this->upload->data();
+                $resume_filename = $upload_data['file_name'];
+            }
+        }
+
+        // Prepare candidate data
+        $candidate_data = array(
+            'cd_rec_username' => $username,
+            'cd_name' => $this->input->post('candidate_name'),
+            'cd_email' => $this->input->post('candidate_email'),
+            'cd_phone' => $this->input->post('candidate_phone'),
+            'cd_gender' => $this->input->post('candidate_gender'),
+            'cd_job_title' => $this->input->post('job_title'),
+            'cd_source' => $this->input->post('source'),
+            'cd_description' => $this->input->post('current_status'),
+            'cd_status' => $this->input->post('candidate_status'),
+            'cd_interview_status' => 0
+        );
+
+        if (!empty($resume_filename)) {
+            $candidate_data['cd_resume_link'] = $resume_filename;
+        }
+
+        // Insert candidate
+        if ($this->db->insert('candidate_details', $candidate_data)) {
+            $this->session->set_flashdata('success_msg', 'Candidate added successfully!');
+        } else {
+            $this->session->set_flashdata('error_msg', 'Failed to add candidate. Please try again.');
+        }
+
+        redirect('R_dashboard/Rcandidate_view');
+    }
+
     public function Rstatus_view()
     {
       $data['uname'] = $this->session->userdata('username');
@@ -263,8 +320,30 @@ class R_dashboard extends CI_Controller
 
     public function update_candidate()
     {
-      $this->Candidate_model->update_can();
-      redirect(R_STATUS_URL);
+        if (!$this->session->userdata('authenticated')) {
+            redirect(LOGIN_URL);
+        }
+
+        $candidate_id = $this->input->post('candidate_id');
+        
+        $update_data = array(
+            'cd_name' => $this->input->post('candidate_name'),
+            'cd_email' => $this->input->post('candidate_email'),
+            'cd_phone' => $this->input->post('candidate_phone'),
+            'cd_job_title' => $this->input->post('job_title'),
+            'cd_source' => $this->input->post('source'),
+            'cd_status' => $this->input->post('candidate_status')
+        );
+
+        $this->db->where('cd_id', $candidate_id);
+        
+        if ($this->db->update('candidate_details', $update_data)) {
+            $this->session->set_flashdata('success_msg', 'Candidate updated successfully!');
+        } else {
+            $this->session->set_flashdata('error_msg', 'Failed to update candidate.');
+        }
+
+        redirect('R_dashboard/Rstatus_view');
     }
 
     public function schedule_btn_action()
@@ -367,6 +446,104 @@ class R_dashboard extends CI_Controller
 
         $this->session->set_flashdata('success_msg', 'Profile updated successfully!');
         redirect('R_dashboard/Raccount_details_view');
+    }
+
+    public function get_candidate_details($candidate_id)
+    {
+        if (!$this->session->userdata('authenticated')) {
+            echo json_encode(['success' => false, 'message' => 'Not authenticated']);
+            return;
+        }
+
+        $candidate = $this->db->where('cd_id', $candidate_id)
+                              ->get('candidate_details')
+                              ->row_array();
+
+        if ($candidate) {
+            echo json_encode(['success' => true, 'candidate' => $candidate]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Candidate not found']);
+        }
+    }
+
+    public function schedule_interview()
+    {
+        if (!$this->session->userdata('authenticated')) {
+            redirect(LOGIN_URL);
+        }
+
+        $candidate_id = $this->input->post('candidate_id');
+        $interview_round = $this->input->post('interview_round');
+        $interview_date = $this->input->post('interview_date');
+        $interview_time = $this->input->post('interview_time');
+        $notes = $this->input->post('notes');
+        $interviewers = $this->input->post('interviewers'); // Array of interviewer usernames
+        $username = $this->session->userdata('username');
+
+        // Get candidate name
+        $candidate = $this->db->select('cd_name')
+                              ->where('cd_id', $candidate_id)
+                              ->get('candidate_details')
+                              ->row();
+
+        if (!$candidate) {
+            $this->session->set_flashdata('error_msg', 'Candidate not found.');
+            redirect('R_dashboard/Rstatus_view');
+            return;
+        }
+
+        // Format interviewers list
+        $interviewers_list = is_array($interviewers) ? implode(', ', $interviewers) : $interviewers;
+        $interview_type = (is_array($interviewers) && count($interviewers) > 1) ? 'Panel Interview' : 'Individual Interview';
+
+        // Check if calendar table exists and what columns it has
+        $tables = $this->db->list_tables();
+        
+        if (in_array('calendar', $tables)) {
+            // Insert into calendar
+            $calendar_data = array(
+                'can_id' => $candidate_id,
+                'can_name' => $candidate['cd_name'],
+                'date' => $interview_date,
+                'time' => $interview_time,
+                'recruiter' => $username
+            );
+
+            // Check if created_at column exists
+            $fields = $this->db->list_fields('calendar');
+            if (in_array('created_at', $fields)) {
+                $calendar_data['created_at'] = date('Y-m-d H:i:s');
+            }
+            if (in_array('notes', $fields)) {
+                $calendar_data['notes'] = $notes;
+            }
+            if (in_array('interviewers', $fields)) {
+                $calendar_data['interviewers'] = $interviewers_list;
+            }
+            if (in_array('interview_type', $fields)) {
+                $calendar_data['interview_type'] = $interview_type;
+            }
+
+            $this->db->insert('calendar', $calendar_data);
+        }
+
+        // Update candidate interview status and round (if column exists)
+        $update_data = array('cd_interview_status' => 1);
+        
+        // Check if cd_interview_round column exists
+        $fields = $this->db->list_fields('candidate_details');
+        if (in_array('cd_interview_round', $fields)) {
+            $update_data['cd_interview_round'] = $interview_round;
+        }
+        
+        $this->db->where('cd_id', $candidate_id);
+        $this->db->update('candidate_details', $update_data);
+
+        $interviewer_count = is_array($interviewers) ? count($interviewers) : 1;
+        $success_message = $interview_type . ' scheduled successfully with ' . $interviewer_count . ' interviewer(s)!';
+        
+        $this->session->set_flashdata('success_msg', $success_message);
+        redirect('R_dashboard/Rstatus_view');
     }
 
     public function change_password()

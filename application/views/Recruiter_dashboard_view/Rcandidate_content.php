@@ -1,3 +1,31 @@
+<!-- Success/Error Messages -->
+<?php if($this->session->flashdata('success_msg')): ?>
+<div class="alert alert-success alert-dismissible fade show auto-dismiss-alert" role="alert" style="max-width: 680px; margin: 1.5rem auto 0;">
+    <i class="fas fa-check-circle me-2"></i><?= $this->session->flashdata('success_msg') ?>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+<?php endif; ?>
+
+<?php if($this->session->flashdata('error_msg')): ?>
+<div class="alert alert-danger alert-dismissible fade show auto-dismiss-alert" role="alert" style="max-width: 680px; margin: 1.5rem auto 0;">
+    <i class="fas fa-exclamation-circle me-2"></i><?= $this->session->flashdata('error_msg') ?>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+<?php endif; ?>
+
+<script>
+// Auto-dismiss alerts after 5 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    const alerts = document.querySelectorAll('.auto-dismiss-alert');
+    alerts.forEach(function(alert) {
+        setTimeout(function() {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        }, 5000); // 5 seconds
+    });
+});
+</script>
+
 <style>
 .modern-form-wrapper {
   max-width: 680px;

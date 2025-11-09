@@ -413,10 +413,27 @@
                     <button><i class="fas fa-search"></i></button>
                 </div>
                 <div class="user-menu">
-                    <div class="user-avatar">
-                        <?php echo strtoupper(substr($this->session->userdata('username'), 0, 1)); ?>
-                    </div>
-                    <span><?php echo $this->session->userdata('username'); ?></span>
+                    <?php 
+                    // Get profile picture from database
+                    $username = $this->session->userdata('username');
+                    $user_pic = $this->db->select('profile_picture')
+                                         ->where('u_username', $username)
+                                         ->get(TBL_USERS)
+                                         ->row();
+                    $profile_pic = ($user_pic && isset($user_pic->profile_picture)) ? $user_pic->profile_picture : '';
+                    ?>
+                    
+                    <?php if($profile_pic && file_exists('./uploads/profiles/' . $profile_pic)): ?>
+                        <img src="<?= base_url('uploads/profiles/' . $profile_pic) ?>" 
+                             alt="Profile" 
+                             class="user-avatar"
+                             style="object-fit: cover;">
+                    <?php else: ?>
+                        <div class="user-avatar">
+                            <?php echo strtoupper(substr($username, 0, 1)); ?>
+                        </div>
+                    <?php endif; ?>
+                    <span><?php echo $username; ?></span>
                 </div>
             </div>
         </div>

@@ -551,6 +551,12 @@
             <div class="sidebar-divider"></div>
             
             <li>
+                <a href="<?php echo base_url('Setup'); ?>" class="<?= $this->uri->segment(1) == 'Setup' ? 'active' : '' ?>">
+                    <i class="fas fa-cog"></i>
+                    <span>Setup</span>
+                </a>
+            </li>
+            <li>
                 <a href="<?php echo A_AC_DETAILS_URL; ?>" class="<?= $this->uri->segment(2) == 'Aaccount_details_view' ? 'active' : '' ?>">
                     <i class="fas fa-user-circle"></i>
                     <span>My Account</span>
@@ -589,11 +595,28 @@
                 
                 <div class="user-dropdown dropdown">
                     <div class="user-info" data-bs-toggle="dropdown">
-                        <div class="user-avatar">
-                            <?= strtoupper(substr($this->session->userdata('username'), 0, 1)) ?>
-                        </div>
+                        <?php 
+                        // Get profile picture from database
+                        $username = $this->session->userdata('username');
+                        $user_pic = $this->db->select('profile_picture')
+                                             ->where('u_username', $username)
+                                             ->get(TBL_USERS)
+                                             ->row();
+                        $profile_pic = ($user_pic && isset($user_pic->profile_picture)) ? $user_pic->profile_picture : '';
+                        ?>
+                        
+                        <?php if($profile_pic && file_exists('./uploads/profiles/' . $profile_pic)): ?>
+                            <img src="<?= base_url('uploads/profiles/' . $profile_pic) ?>" 
+                                 alt="Profile" 
+                                 class="user-avatar"
+                                 style="object-fit: cover;">
+                        <?php else: ?>
+                            <div class="user-avatar">
+                                <?= strtoupper(substr($username, 0, 1)) ?>
+                            </div>
+                        <?php endif; ?>
                         <div class="user-details">
-                            <div class="user-name"><?= $this->session->userdata('username') ?></div>
+                            <div class="user-name"><?= $username ?></div>
                             <div class="user-role">Administrator</div>
                         </div>
                         <i class="fas fa-chevron-down" style="color: #999; font-size: 12px;"></i>

@@ -182,7 +182,10 @@ $this->load->view('templates/recruiter_header', $data);
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach($last_can as $row): ?>
+                            <?php foreach($last_can as $row): 
+                                // Handle both array and object formats
+                                $row = is_array($row) ? (object)$row : $row;
+                            ?>
                             <tr>
                                 <td>
                                     <div class="d-flex align-items-center">

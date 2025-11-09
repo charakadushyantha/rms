@@ -318,11 +318,216 @@ document.getElementById('searchInput').addEventListener('keyup', function() {
 });
 
 function scheduleInterview(candidateId) {
-  window.location.href = '<?php echo base_url("R_dashboard/Rcalendar_view"); ?>?candidate_id=' + candidateId;
+  // Fetch candidate details
+  fetch('<?= base_url("R_dashboard/get_candidate_details/") ?>' + candidateId)
+    .then(response => response.json())
+    .then(data => {
+      if(data.success) {
+        // Populate schedule modal
+        document.getElementById('schedule_candidate_id').value = data.candidate.cd_id;
+        document.getElementById('schedule_candidate_name').value = data.candidate.cd_name;
+        document.getElementById('schedule_position').value = data.candidate.cd_job_title;
+        
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('scheduleInterviewModal'));
+        modal.show();
+      }
+    });
 }
 
 function editCandidate(candidateId) {
-  // Add your edit functionality here
-  alert('Edit candidate ID: ' + candidateId);
+  // Fetch candidate details via AJAX
+  fetch('<?= base_url("R_dashboard/get_candidate_details/") ?>' + candidateId)
+    .then(response => response.json())
+    .then(data => {
+      if(data.success) {
+        // Populate edit modal with candidate data
+        document.getElementById('edit_candidate_id').value = data.candidate.cd_id;
+        document.getElementById('edit_candidate_name').value = data.candidate.cd_name;
+        document.getElementById('edit_candidate_email').value = data.candidate.cd_email;
+        document.getElementById('edit_candidate_phone').value = data.candidate.cd_phone;
+        document.getElementById('edit_job_title').value = data.candidate.cd_job_title;
+        document.getElementById('edit_source').value = data.candidate.cd_source;
+        document.getElementById('edit_candidate_status').value = data.candidate.cd_status;
+        
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('editCandidateModal'));
+        modal.show();
+      } else {
+        alert('Failed to load candidate details');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Error loading candidate details');
+    });
 }
 </script>
+
+<!-- Schedule Interview Modal -->
+<div class="modal fade" id="scheduleInterviewModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-calendar-plus me-2"></i>Schedule Interview
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="<?= base_url('R_dashboard/schedule_interview') ?>" method="post">
+        <div class="modal-body">
+          <input type="hidden" name="candidate_id" id="schedule_candidate_id">
+          
+          <div class="mb-3">
+            <label class="form-label">Candidate Name</label>
+            <input type="text" class="form-control" id="schedule_candidate_name" readonly style="background: #f5f5f5;">
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Position</label>
+            <input type="text" class="form-control" id="schedule_position" readonly style="background: #f5f5f5;">
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Interview Round <span style="color: red;">*</span></label>
+            <select class="form-select" name="interview_round" required>
+              <option value="">Select Round</option>
+              <option value="0.25">Initial Screening</option>
+              <option value="0.5">First Round - Technical</option>
+              <option value="0.75">Second Round - HR</option>
+              <option value="1">Final Round</option>
+            </select>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Interviewer(s) <span style="color: red;">*</span></label>
+            <select class="form-select" name="interviewers[]" id="interviewers" multiple required style="min-height: 100px;">
+              <?php
+              // Get all users who can be interviewers (admins and recruiters)
+              $interviewers = $this->db->select('u_username, u_email, u_role')
+                                       ->where_in('u_role', array('Admin', 'Recruiter'))
+                                       ->get(TBL_USERS)
+                                       ->result();
+              foreach($interviewers as $interviewer):
+              ?>
+                <option value="<?= $interviewer->u_username ?>">
+                  <?= $interviewer->u_username ?> (<?= $interviewer->u_role ?>)
+                </option>
+              <?php endforeach; ?>
+            </select>
+            <small class="text-muted">Hold Ctrl (Cmd on Mac) to select multiple interviewers for panel interview</small>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">Interview Date <span style="color: red;">*</span></label>
+                <input type="date" class="form-control" name="interview_date" id="interview_date" required min="<?= date('Y-m-d') ?>">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">Interview Time <span style="color: red;">*</span></label>
+                <select class="form-select" name="interview_time" required>
+                  <option value="">Select Time</option>
+                  <option value="09:00:00">09:00 AM</option>
+                  <option value="09:30:00">09:30 AM</option>
+                  <option value="10:00:00">10:00 AM</option>
+                  <option value="10:30:00">10:30 AM</option>
+                  <option value="11:00:00">11:00 AM</option>
+                  <option value="11:30:00">11:30 AM</option>
+                  <option value="12:00:00">12:00 PM</option>
+                  <option value="13:00:00">01:00 PM</option>
+                  <option value="13:30:00">01:30 PM</option>
+                  <option value="14:00:00">02:00 PM</option>
+                  <option value="14:30:00">02:30 PM</option>
+                  <option value="15:00:00">03:00 PM</option>
+                  <option value="15:30:00">03:30 PM</option>
+                  <option value="16:00:00">04:00 PM</option>
+                  <option value="16:30:00">04:30 PM</option>
+                  <option value="17:00:00">05:00 PM</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Notes (Optional)</label>
+            <textarea class="form-control" name="notes" rows="3" placeholder="Add any special instructions or notes..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary-modern btn-modern">
+            <i class="fas fa-calendar-check me-2"></i>Schedule Interview
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Candidate Modal -->
+<div class="modal fade" id="editCandidateModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Candidate</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="<?= base_url('R_dashboard/update_candidate') ?>" method="post">
+        <div class="modal-body">
+          <input type="hidden" name="candidate_id" id="edit_candidate_id">
+          
+          <div class="mb-3">
+            <label class="form-label">Full Name</label>
+            <input type="text" class="form-control" name="candidate_name" id="edit_candidate_name" required>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control" name="candidate_email" id="edit_candidate_email" required>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Phone</label>
+            <input type="tel" class="form-control" name="candidate_phone" id="edit_candidate_phone" required>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Position</label>
+            <input type="text" class="form-control" name="job_title" id="edit_job_title" required>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Source</label>
+            <select class="form-select" name="source" id="edit_source">
+              <option value="LinkedIn">LinkedIn</option>
+              <option value="Indeed">Indeed</option>
+              <option value="Company Website">Company Website</option>
+              <option value="Referral">Referral</option>
+              <option value="Job Fair">Job Fair</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Status</label>
+            <select class="form-select" name="candidate_status" id="edit_candidate_status">
+              <option value="Interested">Interested</option>
+              <option value="Not Picking up Call">Not Picking up Call</option>
+              <option value="Not Interested">Not Interested</option>
+              <option value="Call Back Later">Call Back Later</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary-modern btn-modern">
+            <i class="fas fa-save me-2"></i>Update Candidate
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
