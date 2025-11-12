@@ -207,12 +207,12 @@ $this->load->view('templates/admin_header', array('page_title' => 'System Setup'
                 </a>
             </div>
             <div class="col-md-6 col-lg-3">
-                <a href="#" class="setup-card" onclick="alert('Coming Soon!'); return false;">
+                <a href="<?= base_url('A_dashboard/roles_permissions_view') ?>" class="setup-card">
                     <div class="setup-card-inner">
                         <div class="setup-icon" style="background: linear-gradient(135deg, #f093fb, #f5576c);">
                             <i class="fas fa-shield-alt"></i>
                         </div>
-                        <h5>Roles & Permissions <span class="badge-coming">Soon</span></h5>
+                        <h5>Roles & Permissions</h5>
                         <p>Configure user permissions</p>
                     </div>
                 </a>
@@ -229,45 +229,45 @@ $this->load->view('templates/admin_header', array('page_title' => 'System Setup'
     <div class="category-cards">
         <div class="row g-3">
             <div class="col-md-6 col-lg-3">
-                <a href="#" class="setup-card" onclick="alert('Coming Soon!'); return false;">
+                <a href="<?= base_url('Setup/email_configuration') ?>" class="setup-card">
                     <div class="setup-card-inner">
                         <div class="setup-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">
                             <i class="fas fa-envelope-open-text"></i>
                         </div>
-                        <h5>Email Configuration <span class="badge-coming">Soon</span></h5>
+                        <h5>Email Configuration</h5>
                         <p>SMTP and email templates</p>
                     </div>
                 </a>
             </div>
             <div class="col-md-6 col-lg-3">
-                <a href="#" class="setup-card" onclick="alert('Coming Soon!'); return false;">
+                <a href="<?= base_url('Setup/sms_configuration') ?>" class="setup-card">
                     <div class="setup-card-inner">
                         <div class="setup-icon" style="background: linear-gradient(135deg, #f093fb, #f5576c);">
                             <i class="fas fa-sms"></i>
                         </div>
-                        <h5>SMS Settings <span class="badge-coming">Soon</span></h5>
+                        <h5>SMS Settings</h5>
                         <p>SMS gateway configuration</p>
                     </div>
                 </a>
             </div>
             <div class="col-md-6 col-lg-3">
-                <a href="#" class="setup-card" onclick="alert('Coming Soon!'); return false;">
+                <a href="<?= base_url('Setup/whatsapp_configuration') ?>" class="setup-card">
                     <div class="setup-card-inner">
                         <div class="setup-icon" style="background: linear-gradient(135deg, #25D366, #128C7E);">
                             <i class="fab fa-whatsapp"></i>
                         </div>
-                        <h5>WhatsApp Setup <span class="badge-coming">Soon</span></h5>
+                        <h5>WhatsApp Setup</h5>
                         <p>WhatsApp Business API</p>
                     </div>
                 </a>
             </div>
             <div class="col-md-6 col-lg-3">
-                <a href="#" class="setup-card" onclick="alert('Coming Soon!'); return false;">
+                <a href="<?= base_url('Setup/notification_center') ?>" class="setup-card">
                     <div class="setup-card-inner">
                         <div class="setup-icon" style="background: linear-gradient(135deg, #f6c23e, #dda20a);">
                             <i class="fas fa-bell"></i>
                         </div>
-                        <h5>Notification Center <span class="badge-coming">Soon</span></h5>
+                        <h5>Notification Center</h5>
                         <p>Manage all notifications</p>
                     </div>
                 </a>
@@ -284,45 +284,45 @@ $this->load->view('templates/admin_header', array('page_title' => 'System Setup'
     <div class="category-cards">
         <div class="row g-3">
             <div class="col-md-6 col-lg-3">
-                <a href="#" class="setup-card" onclick="alert('Coming Soon!'); return false;">
+                <a href="<?= base_url('Setup/workflow_builder') ?>" class="setup-card">
                     <div class="setup-card-inner">
                         <div class="setup-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">
                             <i class="fas fa-project-diagram"></i>
                         </div>
-                        <h5>Workflow Builder <span class="badge-coming">Soon</span></h5>
+                        <h5>Workflow Builder</h5>
                         <p>Automate recruitment process</p>
                     </div>
                 </a>
             </div>
             <div class="col-md-6 col-lg-3">
-                <a href="#" class="setup-card" onclick="alert('Coming Soon!'); return false;">
+                <a href="<?= base_url('Setup/automation_settings') ?>" class="setup-card">
                     <div class="setup-card-inner">
                         <div class="setup-icon" style="background: linear-gradient(135deg, #f093fb, #f5576c);">
                             <i class="fas fa-mail-bulk"></i>
                         </div>
-                        <h5>Email Campaigns <span class="badge-coming">Soon</span></h5>
+                        <h5>Email Campaigns</h5>
                         <p>Automated email sequences</p>
                     </div>
                 </a>
             </div>
             <div class="col-md-6 col-lg-3">
-                <a href="#" class="setup-card" onclick="alert('Coming Soon!'); return false;">
+                <a href="<?= base_url('Setup/automation_settings#assessments') ?>" class="setup-card">
                     <div class="setup-card-inner">
                         <div class="setup-icon" style="background: linear-gradient(135deg, #1cc88a, #13855c);">
                             <i class="fas fa-clipboard-check"></i>
                         </div>
-                        <h5>Assessment Settings <span class="badge-coming">Soon</span></h5>
+                        <h5>Assessment Settings</h5>
                         <p>Configure tests & quizzes</p>
                     </div>
                 </a>
             </div>
             <div class="col-md-6 col-lg-3">
-                <a href="#" class="setup-card" onclick="alert('Coming Soon!'); return false;">
+                <a href="<?= base_url('Setup/automation_settings#scoring') ?>" class="setup-card">
                     <div class="setup-card-inner">
                         <div class="setup-icon" style="background: linear-gradient(135deg, #36b9cc, #258391);">
                             <i class="fas fa-star"></i>
                         </div>
-                        <h5>Scoring Rules <span class="badge-coming">Soon</span></h5>
+                        <h5>Scoring Rules</h5>
                         <p>Candidate evaluation criteria</p>
                     </div>
                 </a>
@@ -339,45 +339,45 @@ $this->load->view('templates/admin_header', array('page_title' => 'System Setup'
     <div class="category-cards">
         <div class="row g-3">
             <div class="col-md-6 col-lg-3">
-                <a href="#" class="setup-card" onclick="alert('Coming Soon!'); return false;">
+                <a href="<?= base_url('Setup/epf_etf_settings') ?>" class="setup-card">
                     <div class="setup-card-inner">
                         <div class="setup-icon" style="background: linear-gradient(135deg, #f6c23e, #dda20a);">
                             <i class="fas fa-piggy-bank"></i>
                         </div>
-                        <h5>EPF/ETF Settings <span class="badge-coming">Soon</span></h5>
+                        <h5>EPF/ETF Settings</h5>
                         <p>Employee provident fund setup</p>
                     </div>
                 </a>
             </div>
             <div class="col-md-6 col-lg-3">
-                <a href="#" class="setup-card" onclick="alert('Coming Soon!'); return false;">
+                <a href="<?= base_url('Setup/legal_templates') ?>" class="setup-card">
                     <div class="setup-card-inner">
                         <div class="setup-icon" style="background: linear-gradient(135deg, #858796, #60616f);">
                             <i class="fas fa-file-contract"></i>
                         </div>
-                        <h5>Legal Templates <span class="badge-coming">Soon</span></h5>
+                        <h5>Legal Templates</h5>
                         <p>Employment contracts & forms</p>
                     </div>
                 </a>
             </div>
             <div class="col-md-6 col-lg-3">
-                <a href="#" class="setup-card" onclick="alert('Coming Soon!'); return false;">
+                <a href="<?= base_url('Setup/document_requirements') ?>" class="setup-card">
                     <div class="setup-card-inner">
                         <div class="setup-icon" style="background: linear-gradient(135deg, #4e73df, #224abe);">
                             <i class="fas fa-folder-open"></i>
                         </div>
-                        <h5>Document Requirements <span class="badge-coming">Soon</span></h5>
+                        <h5>Document Requirements</h5>
                         <p>Required documents checklist</p>
                     </div>
                 </a>
             </div>
             <div class="col-md-6 col-lg-3">
-                <a href="#" class="setup-card" onclick="alert('Coming Soon!'); return false;">
+                <a href="<?= base_url('Setup/data_retention') ?>" class="setup-card">
                     <div class="setup-card-inner">
                         <div class="setup-icon" style="background: linear-gradient(135deg, #e74a3b, #c92a2a);">
                             <i class="fas fa-archive"></i>
                         </div>
-                        <h5>Data Retention <span class="badge-coming">Soon</span></h5>
+                        <h5>Data Retention</h5>
                         <p>Data retention policies</p>
                     </div>
                 </a>
@@ -394,45 +394,45 @@ $this->load->view('templates/admin_header', array('page_title' => 'System Setup'
     <div class="category-cards">
         <div class="row g-3">
             <div class="col-md-6 col-lg-3">
-                <a href="#" class="setup-card" onclick="alert('Coming Soon!'); return false;">
+                <a href="<?= base_url('Setup/job_boards') ?>" class="setup-card">
                     <div class="setup-card-inner">
                         <div class="setup-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">
                             <i class="fas fa-briefcase"></i>
                         </div>
-                        <h5>Job Boards <span class="badge-coming">Soon</span></h5>
+                        <h5>Job Boards</h5>
                         <p>LinkedIn, Indeed, Glassdoor</p>
                     </div>
                 </a>
             </div>
             <div class="col-md-6 col-lg-3">
-                <a href="#" class="setup-card" onclick="alert('Coming Soon!'); return false;">
+                <a href="<?= base_url('Setup/calendar_sync') ?>" class="setup-card">
                     <div class="setup-card-inner">
                         <div class="setup-icon" style="background: linear-gradient(135deg, #f093fb, #f5576c);">
                             <i class="fas fa-calendar-alt"></i>
                         </div>
-                        <h5>Calendar Sync <span class="badge-coming">Soon</span></h5>
+                        <h5>Calendar Sync</h5>
                         <p>Google, Outlook, iCal</p>
                     </div>
                 </a>
             </div>
             <div class="col-md-6 col-lg-3">
-                <a href="#" class="setup-card" onclick="alert('Coming Soon!'); return false;">
+                <a href="<?= base_url('Setup/api_management') ?>" class="setup-card">
                     <div class="setup-card-inner">
                         <div class="setup-icon" style="background: linear-gradient(135deg, #1cc88a, #13855c);">
                             <i class="fas fa-code"></i>
                         </div>
-                        <h5>API Management <span class="badge-coming">Soon</span></h5>
+                        <h5>API Management</h5>
                         <p>API keys and endpoints</p>
                     </div>
                 </a>
             </div>
             <div class="col-md-6 col-lg-3">
-                <a href="#" class="setup-card" onclick="alert('Coming Soon!'); return false;">
+                <a href="<?= base_url('Setup/webhooks') ?>" class="setup-card">
                     <div class="setup-card-inner">
                         <div class="setup-icon" style="background: linear-gradient(135deg, #36b9cc, #258391);">
                             <i class="fas fa-webhook"></i>
                         </div>
-                        <h5>Webhooks <span class="badge-coming">Soon</span></h5>
+                        <h5>Webhooks</h5>
                         <p>Event-driven integrations</p>
                     </div>
                 </a>
@@ -460,35 +460,46 @@ $this->load->view('templates/admin_header', array('page_title' => 'System Setup'
                 </a>
             </div>
             <div class="col-md-6 col-lg-3">
-                <a href="#" class="setup-card" onclick="alert('Coming Soon!'); return false;">
+                <a href="<?= base_url('Setup/backup_recovery') ?>" class="setup-card">
                     <div class="setup-card-inner">
                         <div class="setup-icon" style="background: linear-gradient(135deg, #1cc88a, #13855c);">
                             <i class="fas fa-hdd"></i>
                         </div>
-                        <h5>Backup & Recovery <span class="badge-coming">Soon</span></h5>
+                        <h5>Backup & Recovery</h5>
                         <p>Database backup management</p>
                     </div>
                 </a>
             </div>
             <div class="col-md-6 col-lg-3">
-                <a href="#" class="setup-card" onclick="alert('Coming Soon!'); return false;">
+                <a href="<?= base_url('Setup/security_settings') ?>" class="setup-card">
                     <div class="setup-card-inner">
                         <div class="setup-icon" style="background: linear-gradient(135deg, #e74a3b, #c92a2a);">
                             <i class="fas fa-shield-alt"></i>
                         </div>
-                        <h5>Security Settings <span class="badge-coming">Soon</span></h5>
+                        <h5>Security Settings</h5>
                         <p>Password policies & 2FA</p>
                     </div>
                 </a>
             </div>
             <div class="col-md-6 col-lg-3">
-                <a href="#" class="setup-card" onclick="alert('Coming Soon!'); return false;">
+                <a href="<?= base_url('Setup/audit_logs') ?>" class="setup-card">
                     <div class="setup-card-inner">
                         <div class="setup-icon" style="background: linear-gradient(135deg, #f6c23e, #dda20a);">
                             <i class="fas fa-history"></i>
                         </div>
-                        <h5>Audit Logs <span class="badge-coming">Soon</span></h5>
+                        <h5>Audit Logs</h5>
                         <p>Track system activities</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <a href="<?= base_url('Setup/module_manager') ?>" class="setup-card">
+                    <div class="setup-card-inner">
+                        <div class="setup-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                            <i class="fas fa-puzzle-piece"></i>
+                        </div>
+                        <h5>Module Manager</h5>
+                        <p>Add custom sidebar modules</p>
                     </div>
                 </a>
             </div>

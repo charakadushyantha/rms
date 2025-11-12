@@ -156,6 +156,19 @@
             text-align: center;
         }
 
+        .sidebar-heading {
+            padding: 20px 20px 10px 20px;
+            margin-top: 10px;
+        }
+
+        .sidebar-heading span {
+            color: rgba(255,255,255,0.5);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
         .sidebar-divider {
             height: 1px;
             background: rgba(255,255,255,0.1);
@@ -519,54 +532,224 @@
         </div>
         
         <ul class="sidebar-menu">
+            <?php
+            // Load module visibility settings
+            $module_visibility = array();
+            try {
+                if ($this->db->table_exists('module_visibility')) {
+                    $visibility_data = $this->db->get('module_visibility')->result_array();
+                    foreach ($visibility_data as $item) {
+                        $module_visibility[$item['module_key']] = $item['is_visible'];
+                    }
+                }
+            } catch (Exception $e) {
+                // Default to showing all if table doesn't exist
+            }
+            
+            // Helper function to check visibility
+            function is_module_visible($key, $visibility_array) {
+                return !isset($visibility_array[$key]) || $visibility_array[$key] == 1;
+            }
+            ?>
+            
+            <!-- Main Navigation -->
+            <?php if (is_module_visible('dashboard', $module_visibility)): ?>
             <li>
                 <a href="<?php echo A_DASHBOARD_URL; ?>" class="<?= ($this->uri->segment(2) == '' || $this->uri->segment(2) == 'index') ? 'active' : '' ?>">
-                    <i class="fas fa-home"></i>
+                    <i class="fas fa-tachometer-alt"></i>
                     <span>Dashboard</span>
                 </a>
             </li>
+            <?php endif; ?>
+            
+            <?php 
+            // Check if any recruitment modules are visible
+            $show_recruitment = is_module_visible('candidates', $module_visibility) || 
+                               is_module_visible('calendar', $module_visibility) || 
+                               is_module_visible('analytics', $module_visibility);
+            if ($show_recruitment): 
+            ?>
+            <div class="sidebar-divider"></div>
+            
+            <!-- Recruitment Management -->
+            <li class="sidebar-heading">
+                <span>RECRUITMENT</span>
+            </li>
+            <?php endif; ?>
+            
+            <?php if (is_module_visible('candidates', $module_visibility)): ?>
+            <li>
+                <a href="<?php echo A_SCANDIDATE_URL; ?>" class="<?= $this->uri->segment(2) == 'Ascandidate_view' ? 'active' : '' ?>">
+                    <i class="fas fa-users"></i>
+                    <span>Candidates</span>
+                </a>
+            </li>
+            <?php endif; ?>
+            
+            <?php if (is_module_visible('calendar', $module_visibility)): ?>
             <li>
                 <a href="<?php echo A_CALENDAR_URL; ?>" class="<?= $this->uri->segment(2) == 'Acalendar_view' ? 'active' : '' ?>">
                     <i class="fas fa-calendar-alt"></i>
                     <span>Calendar</span>
                 </a>
             </li>
-            <li>
-                <a href="<?php echo A_SCANDIDATE_URL; ?>" class="<?= $this->uri->segment(2) == 'Ascandidate_view' ? 'active' : '' ?>">
-                    <i class="fas fa-user-check"></i>
-                    <span>Candidates</span>
-                </a>
-            </li>
-            <li>
-                <a href="<?php echo A_RECRUITER_URL; ?>" class="<?= $this->uri->segment(2) == 'Arecruiter_view' ? 'active' : '' ?>">
-                    <i class="fas fa-user-plus"></i>
-                    <span>Recruiters</span>
-                </a>
-            </li>
+            <?php endif; ?>
+            
+            <?php if (is_module_visible('analytics', $module_visibility)): ?>
             <li>
                 <a href="<?php echo base_url('realtime_dashboard'); ?>" class="<?= $this->uri->segment(1) == 'realtime_dashboard' ? 'active' : '' ?>" style="background: linear-gradient(90deg, rgba(76, 222, 128, 0.2), rgba(59, 130, 246, 0.2)); border-left: 4px solid #4ade80;">
                     <i class="fas fa-chart-line" style="color: #4ade80;"></i>
-                    <span style="font-weight: 600;">Real-Time Dashboard</span>
+                    <span style="font-weight: 600;">Analytics</span>
                     <span class="badge" style="background: linear-gradient(90deg, #4ade80, #3b82f6); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto;">NEW</span>
                 </a>
             </li>
+            <?php endif; ?>
+            
+            <?php 
+            // Check if any user management modules are visible
+            $show_user_mgmt = is_module_visible('recruiters', $module_visibility) || 
+                             is_module_visible('interviewers', $module_visibility) || 
+                             is_module_visible('candidate_users', $module_visibility);
+            if ($show_user_mgmt): 
+            ?>
+            <div class="sidebar-divider"></div>
+            
+            <!-- User Management -->
+            <li class="sidebar-heading">
+                <span>USER MANAGEMENT</span>
+            </li>
+            <?php endif; ?>
+            
+            <?php if (is_module_visible('recruiters', $module_visibility)): ?>
+            <li>
+                <a href="<?php echo A_RECRUITER_URL; ?>" class="<?= $this->uri->segment(2) == 'Arecruiter_view' ? 'active' : '' ?>">
+                    <i class="fas fa-user-tie"></i>
+                    <span>Recruiters</span>
+                </a>
+            </li>
+            <?php endif; ?>
+            
+            <?php if (is_module_visible('interviewers', $module_visibility)): ?>
+            <li>
+                <a href="<?php echo base_url('A_dashboard/Ainterviewer_view'); ?>" class="<?= $this->uri->segment(2) == 'Ainterviewer_view' ? 'active' : '' ?>">
+                    <i class="fas fa-user-check"></i>
+                    <span>Interviewers</span>
+                </a>
+            </li>
+            <?php endif; ?>
+            
+            <?php if (is_module_visible('candidate_users', $module_visibility)): ?>
+            <li>
+                <a href="<?php echo base_url('A_dashboard/Acandidate_users_view'); ?>" class="<?= $this->uri->segment(2) == 'Acandidate_users_view' ? 'active' : '' ?>">
+                    <i class="fas fa-user-graduate"></i>
+                    <span>Candidate Users</span>
+                </a>
+            </li>
+            <?php endif; ?>
+            
+            <?php if (is_module_visible('reports', $module_visibility)): ?>
+            <div class="sidebar-divider"></div>
+            
+            <!-- Reports -->
+            <li class="sidebar-heading">
+                <span>REPORTS</span>
+            </li>
+            <li>
+                <a href="<?php echo base_url('A_dashboard/reports_view'); ?>" class="<?= $this->uri->segment(2) == 'reports_view' ? 'active' : '' ?>">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>MIS Reports</span>
+                </a>
+            </li>
+            <?php endif; ?>
             
             <div class="sidebar-divider"></div>
             
+            <?php
+            // Load custom modules from database (with error handling)
+            try {
+                if ($this->db->table_exists('custom_modules')) {
+                    $this->db->where('is_active', 1);
+                    $this->db->order_by('order_num', 'ASC');
+                    $custom_modules = $this->db->get('custom_modules')->result_array();
+                    
+                    // Group modules by section
+                    $grouped_modules = array();
+                    foreach ($custom_modules as $module) {
+                        $grouped_modules[$module['section']][] = $module;
+                    }
+                    
+                    // Display grouped modules
+                    foreach ($grouped_modules as $section => $modules):
+                    ?>
+                    <!-- Custom Section: <?= $section ?> -->
+                    <li class="sidebar-heading">
+                        <span><?= strtoupper($section) ?></span>
+                    </li>
+                    <?php foreach ($modules as $module): ?>
+                    <li>
+                        <a href="<?= base_url($module['url']) ?>" class="<?= $this->uri->segment(2) == basename($module['url']) ? 'active' : '' ?>">
+                            <i class="<?= $module['icon'] ?>"></i>
+                            <span><?= $module['name'] ?></span>
+                            <?php if ($module['show_badge']): ?>
+                            <span class="badge" style="background: linear-gradient(90deg, #4ade80, #3b82f6); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto;"><?= $module['badge_text'] ?></span>
+                            <?php endif; ?>
+                        </a>
+                    </li>
+                    <?php endforeach; ?>
+                    
+                    <div class="sidebar-divider"></div>
+                    <?php 
+                    endforeach;
+                }
+            } catch (Exception $e) {
+                // Silently fail if table doesn't exist - no custom modules will be shown
+            }
+            ?>
+            
+            <?php 
+            // Check if any settings modules are visible
+            $show_settings = is_module_visible('roles', $module_visibility) || 
+                            is_module_visible('setup', $module_visibility) || 
+                            is_module_visible('account', $module_visibility);
+            if ($show_settings): 
+            ?>
+            <!-- Settings & Account -->
+            <li class="sidebar-heading">
+                <span>SETTINGS</span>
+            </li>
+            <?php endif; ?>
+            
+            <?php if (is_module_visible('roles', $module_visibility)): ?>
+            <li>
+                <a href="<?php echo base_url('A_dashboard/roles_permissions_view'); ?>" class="<?= $this->uri->segment(2) == 'roles_permissions_view' ? 'active' : '' ?>">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Roles & Permissions</span>
+                </a>
+            </li>
+            <?php endif; ?>
+            
+            <?php if (is_module_visible('setup', $module_visibility)): ?>
             <li>
                 <a href="<?php echo base_url('Setup'); ?>" class="<?= $this->uri->segment(1) == 'Setup' ? 'active' : '' ?>">
                     <i class="fas fa-cog"></i>
-                    <span>Setup</span>
+                    <span>System Setup</span>
                 </a>
             </li>
+            <?php endif; ?>
+            
+            <?php if (is_module_visible('account', $module_visibility)): ?>
             <li>
                 <a href="<?php echo A_AC_DETAILS_URL; ?>" class="<?= $this->uri->segment(2) == 'Aaccount_details_view' ? 'active' : '' ?>">
                     <i class="fas fa-user-circle"></i>
                     <span>My Account</span>
                 </a>
             </li>
+            <?php endif; ?>
+            
+            <div class="sidebar-divider"></div>
+            
             <li>
-                <a href="<?php echo A_LOGOUT_URL; ?>">
+                <a href="<?php echo A_LOGOUT_URL; ?>" style="color: #ff6b6b;">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>Logout</span>
                 </a>
@@ -594,6 +777,10 @@
                 <div class="topbar-icon">
                     <i class="fas fa-bell"></i>
                     <span class="badge">3</span>
+                </div>
+                
+                <div class="topbar-icon" data-bs-toggle="modal" data-bs-target="#helpModal" title="Help & Documentation">
+                    <i class="fas fa-question-circle"></i>
                 </div>
                 
                 <div class="user-dropdown dropdown">
@@ -636,3 +823,5 @@
 
         <!-- Content Area -->
         <div class="content-area">
+        
+        <?php $this->load->view('templates/help_modal'); ?>

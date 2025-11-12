@@ -2,18 +2,57 @@
 $this->load->view('templates/admin_header', array('page_title' => 'Company Settings'));
 ?>
 
-<?php if($this->session->flashdata('success_msg')): ?>
-<div class="alert alert-success alert-dismissible fade show" role="alert">
-    <i class="fas fa-check-circle me-2"></i><?= $this->session->flashdata('success_msg') ?>
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-</div>
-<?php endif; ?>
+<?php 
+// Only show one message at a time - error takes priority
+// Use keep_flashdata to prevent it from showing on other pages
+$has_alert = false;
+$error_msg = $this->session->flashdata('error_msg');
+$success_msg = $this->session->flashdata('success_msg');
 
-<?php if($this->session->flashdata('error_msg')): ?>
-<div class="alert alert-danger alert-dismissible fade show" role="alert">
-    <i class="fas fa-exclamation-circle me-2"></i><?= $this->session->flashdata('error_msg') ?>
+// Mark flashdata as consumed so it doesn't show on other pages
+if($error_msg || $success_msg) {
+    $this->session->mark_as_flash('error_msg');
+    $this->session->mark_as_flash('success_msg');
+}
+
+if($error_msg): 
+    $has_alert = true;
+?>
+<div class="alert alert-danger alert-dismissible fade show auto-dismiss-alert" role="alert">
+    <i class="fas fa-exclamation-circle me-2"></i><?= $error_msg ?>
     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
 </div>
+<?php elseif($success_msg): 
+    $has_alert = true;
+?>
+<div class="alert alert-success alert-dismissible fade show auto-dismiss-alert" role="alert">
+    <i class="fas fa-check-circle me-2"></i><?= $success_msg ?>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+<?php 
+endif;
+
+// Unset the flashdata after displaying to prevent it from showing on other pages
+$this->session->unset_userdata('__ci_vars');
+?>
+
+<?php if($has_alert): ?>
+<script>
+// Auto-dismiss alert after 5 seconds - inline script to ensure it runs
+setTimeout(function() {
+    var alerts = document.querySelectorAll('.auto-dismiss-alert');
+    alerts.forEach(function(alert) {
+        // Fade out effect
+        alert.style.transition = 'opacity 0.5s ease';
+        alert.style.opacity = '0';
+        
+        // Remove after fade
+        setTimeout(function() {
+            alert.remove();
+        }, 500);
+    });
+}, 5000);
+</script>
 <?php endif; ?>
 
 <!-- Navigation Tabs -->
