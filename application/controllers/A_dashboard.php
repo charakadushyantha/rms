@@ -973,5 +973,192 @@ class A_dashboard extends CI_Controller
       fclose($output);
       exit;
   }
-
+  
+    // Global Search
+    public function global_search()
+    {
+        $query = $this->input->post('query');
+        
+        if (empty($query)) {
+            echo json_encode([]);
+            return;
+        }
+        
+        $results = [
+            'candidates' => [],
+            'jobs' => [],
+            'interviews' => []
+        ];
+        
+        // Search Candidates
+        $this->db->like('cd_name', $query);
+        $this->db->or_like('cd_email', $query);
+        $this->db->or_like('cd_phone', $query);
+        $this->db->limit(5);
+        $candidates = $this->db->get('candidate_details')->result_array();
+        
+        foreach ($candidates as $candidate) {
+            $results['candidates'][] = [
+                'name' => $candidate['cd_name'],
+                'email' => $candidate['cd_email'],
+                'phone' => $candidate['cd_phone']
+            ];
+        }
+        
+        // Search Jobs (if you have a jobs table)
+        if ($this->db->table_exists('job_postings')) {
+            $this->db->like('job_title', $query);
+            $this->db->or_like('job_location', $query);
+            $this->db->limit(5);
+            $jobs = $this->db->get('job_postings')->result_array();
+            
+            foreach ($jobs as $job) {
+                $results['jobs'][] = [
+                    'title' => $job['job_title'],
+                    'location' => $job['job_location'] ?? 'Not specified',
+                    'type' => $job['job_type'] ?? 'Full-time'
+                ];
+            }
+        }
+        
+        // Search Interviews
+        $this->db->select('calendar_events.*, candidate_details.cd_name');
+        $this->db->from(TBL_CALENDAR . ' as calendar_events');
+        $this->db->join('candidate_details', 'candidate_details.cd_id = calendar_events.ce_can_id', 'left');
+        $this->db->like('candidate_details.cd_name', $query);
+        $this->db->limit(5);
+        $interviews = $this->db->get()->result_array();
+        
+        foreach ($interviews as $interview) {
+            $results['interviews'][] = [
+                'candidate' => $interview['cd_name'],
+                'date' => date('M d, Y', strtotime($interview['ce_date'])),
+                'time' => $interview['ce_time']
+            ];
+        }
+        
+        echo json_encode($results);
+    }
+    
+    // Get Notifications
+    public function get_notifications()
+    {
+        $username = $this->session->userdata('username');
+        
+        // Check if notifications table exists
+        if (!$this->db->table_exists('notifications')) {
+            // Create sample notifications
+            $notifications = [
+                [
+                    'id' => 1,
+                    'type' => 'candidate',
+                    'title' => 'New Candidate Application',
+                    'message' => 'John Doe applied for Software Engineer position',
+                    'link' => base_url('A_dashboard/Acandidate_users_view'),
+                    'is_read' => 0,
+                    'time_ago' => '5 minutes ago'
+                ],
+                [
+                    'id' => 2,
+                    'type' => 'interview',
+                    'title' => 'Interview Scheduled',
+                    'message' => 'Interview with Jane Smith scheduled for tomorrow at 2:00 PM',
+                    'link' => base_url('A_dashboard/Ainterviewer_view'),
+                    'is_read' => 0,
+                    'time_ago' => '1 hour ago'
+                ],
+                [
+                    'id' => 3,
+                    'type' => 'system',
+                    'title' => 'System Update',
+                    'message' => 'New features have been added to the dashboard',
+                    'link' => base_url('Setup'),
+                    'is_read' => 0,
+                    'time_ago' => '2 hours ago'
+                ]
+            ];
+            
+            echo json_encode($notifications);
+            return;
+        }
+        
+        // Get real notifications from database
+        $this->db->where('user_id', $this->session->userdata('u_id'));
+        $this->db->or_where('user_id IS NULL'); // System-wide notifications
+        $this->db->order_by('created_at', 'DESC');
+        $this->db->limit(10);
+        $notifications = $this->db->get('notifications')->result_array();
+        
+        // Format time ago
+        foreach ($notifications as &$notif) {
+            $notif['time_ago'] = $this->timeAgo($notif['created_at']);
+        }
+        
+        echo json_encode($notifications);
+    }
+    
+    // Mark notification as read
+    public function mark_notification_read()
+    {
+        $id = $this->input->post('id');
+        
+        if ($this->db->table_exists('notifications')) {
+            $this->db->where('id', $id);
+            $this->db->update('notifications', ['is_read' => 1]);
+        }
+        
+        echo json_encode(['success' => true]);
+    }
+    
+    // Mark all notifications as read
+    public function mark_all_notifications_read()
+    {
+        if ($this->db->table_exists('notifications')) {
+            $this->db->where('user_id', $this->session->userdata('u_id'));
+            $this->db->update('notifications', ['is_read' => 1]);
+        }
+        
+        echo json_encode(['success' => true]);
+    }
+    
+    // Helper function to calculate time ago
+    private function timeAgo($datetime)
+    {
+        $timestamp = strtotime($datetime);
+        $difference = time() - $timestamp;
+        
+        if ($difference < 60) {
+            return 'Just now';
+        } elseif ($difference < 3600) {
+            $minutes = floor($difference / 60);
+            return $minutes . ' minute' . ($minutes > 1 ? 's' : '') . ' ago';
+        } elseif ($difference < 86400) {
+            $hours = floor($difference / 3600);
+            return $hours . ' hour' . ($hours > 1 ? 's' : '') . ' ago';
+        } elseif ($difference < 604800) {
+            $days = floor($difference / 86400);
+            return $days . ' day' . ($days > 1 ? 's' : '') . ' ago';
+        } else {
+            return date('M d, Y', $timestamp);
+        }
+    }
+    
+    // Notifications page
+    public function notifications()
+    {
+        $data['uname'] = $this->session->userdata('username');
+        $data['page_title'] = 'Notifications';
+        
+        // Get all notifications
+        if ($this->db->table_exists('notifications')) {
+            $this->db->where('user_id', $this->session->userdata('u_id'));
+            $this->db->or_where('user_id IS NULL');
+            $this->db->order_by('created_at', 'DESC');
+            $data['notifications'] = $this->db->get('notifications')->result();
+        } else {
+            $data['notifications'] = [];
+        }
+        
+        $this->load->view('Admin_dashboard_view/notifications_view', $data);
+    }
 }

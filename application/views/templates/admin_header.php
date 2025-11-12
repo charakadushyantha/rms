@@ -284,6 +284,238 @@
             font-size: 10px;
             padding: 2px 6px;
             border-radius: 10px;
+            font-weight: 600;
+        }
+
+        /* Enhanced Search Styles */
+        .topbar-search input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            outline: none;
+        }
+
+        .search-results {
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            max-height: 500px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+        }
+
+        .search-results.show {
+            display: block;
+            animation: fadeInDown 0.3s ease;
+        }
+
+        .search-category {
+            padding: 12px 16px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #666;
+        }
+
+        .search-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .search-item:hover {
+            background: #f8f9fa;
+            padding-left: 20px;
+        }
+
+        .search-item-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: white;
+        }
+
+        .search-item-content {
+            flex: 1;
+        }
+
+        .search-item-title {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+
+        .search-item-subtitle {
+            font-size: 12px;
+            color: #718096;
+        }
+
+        .search-no-results {
+            padding: 40px 20px;
+            text-align: center;
+            color: #a0aec0;
+        }
+
+        .search-no-results i {
+            font-size: 48px;
+            opacity: 0.3;
+            margin-bottom: 12px;
+        }
+
+        /* Notification Dropdown Styles */
+        .notification-icon {
+            position: relative;
+        }
+
+        .notification-dropdown {
+            position: absolute;
+            top: calc(100% + 15px);
+            right: 0;
+            width: 380px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            display: none;
+            z-index: 1000;
+        }
+
+        .notification-dropdown.show {
+            display: block;
+            animation: fadeInDown 0.3s ease;
+        }
+
+        .notification-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification-header h6 {
+            margin: 0;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .btn-mark-read {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-size: 12px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .btn-mark-read:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .notification-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 14px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            gap: 12px;
+        }
+
+        .notification-item:hover {
+            background: #f8f9fa;
+        }
+
+        .notification-item.unread {
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .notification-icon-wrapper {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .notification-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .notification-message {
+            font-size: 13px;
+            color: #718096;
+            margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .notification-time {
+            font-size: 11px;
+            color: #a0aec0;
+        }
+
+        .notification-footer {
+            padding: 12px 20px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+        }
+
+        .notification-footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .notification-footer a:hover {
+            text-decoration: underline;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .user-dropdown {
@@ -769,19 +1001,38 @@
             </div>
             
             <div class="topbar-right">
+                <!-- Global Search -->
                 <div class="topbar-search">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search...">
+                    <input type="text" id="globalSearch" placeholder="Search candidates, jobs, interviews..." autocomplete="off">
+                    <div class="search-results" id="searchResults"></div>
                 </div>
                 
-                <div class="topbar-icon">
+                <!-- Notifications -->
+                <div class="topbar-icon notification-icon" id="notificationIcon">
                     <i class="fas fa-bell"></i>
-                    <span class="badge">3</span>
+                    <span class="badge" id="notificationCount">0</span>
+                    <div class="notification-dropdown" id="notificationDropdown">
+                        <div class="notification-header">
+                            <h6>Notifications</h6>
+                            <button class="btn-mark-read" onclick="markAllAsRead()">Mark all as read</button>
+                        </div>
+                        <div class="notification-list" id="notificationList">
+                            <div class="text-center py-4 text-muted">
+                                <i class="fas fa-bell-slash fa-2x mb-2"></i>
+                                <p>No new notifications</p>
+                            </div>
+                        </div>
+                        <div class="notification-footer">
+                            <a href="<?= base_url('A_dashboard/notifications') ?>">View all notifications</a>
+                        </div>
+                    </div>
                 </div>
                 
+                <!-- Help -->
                 <div class="topbar-icon" data-bs-toggle="modal" data-bs-target="#helpModal" title="Help & Documentation">
                     <i class="fas fa-question-circle"></i>
-                </div>
+                </div>a>
                 
                 <div class="user-dropdown dropdown">
                     <div class="user-info" data-bs-toggle="dropdown">
