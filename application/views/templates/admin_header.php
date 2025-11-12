@@ -1032,7 +1032,7 @@
                 <!-- Help -->
                 <div class="topbar-icon" data-bs-toggle="modal" data-bs-target="#helpModal" title="Help & Documentation">
                     <i class="fas fa-question-circle"></i>
-                </div>a>
+                </div>
                 
                 <div class="user-dropdown dropdown">
                     <div class="user-info" data-bs-toggle="dropdown">
