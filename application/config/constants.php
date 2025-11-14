@@ -133,3 +133,28 @@ define('A_SCANDIDATE_URL',BASE_URL.'/index.php/A_dashboard/Ascandidate_view');
 define('A_HISTORY_URL',BASE_URL.'/index.php/A_dashboard/Ahistory_view');
 define('A_TIMESHEET_URL',BASE_URL.'/index.php/A_dashboard/Atime_sheet_view');
 define('A_LOGOUT_URL',BASE_URL.'/index.php/A_dashboard/logout');
+
+
+/*
+|--------------------------------------------------------------------------
+| Google OAuth Configuration
+|--------------------------------------------------------------------------
+| Configure Google OAuth 2.0 for social login
+|
+| To setup:
+| 1. Go to https://console.cloud.google.com/
+| 2. Create project > Enable Google+ API
+| 3. Create OAuth 2.0 Client ID
+| 4. Add redirect URI: http://localhost/rms/index.php/Login/google_callback
+| 5. Copy Client ID and Secret below
+|
+*/
+
+// Google OAuth Client ID (Get from Google Cloud Console)
+define('GOOGLE_CLIENT_ID', '211766688118-sid64ufknl82qceqlaneefmsk5rdo1vt.apps.googleusercontent.com');
+
+// Google OAuth Client Secret (Get from Google Cloud Console)
+define('GOOGLE_CLIENT_SECRET', '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');
+
+// Enable/Disable Google Login (Set to TRUE after configuring credentials)
+define('GOOGLE_LOGIN_ENABLED', TRUE);

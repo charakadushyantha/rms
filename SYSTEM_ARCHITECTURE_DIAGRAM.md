@@ -1,0 +1,427 @@
+# 🏗️ Recruitment Management System - Complete Architecture
+
+## System Overview
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                 RECRUITMENT MANAGEMENT SYSTEM (RMS)             │
+│                     CodeIgniter 3 Framework                     │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+## 1. High-Level Architecture
+
+```
+┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│   Frontend   │────▶│   Backend    │────▶│   Database   │
+│  (Views)     │     │ (Controllers)│     │   (MySQL)    │
+└──────────────┘     └──────────────┘     └──────────────┘
+       │                     │                     │
+       │                     │                     │
+       ▼                     ▼                     ▼
+  Bootstrap 5          CodeIgniter 3         MySQL 5.7+
+  Font Awesome         PHP 7.4+              InnoDB Engine
+  jQuery               MVC Pattern           Relational DB
+  Chart.js             RESTful APIs          Transactions
+```
+
+## 2. User Roles & Access Levels
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                          USER ROLES                             │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐        │
+│  │    ADMIN     │  │  RECRUITER   │  │ INTERVIEWER  │        │
+│  │              │  │              │  │              │        │
+│  │ • Full Access│  │ • Candidates │  │ • Interviews │        │
+│  │ • Setup      │  │ • Jobs       │  │ • Feedback   │        │
+│  │ • Users      │  │ • Schedule   │  │ • Schedule   │        │
+│  │ • Reports    │  │ • Reports    │  │ • Profile    │        │
+│  │ • Audit Logs │  │ • Profile    │  │              │        │
+│  └──────────────┘  └──────────────┘  └──────────────┘        │
+│                                                                 │
+│                    ┌──────────────┐                            │
+│                    │  CANDIDATE   │                            │
+│                    │              │                            │
+│                    │ • Profile    │                            │
+│                    │ • Schedule   │                            │
+│                    │ • CV Upload  │                            │
+│                    │ • Status     │                            │
+│                    └──────────────┘                            │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+
+
+## 3. Application Structure (MVC Pattern)
+
+```
+rms/
+├── application/
+│   ├── controllers/          # Business Logic Layer
+│   │   ├── Login.php        # Authentication & OAuth
+│   │   ├── A_dashboard.php  # Admin Dashboard
+│   │   ├── R_dashboard.php  # Recruiter Dashboard
+│   │   ├── I_dashboard.php  # Interviewer Dashboard
+│   │   ├── C_dashboard.php  # Candidate Dashboard
+│   │   └── Setup.php        # System Configuration
+│   │
+│   ├── models/              # Data Access Layer
+│   │   ├── Login_model.php
+│   │   ├── Candidate_model.php
+│   │   ├── Calendar_model.php
+│   │   ├── Interviewer_model.php
+│   │   └── profile_record_model.php
+│   │
+│   ├── views/               # Presentation Layer
+│   │   ├── templates/       # Reusable Headers/Footers
+│   │   ├── Admin_dashboard_view/
+│   │   ├── Recruiter_dashboard_view/
+│   │   ├── Interviewer_dashboard_view/
+│   │   ├── Candidate_dashboard_view/
+│   │   └── login_new.php
+│   │
+│   ├── config/              # Configuration Files
+│   │   ├── database.php     # DB Connection
+│   │   ├── constants.php    # App Constants
+│   │   └── routes.php       # URL Routing
+│   │
+│   └── libraries/           # Custom Libraries
+│       └── audit_logger.php # Audit Trail System
+│
+├── system/                  # CodeIgniter Core
+├── Assets/                  # Static Resources
+│   ├── Admin_Dashboard/
+│   ├── Recruiter_Dashboard/
+│   └── login_page/
+│
+└── uploads/                 # User Uploads
+    ├── profiles/           # Profile Pictures
+    └── documents/          # Candidate Documents
+```
+
+
+
+## 4. Database Schema
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        DATABASE TABLES                          │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  USERS & AUTHENTICATION                                         │
+│  ┌──────────────────┐    ┌──────────────────┐                 │
+│  │     users        │    │  profile_info    │                 │
+│  ├──────────────────┤    ├──────────────────┤                 │
+│  │ u_id (PK)        │───▶│ pi_username (FK) │                 │
+│  │ u_username       │    │ pi_email         │                 │
+│  │ u_email          │    │ pi_phone         │                 │
+│  │ u_password       │    │ pi_full_name     │                 │
+│  │ u_role           │    │ pi_first_name    │                 │
+│  │ u_status         │    │ pi_last_name     │                 │
+│  │ profile_picture  │    │ pi_gender        │                 │
+│  └──────────────────┘    └──────────────────┘                 │
+│                                                                 │
+│  RECRUITMENT DATA                                               │
+│  ┌──────────────────┐    ┌──────────────────┐                 │
+│  │candidate_details │    │ calendar_events  │                 │
+│  ├──────────────────┤    ├──────────────────┤                 │
+│  │ cd_id (PK)       │───▶│ ce_can_name (FK) │                 │
+│  │ cd_name          │    │ ce_interviewer   │                 │
+│  │ cd_email         │    │ ce_rec_username  │                 │
+│  │ cd_phone         │    │ ce_start_date    │                 │
+│  │ cd_status        │    │ ce_end_date      │                 │
+│  │ cd_job_title     │    │ ce_interview_round│                │
+│  │ cd_source        │    │ ce_status        │                 │
+│  │ cd_rec_username  │    └──────────────────┘                 │
+│  └──────────────────┘                                          │
+│                                                                 │
+│  CONFIGURATION                                                  │
+│  ┌──────────────────┐    ┌──────────────────┐                 │
+│  │  oauth_config    │    │  audit_logs      │                 │
+│  ├──────────────────┤    ├──────────────────┤                 │
+│  │ id (PK)          │    │ id (PK)          │                 │
+│  │ provider         │    │ user_id          │                 │
+│  │ client_id        │    │ action           │                 │
+│  │ client_secret    │    │ resource_type    │                 │
+│  │ is_enabled       │    │ resource_id      │                 │
+│  │ default_role     │    │ old_values       │                 │
+│  └──────────────────┘    │ new_values       │                 │
+│                          │ ip_address       │                 │
+│  ┌──────────────────┐    │ created_at       │                 │
+│  │  notifications   │    └──────────────────┘                 │
+│  ├──────────────────┤                                          │
+│  │ id (PK)          │    ┌──────────────────┐                 │
+│  │ user_id          │    │ custom_modules   │                 │
+│  │ type             │    ├──────────────────┤                 │
+│  │ title            │    │ id (PK)          │                 │
+│  │ message          │    │ name             │                 │
+│  │ link             │    │ icon             │                 │
+│  │ is_read          │    │ url              │                 │
+│  │ created_at       │    │ section          │                 │
+│  └──────────────────┘    │ is_active        │                 │
+│                          └──────────────────┘                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+
+
+## 5. Authentication Flow
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    AUTHENTICATION SYSTEM                        │
+└─────────────────────────────────────────────────────────────────┘
+
+┌──────────────────┐         ┌──────────────────┐
+│  Login Methods   │         │  Session Data    │
+├──────────────────┤         ├──────────────────┤
+│                  │         │                  │
+│ 1. Username/Pass │────────▶│ • id             │
+│    • MD5 Hash    │         │ • username       │
+│    • DB Verify   │         │ • email          │
+│                  │         │ • full_name      │
+│ 2. Google OAuth  │────────▶│ • Role           │
+│    • OAuth 2.0   │         │ • authenticated  │
+│    • Auto-create │         │ • google_login   │
+│    • Profile Sync│         │                  │
+└──────────────────┘         └──────────────────┘
+         │                            │
+         │                            │
+         ▼                            ▼
+┌──────────────────┐         ┌──────────────────┐
+│ Role Detection   │         │  Redirect To     │
+├──────────────────┤         ├──────────────────┤
+│ • Admin          │────────▶│ A_dashboard      │
+│ • Recruiter      │────────▶│ R_dashboard      │
+│ • Interviewer    │────────▶│ I_dashboard      │
+│ • Candidate      │────────▶│ C_dashboard      │
+└──────────────────┘         └──────────────────┘
+```
+
+
+
+## 6. Feature Modules
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                      CORE FEATURES                              │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  DASHBOARD FEATURES                                             │
+│  ┌────────────────────────────────────────────────────────┐   │
+│  │ • Time-based Greeting (Good Morning/Afternoon/Evening) │   │
+│  │ • Real-time Statistics                                 │   │
+│  │ • Quick Actions                                        │   │
+│  │ • Recent Activity Widget                               │   │
+│  │ • Animated Cards                                       │   │
+│  │ • Global Search                                        │   │
+│  │ • Notification Center                                  │   │
+│  └────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  CANDIDATE MANAGEMENT                                           │
+│  ┌────────────────────────────────────────────────────────┐   │
+│  │ • Add/Edit/Delete Candidates                           │   │
+│  │ • Document Upload                                      │   │
+│  │ • Status Tracking                                      │   │
+│  │ • Interview History                                    │   │
+│  │ • Communication Log                                    │   │
+│  │ • Advanced Filtering                                   │   │
+│  └────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  INTERVIEW SCHEDULING                                           │
+│  ┌────────────────────────────────────────────────────────┐   │
+│  │ • Calendar View (FullCalendar)                         │   │
+│  │ • Schedule Interviews                                  │   │
+│  │ • Assign Interviewers                                  │   │
+│  │ • Interview Rounds                                     │   │
+│  │ • Feedback Collection                                  │   │
+│  │ • Email Notifications                                  │   │
+│  └────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  REPORTING & ANALYTICS                                          │
+│  ┌────────────────────────────────────────────────────────┐   │
+│  │ • Hiring Pipeline Metrics                              │   │
+│  │ • Recruiter Performance                                │   │
+│  │ • Interview Statistics                                 │   │
+│  │ • Time-to-Hire Analytics                               │   │
+│  │ • Export to CSV                                        │   │
+│  │ • Visual Charts (Chart.js)                             │   │
+│  └────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  SYSTEM SETUP                                                   │
+│  ┌────────────────────────────────────────────────────────┐   │
+│  │ • User Management                                      │   │
+│  │ • Role & Permissions                                   │   │
+│  │ • Company Settings                                     │   │
+│  │ • Email Configuration                                  │   │
+│  │ • Google OAuth Setup                                   │   │
+│  │ • Module Manager                                       │   │
+│  │ • Audit Logs                                           │   │
+│  └────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+
+
+## 7. Request Flow
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    HTTP REQUEST FLOW                            │
+└─────────────────────────────────────────────────────────────────┘
+
+User Browser
+     │
+     │ HTTP Request
+     ▼
+┌─────────────┐
+│  index.php  │ ◀── Entry Point
+└─────────────┘
+     │
+     │ Load Framework
+     ▼
+┌─────────────┐
+│ CodeIgniter │
+│   Router    │ ◀── Parse URL & Route
+└─────────────┘
+     │
+     │ Route to Controller
+     ▼
+┌─────────────┐
+│ Controller  │ ◀── Business Logic
+│  (e.g.,     │     • Validate Input
+│  A_dashboard)│     • Check Auth
+└─────────────┘     • Process Data
+     │
+     │ Query Data
+     ▼
+┌─────────────┐
+│   Model     │ ◀── Data Access
+│  (e.g.,     │     • SQL Queries
+│  Candidate_ │     • CRUD Operations
+│   model)    │     • Data Validation
+└─────────────┘
+     │
+     │ Return Data
+     ▼
+┌─────────────┐
+│ Controller  │ ◀── Prepare View Data
+└─────────────┘
+     │
+     │ Load View
+     ▼
+┌─────────────┐
+│    View     │ ◀── Render HTML
+│  (e.g.,     │     • Display Data
+│  dashboard) │     • Apply Template
+└─────────────┘     • Add Assets
+     │
+     │ HTML Response
+     ▼
+User Browser
+```
+
+
+
+## 8. Google OAuth Integration
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                  GOOGLE OAUTH FLOW                              │
+└─────────────────────────────────────────────────────────────────┘
+
+User clicks "Continue with Google"
+     │
+     ▼
+┌─────────────────────┐
+│ Login/google_login  │ ◀── Build OAuth URL
+└─────────────────────┘
+     │
+     │ Redirect to Google
+     ▼
+┌─────────────────────┐
+│  Google OAuth Page  │ ◀── User Authenticates
+└─────────────────────┘
+     │
+     │ Authorization Code
+     ▼
+┌─────────────────────┐
+│Login/google_callback│ ◀── Exchange Code for Token
+└─────────────────────┘
+     │
+     │ Get User Info
+     ▼
+┌─────────────────────┐
+│  Google User API    │ ◀── Fetch Profile Data
+└─────────────────────┘     • Name
+     │                      • Email
+     │                      • Picture
+     ▼
+┌─────────────────────┐
+│  Check User Exists  │
+└─────────────────────┘
+     │
+     ├─── Yes ──▶ Update Profile
+     │            • Sync Picture
+     │            • Update Name
+     │            • Create Session
+     │
+     └─── No ───▶ Create New User
+                  • Generate Username
+                  • Store Profile Info
+                  • Assign Default Role
+                  • Create Session
+     │
+     ▼
+Redirect to Dashboard
+```
+
+
+
+## 9. Security Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    SECURITY LAYERS                              │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  AUTHENTICATION                                                 │
+│  ┌────────────────────────────────────────────────────────┐   │
+│  │ • Session-based Authentication                         │   │
+│  │ • MD5 Password Hashing                                 │   │
+│  │ • OAuth 2.0 (Google)                                   │   │
+│  │ • Login Attempt Tracking                               │   │
+│  │ • Account Status Verification                          │   │
+│  └────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  AUTHORIZATION                                                  │
+│  ┌────────────────────────────────────────────────────────┐   │
+│  │ • Role-based Access Control (RBAC)                     │   │
+│  │ • Controller-level Checks                              │   │
+│  │ • View-level Permissions                               │   │
+│  │ • Resource Ownership Validation                        │   │
+│  └────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  DATA PROTECTION                                                │
+│  ┌────────────────────────────────────────────────────────┐   │
+│  │ • SQL Injection Prevention (Active Record)             │   │
+│  │ • XSS Protection (htmlspecialchars)                    │   │
+│  │ • CSRF Protection (CodeIgniter)                        │   │
+│  │ • Input Validation & Sanitization                      │   │
+│  │ • Secure File Upload                                   │   │
+│  └────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  AUDIT & MONITORING                                             │
+│  ┌────────────────────────────────────────────────────────┐   │
+│  │ • Complete Activity Logging                            │   │
+│  │ • User Action Tracking                                 │   │
+│  │ • IP Address Recording                                 │   │
+│  │ • Change History (Old/New Values)                      │   │
+│  │ • Login/Logout Tracking                                │   │
+│  └────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+```
+

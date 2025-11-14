@@ -1037,8 +1037,9 @@
                 <div class="user-dropdown dropdown">
                     <div class="user-info" data-bs-toggle="dropdown">
                         <?php 
-                        // Get profile picture from database
+                        // Get profile picture and display name from database
                         $username = $this->session->userdata('username');
+                        $display_name = $this->session->userdata('full_name') ? $this->session->userdata('full_name') : $username;
                         $user_pic = $this->db->select('profile_picture')
                                              ->where('u_username', $username)
                                              ->get(TBL_USERS)
@@ -1053,11 +1054,11 @@
                                  style="object-fit: cover;">
                         <?php else: ?>
                             <div class="user-avatar">
-                                <?= strtoupper(substr($username, 0, 1)) ?>
+                                <?= strtoupper(substr($display_name, 0, 1)) ?>
                             </div>
                         <?php endif; ?>
                         <div class="user-details">
-                            <div class="user-name"><?= $username ?></div>
+                            <div class="user-name"><?= htmlspecialchars($display_name) ?></div>
                             <div class="user-role">Administrator</div>
                         </div>
                         <i class="fas fa-chevron-down" style="color: #999; font-size: 12px;"></i>

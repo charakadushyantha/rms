@@ -202,8 +202,21 @@ class Interviewer_model extends CI_Model {
 
     // Get user info
     public function get_user_info($username) {
-        $this->db->where('u_username', $username);
-        return $this->db->get('users')->row_array();
+        // Get user data with profile info
+        $this->db->select('users.*, profile_info.pi_full_name, profile_info.pi_first_name, profile_info.pi_last_name, profile_info.pi_phone, profile_info.pi_gender');
+        $this->db->from('users');
+        $this->db->join('profile_info', 'users.u_username = profile_info.pi_username', 'left');
+        $this->db->where('users.u_username', $username);
+        $user_data = $this->db->get()->row_array();
+        
+        // If full name exists in profile, use it; otherwise use username
+        if ($user_data && !empty($user_data['pi_full_name'])) {
+            $user_data['display_name'] = $user_data['pi_full_name'];
+        } else {
+            $user_data['display_name'] = $user_data['u_username'];
+        }
+        
+        return $user_data;
     }
 
     // Get availability

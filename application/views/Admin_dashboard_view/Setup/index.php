@@ -276,6 +276,61 @@ $this->load->view('templates/admin_header', array('page_title' => 'System Setup'
     </div>
 </div>
 
+<!-- Authentication & Security -->
+<div class="setup-category">
+    <div class="category-header">
+        <h4><i class="fas fa-shield-alt me-2"></i>Authentication & Security</h4>
+    </div>
+    <div class="category-cards">
+        <div class="row g-3">
+            <div class="col-md-6 col-lg-3">
+                <a href="<?= base_url('Setup/google_oauth_config') ?>" class="setup-card">
+                    <div class="setup-card-inner">
+                        <div class="setup-icon" style="background: linear-gradient(135deg, #EA4335, #FBBC05);">
+                            <i class="fab fa-google"></i>
+                        </div>
+                        <h5>Google OAuth <span class="badge-new">NEW</span></h5>
+                        <p>Configure Google Sign-In</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <a href="#" class="setup-card" onclick="alert('Coming soon!'); return false;">
+                    <div class="setup-card-inner">
+                        <div class="setup-icon" style="background: linear-gradient(135deg, #3b5998, #8b9dc3);">
+                            <i class="fab fa-facebook"></i>
+                        </div>
+                        <h5>Facebook Login <span class="badge-coming">SOON</span></h5>
+                        <p>Facebook authentication</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <a href="#" class="setup-card" onclick="alert('Coming soon!'); return false;">
+                    <div class="setup-card-inner">
+                        <div class="setup-icon" style="background: linear-gradient(135deg, #333, #666);">
+                            <i class="fab fa-github"></i>
+                        </div>
+                        <h5>GitHub OAuth <span class="badge-coming">SOON</span></h5>
+                        <p>GitHub authentication</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <a href="#" class="setup-card" onclick="alert('Coming soon!'); return false;">
+                    <div class="setup-card-inner">
+                        <div class="setup-icon" style="background: linear-gradient(135deg, #0077b5, #00a0dc);">
+                            <i class="fab fa-linkedin"></i>
+                        </div>
+                        <h5>LinkedIn OAuth <span class="badge-coming">SOON</span></h5>
+                        <p>LinkedIn authentication</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Automation -->
 <div class="setup-category">
     <div class="category-header">

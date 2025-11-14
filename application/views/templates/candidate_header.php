@@ -308,10 +308,15 @@
                 </button>
 
                 <div class="user-menu" onclick="toggleUserDropdown()">
+                    <?php 
+                    // Get display name from session (full name from Google or username)
+                    $display_name = $this->session->userdata('full_name') ? $this->session->userdata('full_name') : $uname;
+                    $avatar_initial = strtoupper(substr($display_name, 0, 1));
+                    ?>
                     <div class="user-avatar">
-                        <?php echo strtoupper(substr($uname, 0, 1)); ?>
+                        <?php echo $avatar_initial; ?>
                     </div>
-                    <span><?php echo htmlspecialchars($uname); ?></span>
+                    <span><?php echo htmlspecialchars($display_name); ?></span>
                     <i class="fas fa-chevron-down"></i>
                     <div class="user-dropdown" id="userDropdown">
                         <a href="<?php echo base_url('C_dashboard/profile'); ?>">

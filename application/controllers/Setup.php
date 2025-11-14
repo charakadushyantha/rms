@@ -1577,4 +1577,142 @@ class Setup extends CI_Controller
         return $this->db->insert('audit_logs', $data);
     }
 
+    // Google OAuth Configuration
+    public function google_oauth_config()
+    {
+        $data['uname'] = $this->session->userdata('username');
+        $data['page_title'] = 'Google OAuth Configuration';
+        
+        // Create oauth_config table if it doesn't exist
+        $this->create_oauth_config_table();
+        
+        // Get current configuration
+        $config = $this->db->get('oauth_config')->row();
+        $data['config'] = $config;
+        
+        $this->load->view('Admin_dashboard_view/Setup/google_oauth_config', $data);
+    }
+
+    private function create_oauth_config_table()
+    {
+        // Check if table exists
+        if (!$this->db->table_exists('oauth_config')) {
+            $this->db->query("
+                CREATE TABLE IF NOT EXISTS `oauth_config` (
+                    `id` int(11) NOT NULL AUTO_INCREMENT,
+                    `provider` varchar(50) NOT NULL DEFAULT 'google',
+                    `client_id` varchar(255) DEFAULT NULL,
+                    `client_secret` varchar(255) DEFAULT NULL,
+                    `is_enabled` tinyint(1) DEFAULT 0,
+                    `redirect_uri` varchar(255) DEFAULT NULL,
+                    `auto_activate_users` tinyint(1) DEFAULT 1,
+                    `default_role` varchar(50) DEFAULT 'Candidate',
+                    `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+                    `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    PRIMARY KEY (`id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+            ");
+            
+            // Insert default Google OAuth config
+            $this->db->insert('oauth_config', [
+                'provider' => 'google',
+                'client_id' => '',
+                'client_secret' => '',
+                'is_enabled' => 0,
+                'redirect_uri' => base_url('Login/google_callback'),
+                'auto_activate_users' => 1,
+                'default_role' => 'Candidate'
+            ]);
+        }
+    }
+
+    public function save_google_oauth_config()
+    {
+        $data = [
+            'client_id' => $this->input->post('client_id'),
+            'client_secret' => $this->input->post('client_secret'),
+            'is_enabled' => $this->input->post('is_enabled') ? 1 : 0,
+            'auto_activate_users' => $this->input->post('auto_activate_users') ? 1 : 0,
+            'default_role' => $this->input->post('default_role')
+        ];
+        
+        // Update the configuration
+        $this->db->where('provider', 'google');
+        if ($this->db->update('oauth_config', $data)) {
+            // Also update constants.php file
+            $this->update_constants_file($data);
+            
+            $this->session->set_flashdata('success_msg', 'Google OAuth configuration saved successfully!');
+        } else {
+            $this->session->set_flashdata('error_msg', 'Failed to save configuration.');
+        }
+        
+        redirect('Setup/google_oauth_config');
+    }
+
+    private function update_constants_file($config)
+    {
+        $constants_file = APPPATH . 'config/constants.php';
+        
+        if (file_exists($constants_file)) {
+            $content = file_get_contents($constants_file);
+            
+            // Update GOOGLE_CLIENT_ID
+            $content = preg_replace(
+                "/define\('GOOGLE_CLIENT_ID',\s*'[^']*'\);/",
+                "define('GOOGLE_CLIENT_ID', '" . $config['client_id'] . "');",
+                $content
+            );
+            
+            // Update GOOGLE_CLIENT_SECRET
+            $content = preg_replace(
+                "/define\('GOOGLE_CLIENT_SECRET',\s*'[^']*'\);/",
+                "define('GOOGLE_CLIENT_SECRET', '" . $config['client_secret'] . "');",
+                $content
+            );
+            
+            // Update GOOGLE_LOGIN_ENABLED
+            $enabled = $config['is_enabled'] ? 'TRUE' : 'FALSE';
+            $content = preg_replace(
+                "/define\('GOOGLE_LOGIN_ENABLED',\s*(TRUE|FALSE)\);/",
+                "define('GOOGLE_LOGIN_ENABLED', " . $enabled . ");",
+                $content
+            );
+            
+            file_put_contents($constants_file, $content);
+        }
+    }
+
+    public function test_google_oauth()
+    {
+        // Get configuration
+        $config = $this->db->where('provider', 'google')->get('oauth_config')->row();
+        
+        if (empty($config->client_id) || empty($config->client_secret)) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Please configure Client ID and Client Secret first.'
+            ]);
+            return;
+        }
+        
+        // Test by building the OAuth URL
+        $params = array(
+            'client_id' => $config->client_id,
+            'redirect_uri' => base_url('Login/google_callback'),
+            'response_type' => 'code',
+            'scope' => 'email profile',
+            'access_type' => 'online',
+            'prompt' => 'select_account'
+        );
+        
+        $auth_url = 'https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query($params);
+        
+        echo json_encode([
+            'success' => true,
+            'message' => 'Configuration looks good! Click the button below to test login.',
+            'auth_url' => $auth_url
+        ]);
+    }
+
 }

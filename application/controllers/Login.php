@@ -3,16 +3,50 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Login extends CI_Controller {
 
+	/**
+	 * Get time-based greeting message
+	 * @param string $timezone - Timezone identifier (e.g., 'Asia/Kolkata', 'America/New_York')
+	 * @return string - Greeting message based on current time
+	 */
+	private function get_time_based_greeting($timezone = 'Asia/Kolkata')
+	{
+		try {
+			// Create DateTime object with specified timezone
+			$date = new DateTime('now', new DateTimeZone($timezone));
+			$hour = (int)$date->format('H'); // Get hour in 24-hour format
+			
+			// Determine greeting based on time of day
+			if ($hour >= 5 && $hour < 12) {
+				return 'Good Morning';
+			} elseif ($hour >= 12 && $hour < 18) {
+				return 'Good Afternoon';
+			} elseif ($hour >= 18 && $hour < 22) {
+				return 'Good Evening';
+			} else {
+				return 'Good Night';
+			}
+		} catch (Exception $e) {
+			// Fallback to default greeting if timezone is invalid
+			log_message('error', 'Timezone error: ' . $e->getMessage());
+			return 'Welcome Back';
+		}
+	}
 
 	public function index()
 	{
-		$this->load->view('login_new'); // Using new modern UI
+		// Add dynamic greeting based on time of day
+		$data['greeting'] = $this->get_time_based_greeting('Asia/Kolkata');
+		
+		$this->load->view('login_new', $data); // Using new modern UI
 		// To use old design: $this->load->view('login');
 	}
 
 	public function signup()
 	{
-		$this->load->view('signup_new'); // Using new modern UI
+		// Add dynamic greeting
+		$data['greeting'] = $this->get_time_based_greeting('Asia/Kolkata');
+		
+		$this->load->view('signup_new', $data); // Using new modern UI
 		// To use old design: $this->load->view('signup');
 	}
 
@@ -258,7 +292,10 @@ class Login extends CI_Controller {
 
 	public function forgotpassword()
 	{
-		$this->load->view('forgotpassword_new'); // Using new modern UI
+		// Add dynamic greeting
+		$data['greeting'] = $this->get_time_based_greeting('Asia/Kolkata');
+		
+		$this->load->view('forgotpassword_new', $data); // Using new modern UI
 		// To use old design: $this->load->view('forgotpassword');
 	}
 
@@ -323,6 +360,9 @@ class Login extends CI_Controller {
 	public function reset_password()
 	{
 		$data['semail'] = $this->uri->segment(3);
+		// Add dynamic greeting
+		$data['greeting'] = $this->get_time_based_greeting('Asia/Kolkata');
+		
 		$this->load->view('resetpassword_new',$data); // Using new modern UI
 		// To use old design: $this->load->view('resetpassword',$data);
 	}
@@ -340,6 +380,270 @@ class Login extends CI_Controller {
 		}
 		else {
 			echo "Password is not changed";
+		}
+	}
+
+	/**
+	 * Google OAuth Login - Initiate
+	 * Redirects user to Google OAuth consent screen
+	 */
+	public function google_login()
+	{
+		// Get configuration from database
+		$config = $this->db->where('provider', 'google')->get('oauth_config')->row();
+		
+		// Check if Google OAuth is configured and enabled
+		if (!$config || empty($config->client_id) || empty($config->client_secret) || !$config->is_enabled) {
+			$this->session->set_flashdata('msgad', 'Google login is not configured or enabled. Please contact administrator.');
+			redirect(LOGIN_URL);
+			return;
+		}
+
+		// Build Google OAuth URL
+		$params = array(
+			'client_id' => $config->client_id,
+			'redirect_uri' => base_url('Login/google_callback'),
+			'response_type' => 'code',
+			'scope' => 'email profile',
+			'access_type' => 'online',
+			'prompt' => 'select_account'
+		);
+
+		$auth_url = 'https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query($params);
+		redirect($auth_url);
+	}
+
+	/**
+	 * Google OAuth Callback
+	 * Handles the response from Google after user authorization
+	 */
+	public function google_callback()
+	{
+		// Get configuration from database
+		$config = $this->db->where('provider', 'google')->get('oauth_config')->row();
+		
+		// Check if Google OAuth is configured
+		if (!$config || empty($config->client_id) || empty($config->client_secret)) {
+			$this->session->set_flashdata('msgad', 'Google login not configured yet');
+			redirect(LOGIN_URL);
+			return;
+		}
+
+		// Get authorization code from Google
+		$code = $this->input->get('code');
+		
+		if (!$code) {
+			$this->session->set_flashdata('msgad', 'Google login failed. Please try again.');
+			redirect(LOGIN_URL);
+			return;
+		}
+
+		// Exchange authorization code for access token
+		$token_url = 'https://oauth2.googleapis.com/token';
+		$token_data = array(
+			'code' => $code,
+			'client_id' => $config->client_id,
+			'client_secret' => $config->client_secret,
+			'redirect_uri' => base_url('Login/google_callback'),
+			'grant_type' => 'authorization_code'
+		);
+
+		// Use cURL to get access token
+		$ch = curl_init($token_url);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_POST, true);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($token_data));
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		$response = curl_exec($ch);
+		curl_close($ch);
+
+		$token_info = json_decode($response, true);
+
+		if (!isset($token_info['access_token'])) {
+			$this->session->set_flashdata('msgad', 'Failed to get access token from Google');
+			redirect(LOGIN_URL);
+			return;
+		}
+
+		// Get user info from Google
+		$user_info_url = 'https://www.googleapis.com/oauth2/v2/userinfo?access_token=' . $token_info['access_token'];
+		$ch = curl_init($user_info_url);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		$user_info_response = curl_exec($ch);
+		curl_close($ch);
+
+		$user_info = json_decode($user_info_response, true);
+
+		if (!isset($user_info['email'])) {
+			$this->session->set_flashdata('msgad', 'Failed to get user information from Google');
+			redirect(LOGIN_URL);
+			return;
+		}
+
+		// Check if user exists in database
+		$this->db->where('u_email', $user_info['email']);
+		$existing_user = $this->db->get(TBL_USERS)->row();
+
+		if ($existing_user) {
+			// User exists - check if account is active
+			if ($existing_user->u_status == 'Active') {
+				// Update profile picture if available from Google
+				if (isset($user_info['picture'])) {
+					$this->db->where('u_id', $existing_user->u_id);
+					$this->db->update(TBL_USERS, array('profile_picture' => $user_info['picture']));
+				}
+				
+				// Update or create profile_info with Google name
+				if (isset($user_info['name'])) {
+					$this->db->where('pi_username', $existing_user->u_username);
+					$profile_exists = $this->db->get(TBL_PROFILE)->row();
+					
+					$profile_data = array(
+						'pi_username' => $existing_user->u_username,
+						'pi_email' => $existing_user->u_email,
+						'pi_role' => $existing_user->u_role
+					);
+					
+					// Add name fields if available
+					if (isset($user_info['given_name'])) {
+						$profile_data['pi_first_name'] = $user_info['given_name'];
+					}
+					if (isset($user_info['family_name'])) {
+						$profile_data['pi_last_name'] = $user_info['family_name'];
+					}
+					// Store full name
+					$profile_data['pi_full_name'] = $user_info['name'];
+					
+					if ($profile_exists) {
+						$this->db->where('pi_username', $existing_user->u_username);
+						$this->db->update(TBL_PROFILE, $profile_data);
+					} else {
+						$this->db->insert(TBL_PROFILE, $profile_data);
+					}
+				}
+				
+				// Get the display name (prefer full name from profile, fallback to username)
+				$display_name = $existing_user->u_username;
+				if (isset($user_info['name'])) {
+					$display_name = $user_info['name'];
+				}
+				
+				// Log user in
+				$userdata = array(
+					'id' => $existing_user->u_id,
+					'username' => $existing_user->u_username,
+					'email' => $existing_user->u_email,
+					'full_name' => $display_name,
+					'Role' => $existing_user->u_role,
+					'authenticated' => TRUE,
+					'google_login' => TRUE
+				);
+
+				$this->session->set_userdata($userdata);
+
+				// Redirect based on role
+				switch($existing_user->u_role) {
+					case 'Admin':
+						redirect(A_DASHBOARD_URL);
+						break;
+					case 'Recruiter':
+						redirect(R_DASHBOARD_URL);
+						break;
+					case 'Interviewer':
+						redirect(base_url('I_dashboard'));
+						break;
+					case 'Candidate':
+						redirect(base_url('C_dashboard'));
+						break;
+					default:
+						redirect(R_DASHBOARD_URL);
+				}
+			} else {
+				$this->session->set_flashdata('msgad', 'Your account is not activated. Please contact administrator.');
+				redirect(LOGIN_URL);
+			}
+		} else {
+			// User doesn't exist - create new account based on config
+			$username = explode('@', $user_info['email'])[0];
+			
+			// Check if username already exists, if so, append random number
+			$this->db->where('u_username', $username);
+			if ($this->db->count_all_results(TBL_USERS) > 0) {
+				$username = $username . '_' . rand(1000, 9999);
+			}
+
+			// Determine status based on config
+			$status = $config->auto_activate_users ? 'Active' : 'Pending';
+			
+			// Create new user account
+			$new_user_data = array(
+				'u_username' => $username,
+				'u_email' => $user_info['email'],
+				'u_password' => md5(uniqid()), // Random password since they'll use Google login
+				'u_role' => $config->default_role, // Use role from config
+				'u_status' => $status, // Use status from config
+				'profile_picture' => isset($user_info['picture']) ? $user_info['picture'] : NULL
+			);
+
+			$this->db->insert(TBL_USERS, $new_user_data);
+			$new_user_id = $this->db->insert_id();
+
+			// Create profile_info with Google name
+			if (isset($user_info['name'])) {
+				$profile_data = array(
+					'pi_username' => $username,
+					'pi_email' => $user_info['email'],
+					'pi_role' => $config->default_role,
+					'pi_full_name' => $user_info['name']
+				);
+				
+				// Add name fields if available
+				if (isset($user_info['given_name'])) {
+					$profile_data['pi_first_name'] = $user_info['given_name'];
+				}
+				if (isset($user_info['family_name'])) {
+					$profile_data['pi_last_name'] = $user_info['family_name'];
+				}
+				
+				$this->db->insert(TBL_PROFILE, $profile_data);
+			}
+
+			// Create candidate profile if role is Candidate
+			if ($config->default_role == 'Candidate' && isset($user_info['name'])) {
+				$candidate_data = array(
+					'cd_rec_username' => 'system',
+					'cd_name' => $user_info['name'],
+					'cd_email' => $user_info['email'],
+					'cd_phone' => 0,
+					'cd_gender' => 'Not Specified',
+					'cd_job_title' => 'Not Specified',
+					'cd_source' => 'Google OAuth',
+					'cd_description' => 'Registered via Google Sign-In',
+					'cd_status' => 'New',
+					'cd_interview_status' => 0
+				);
+				$this->db->insert('candidate_details', $candidate_data);
+			}
+
+			// Get display name
+			$display_name = isset($user_info['name']) ? $user_info['name'] : $username;
+
+			// Log the new user in
+			$userdata = array(
+				'id' => $new_user_id,
+				'username' => $username,
+				'email' => $user_info['email'],
+				'full_name' => $display_name,
+				'Role' => $config->default_role,
+				'authenticated' => TRUE,
+				'google_login' => TRUE
+			);
+
+			$this->session->set_userdata($userdata);
+			
+			// Redirect to candidate dashboard
+			redirect(base_url('C_dashboard'));
 		}
 	}
 

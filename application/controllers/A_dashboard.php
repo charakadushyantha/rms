@@ -15,9 +15,43 @@ class A_dashboard extends CI_Controller
       }
   }
 
+  /**
+   * Get time-based greeting message
+   * @param string $timezone - Timezone identifier (e.g., 'Asia/Kolkata', 'America/New_York')
+   * @return string - Greeting message based on current time
+   */
+  private function get_time_based_greeting($timezone = 'Asia/Kolkata')
+  {
+    try {
+      // Create DateTime object with specified timezone
+      $date = new DateTime('now', new DateTimeZone($timezone));
+      $hour = (int)$date->format('H'); // Get hour in 24-hour format
+      
+      // Determine greeting based on time of day
+      if ($hour >= 5 && $hour < 12) {
+        return 'Good Morning';
+      } elseif ($hour >= 12 && $hour < 18) {
+        return 'Good Afternoon';
+      } elseif ($hour >= 18 && $hour < 22) {
+        return 'Good Evening';
+      } else {
+        return 'Good Night';
+      }
+    } catch (Exception $e) {
+      // Fallback to default greeting if timezone is invalid
+      log_message('error', 'Timezone error: ' . $e->getMessage());
+      return 'Welcome back';
+    }
+  }
+
   public function index()
   {
     $data['uname'] = $this->session->userdata('username');
+    
+    // Add dynamic greeting based on time of day
+    // You can change the timezone parameter as needed
+    $data['greeting'] = $this->get_time_based_greeting('Asia/Kolkata');
+    
     $data['can_details']=$this->Candidate_model->get_selected_all_candidate($data);
     $data['sel_can']=$this->Calendar_model->get_selected_all_can();
     $data['can_selected'] = $this->Calendar_model->count_can_admin();

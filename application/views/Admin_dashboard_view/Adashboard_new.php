@@ -259,7 +259,7 @@ $this->load->view('templates/admin_header', $data);
 <div class="dashboard-welcome">
     <div class="d-flex justify-content-between align-items-center">
         <div>
-            <h2>Welcome back, <?= $this->session->userdata('username') ?>! 👋</h2>
+            <h2><?= isset($greeting) ? $greeting : 'Welcome back' ?>, <?= $this->session->userdata('username') ?>! 👋</h2>
             <p>Here's what's happening with your recruitment today</p>
         </div>
         <div>
