@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Chatbot extends CI_Controller
+class Marketing_automation extends CI_Controller
 {
     public function __construct()
     {
@@ -19,7 +19,7 @@ class Chatbot extends CI_Controller
     public function index()
     {
         $data['uname'] = $this->session->userdata('username');
-        $data['page_title'] = 'AI Chatbot';
-        $this->load->view('Chatbot_view/index', $data);
+        $data['page_title'] = 'Marketing Automation';
+        $this->load->view('Marketing_automation_view/index', $data);
     }
 }

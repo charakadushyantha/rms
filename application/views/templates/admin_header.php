@@ -837,6 +837,59 @@
             </li>
             <?php endif; ?>
             
+            <div class="sidebar-divider"></div>
+            
+            <!-- Job Posting Integration -->
+            <li class="sidebar-heading">
+                <span>JOB POSTING</span>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Job_posting'); ?>" class="<?= $this->uri->segment(1) == 'Job_posting' ? 'active' : '' ?>">
+                    <i class="fas fa-briefcase"></i>
+                    <span>Job Postings</span>
+                    <span class="badge" style="background: linear-gradient(90deg, #f093fb, #f5576c); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto;">NEW</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Job_posting/analytics'); ?>" class="<?= ($this->uri->segment(1) == 'Job_posting' && $this->uri->segment(2) == 'analytics') ? 'active' : '' ?>">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Job Analytics</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Setup/job_posting_platforms'); ?>" class="<?= ($this->uri->segment(1) == 'Setup' && $this->uri->segment(2) == 'job_posting_platforms') ? 'active' : '' ?>">
+                    <i class="fas fa-share-alt"></i>
+                    <span>Platform Config</span>
+                </a>
+            </li>
+            
+            <div class="sidebar-divider"></div>
+            
+            <!-- Sales & Marketing Hub -->
+            <li class="sidebar-heading">
+                <span>SALES & MARKETING</span>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Sales_marketing'); ?>" class="<?= $this->uri->segment(1) == 'Sales_marketing' ? 'active' : '' ?>" style="background: linear-gradient(90deg, rgba(255, 107, 107, 0.2), rgba(255, 193, 7, 0.2)); border-left: 4px solid #ff6b6b;">
+                    <i class="fas fa-bullhorn" style="color: #ff6b6b;"></i>
+                    <span style="font-weight: 600;">Marketing Hub</span>
+                    <span class="badge" style="background: linear-gradient(90deg, #ff6b6b, #ffc107); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto;">HUB</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Candidate_sourcing'); ?>" class="<?= $this->uri->segment(1) == 'Candidate_sourcing' ? 'active' : '' ?>">
+                    <i class="fas fa-search"></i>
+                    <span>Candidate Sourcing</span>
+                    <span class="badge" style="background: linear-gradient(90deg, #ffecd2, #fcb69f); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto;">NEW</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Candidate_sourcing/pools'); ?>" class="<?= ($this->uri->segment(1) == 'Candidate_sourcing' && $this->uri->segment(2) == 'pools') ? 'active' : '' ?>">
+                    <i class="fas fa-layer-group"></i>
+                    <span>Talent Pools</span>
+                </a>
+            </li>
+            
             <?php 
             // Check if any user management modules are visible
             $show_user_mgmt = is_module_visible('recruiters', $module_visibility) || 

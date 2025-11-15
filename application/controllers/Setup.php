@@ -1715,4 +1715,52 @@ class Setup extends CI_Controller
         ]);
     }
 
+    // Job Posting Platform Configuration
+    public function job_posting_platforms()
+    {
+        $data['uname'] = $this->session->userdata('username');
+        $data['page_title'] = 'Job Posting Platforms';
+        
+        // Load job platform model
+        $this->load->model('Job_platform_model');
+        
+        // Get all platforms with credentials
+        $data['platforms'] = $this->Job_platform_model->get_all_platforms();
+        
+        $this->load->view('Admin_dashboard_view/Setup/job_posting_platforms', $data);
+    }
+
+    // Save job platform credentials
+    public function save_job_platform_credentials()
+    {
+        $this->load->model('Job_platform_model');
+        
+        $cred_data = [
+            'platform_id' => $this->input->post('platform_id'),
+            'api_key' => $this->input->post('api_key'),
+            'api_secret' => $this->input->post('api_secret'),
+            'access_token' => $this->input->post('access_token'),
+            'is_enabled' => $this->input->post('is_enabled') ? 1 : 0
+        ];
+
+        if ($this->Job_platform_model->save_credentials($cred_data)) {
+            $this->session->set_flashdata('success_msg', 'Platform credentials saved successfully!');
+        } else {
+            $this->session->set_flashdata('error_msg', 'Failed to save credentials.');
+        }
+        
+        redirect('Setup/job_posting_platforms');
+    }
+
+    // Test job platform connection
+    public function test_job_platform()
+    {
+        $platform_id = $this->input->post('platform_id');
+        
+        $this->load->model('Job_platform_model');
+        $result = $this->Job_platform_model->test_platform_connection($platform_id);
+        
+        echo json_encode($result);
+    }
+
 }
