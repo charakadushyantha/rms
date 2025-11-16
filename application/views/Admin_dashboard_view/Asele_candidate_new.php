@@ -8,6 +8,14 @@ $this->load->view('templates/admin_header', $data);
 ?>
 
 <!-- Stats Row -->
+<?php if(!isset($selected_this_month) || ($selected_this_month == 0 && $selected_this_week == 0 && $selected_today == 0)): ?>
+<div class="alert alert-info mb-4">
+    <i class="fas fa-info-circle me-2"></i>
+    <strong>Note:</strong> Time-based statistics require the <code>cd_created_at</code> column. 
+    <a href="<?= base_url('add_created_at_column.php') ?>" class="alert-link">Click here to add it</a> or all stats will show total count.
+</div>
+<?php endif; ?>
+
 <div class="row g-4 mb-4">
     <div class="col-md-3">
         <div class="stat-card success">
@@ -30,7 +38,7 @@ $this->load->view('templates/admin_header', $data);
                     <i class="fas fa-calendar-check"></i>
                 </div>
             </div>
-            <div class="stat-card-value">0</div>
+            <div class="stat-card-value"><?= isset($selected_this_month) ? $selected_this_month : 0 ?></div>
             <div class="stat-card-footer">Selected this month</div>
         </div>
     </div>
@@ -43,7 +51,7 @@ $this->load->view('templates/admin_header', $data);
                     <i class="fas fa-calendar-week"></i>
                 </div>
             </div>
-            <div class="stat-card-value">0</div>
+            <div class="stat-card-value"><?= isset($selected_this_week) ? $selected_this_week : 0 ?></div>
             <div class="stat-card-footer">Selected this week</div>
         </div>
     </div>
@@ -56,7 +64,7 @@ $this->load->view('templates/admin_header', $data);
                     <i class="fas fa-calendar-day"></i>
                 </div>
             </div>
-            <div class="stat-card-value">0</div>
+            <div class="stat-card-value"><?= isset($selected_today) ? $selected_today : 0 ?></div>
             <div class="stat-card-footer">Selected today</div>
         </div>
     </div>
@@ -65,11 +73,109 @@ $this->load->view('templates/admin_header', $data);
 <!-- Selected Candidates Table -->
 <div class="data-card">
     <div class="data-card-header">
-        <h3 class="data-card-title">All Selected Candidates</h3>
+        <h3 class="data-card-title">All Candidates</h3>
         <div>
-            <button class="btn btn-primary-modern btn-modern">
-                <i class="fas fa-download me-2"></i>Export List
+            <button class="btn btn-primary-modern btn-modern" onclick="exportFilteredData()">
+                <i class="fas fa-download me-2"></i>Export Data
             </button>
+        </div>
+    </div>
+    
+    <!-- Filters Section -->
+    <div class="p-3 bg-light border-bottom">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label small fw-bold">
+                    <i class="fas fa-search me-1"></i>Search
+                </label>
+                <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="Search candidates...">
+            </div>
+            
+            <div class="col-md-2">
+                <label class="form-label small fw-bold">
+                    <i class="fas fa-flag me-1"></i>Status
+                </label>
+                <select class="form-select form-select-sm" id="statusFilter">
+                    <option value="">All Status</option>
+                    <option value="Round 1">Round 1</option>
+                    <option value="Round 2">Round 2</option>
+                    <option value="Round 3">Round 3</option>
+                    <option value="Completed">Completed</option>
+                </select>
+            </div>
+            
+            <div class="col-md-2">
+                <label class="form-label small fw-bold">
+                    <i class="fas fa-tasks me-1"></i>Progress
+                </label>
+                <select class="form-select form-select-sm" id="progressFilter">
+                    <option value="">All Progress</option>
+                    <option value="100">100% Complete</option>
+                    <option value="75-99">75-99% Complete</option>
+                    <option value="50-74">50-74% Complete</option>
+                    <option value="25-49">25-49% Complete</option>
+                    <option value="0-24">0-24% Complete</option>
+                </select>
+            </div>
+            
+            <div class="col-md-2">
+                <label class="form-label small fw-bold">
+                    <i class="fas fa-user-tie me-1"></i>Recruiter
+                </label>
+                <select class="form-select form-select-sm" id="recruiterFilter">
+                    <option value="">All Recruiters</option>
+                    <?php if(isset($can_details) && $can_details->num_rows() > 0): ?>
+                        <?php 
+                        $recruiters = array();
+                        foreach($can_details->result() as $row) {
+                            if(!empty($row->cd_rec_username) && !in_array($row->cd_rec_username, $recruiters)) {
+                                $recruiters[] = $row->cd_rec_username;
+                            }
+                        }
+                        foreach($recruiters as $recruiter): 
+                        ?>
+                            <option value="<?= $recruiter ?>"><?= $recruiter ?></option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </select>
+            </div>
+            
+            <div class="col-md-2">
+                <label class="form-label small fw-bold">
+                    <i class="fas fa-briefcase me-1"></i>Job Title
+                </label>
+                <select class="form-select form-select-sm" id="jobFilter">
+                    <option value="">All Jobs</option>
+                    <?php if(isset($can_details) && $can_details->num_rows() > 0): ?>
+                        <?php 
+                        $jobs = array();
+                        foreach($can_details->result() as $row) {
+                            if(!empty($row->cd_job_title) && !in_array($row->cd_job_title, $jobs)) {
+                                $jobs[] = $row->cd_job_title;
+                            }
+                        }
+                        foreach($jobs as $job): 
+                        ?>
+                            <option value="<?= $job ?>"><?= $job ?></option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </select>
+            </div>
+            
+            <div class="col-md-1 d-flex align-items-end">
+                <button class="btn btn-sm btn-outline-secondary w-100" onclick="resetFilters()" title="Reset Filters">
+                    <i class="fas fa-redo"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="row mt-2">
+            <div class="col-12">
+                <small class="text-muted">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Showing <span id="filteredCount">0</span> of <span id="totalCount">0</span> candidates
+                </small>
+            </div>
         </div>
     </div>
     
@@ -118,7 +224,7 @@ $this->load->view('templates/admin_header', $data);
                                 </span>
                             </td>
                             <td>
-                                <button class="btn btn-sm btn-primary-modern btn-modern" onclick="viewDetails(<?= $row['cd_id'] ?>)">
+                                <button class="btn btn-sm btn-primary-modern btn-modern view-candidate-btn" data-candidate-id="<?= $row['cd_id'] ?>">
                                     <i class="fas fa-eye"></i>
                                 </button>
                             </td>
@@ -147,10 +253,19 @@ $this->load->view('templates/admin_header', $data);
 </div>
 
 <?php
-$custom_script = "
+$base_url = base_url();
+$custom_script = <<<JAVASCRIPT
 // Initialize DataTable
 $(document).ready(function() {
-    $('#candidatesTable').DataTable({
+    console.log('=== SCRIPT LOADED SUCCESSFULLY ===');
+    console.log('jQuery version:', $.fn.jquery);
+    console.log('Initializing DataTable and event handlers...');
+    
+    // Add a visible indicator that script loaded
+    $('body').append('<div id="script-loaded-indicator" style="position:fixed;top:10px;right:10px;background:green;color:white;padding:5px 10px;border-radius:5px;z-index:9999;">Script Loaded ✓</div>');
+    setTimeout(function() { $('#script-loaded-indicator').fadeOut(); }, 3000);
+    
+    var table = $('#candidatesTable').DataTable({
         responsive: true,
         pageLength: 10,
         language: {
@@ -161,18 +276,109 @@ $(document).ready(function() {
         },
         columnDefs: [
             { orderable: false, targets: 8 } // Disable sorting on Actions column
-        ]
+        ],
+        dom: 'lrtip', // Remove default search box
+        initComplete: function() {
+            updateCounts();
+        }
     });
+    
+    // Custom search filter
+    $('#searchInput').on('keyup', function() {
+        table.search(this.value).draw();
+        updateCounts();
+    });
+    
+    // Custom column filters
+    $.fn.dataTable.ext.search.push(
+        function(settings, data, dataIndex) {
+            var statusFilter = $('#statusFilter').val();
+            var progressFilter = $('#progressFilter').val();
+            var recruiterFilter = $('#recruiterFilter').val();
+            var jobFilter = $('#jobFilter').val();
+            
+            var status = data[7] || ''; // Status column
+            var recruiter = data[2] || ''; // Recruiter column
+            var job = data[3] || ''; // Job Title column
+            var progress = data[5] || ''; // Progress column (if exists)
+            
+            // Status filter
+            if (statusFilter && !status.includes(statusFilter)) {
+                return false;
+            }
+            
+            // Recruiter filter
+            if (recruiterFilter && !recruiter.includes(recruiterFilter)) {
+                return false;
+            }
+            
+            // Job filter
+            if (jobFilter && !job.includes(jobFilter)) {
+                return false;
+            }
+            
+            // Progress filter
+            if (progressFilter) {
+                var progressNum = parseInt(progress);
+                if (progressFilter === '100' && progressNum !== 100) return false;
+                if (progressFilter === '75-99' && (progressNum < 75 || progressNum >= 100)) return false;
+                if (progressFilter === '50-74' && (progressNum < 50 || progressNum >= 75)) return false;
+                if (progressFilter === '25-49' && (progressNum < 25 || progressNum >= 50)) return false;
+                if (progressFilter === '0-24' && (progressNum < 0 || progressNum >= 25)) return false;
+            }
+            
+            return true;
+        }
+    );
+    
+    // Apply filters on change
+    $('#statusFilter, #progressFilter, #recruiterFilter, #jobFilter').on('change', function() {
+        table.draw();
+        updateCounts();
+    });
+    
+    // Update counts
+    function updateCounts() {
+        var info = table.page.info();
+        $('#filteredCount').text(info.recordsDisplay);
+        $('#totalCount').text(info.recordsTotal);
+    }
+    
+    // Make updateCounts global
+    window.updateCounts = updateCounts;
+    
+    // Event delegation for view button clicks
+    $(document).on('click', '.view-candidate-btn', function(e) {
+        e.preventDefault();
+        var candidateId = $(this).data('candidate-id');
+        console.log('Button clicked! Candidate ID:', candidateId);
+        viewDetails(candidateId);
+    });
+    
+    console.log('Event handlers attached successfully');
 });
 
 function viewDetails(id) {
+    console.log('Viewing candidate ID:', id);
+    
+    // Check if jQuery is loaded
+    if (typeof jQuery === 'undefined') {
+        console.error('jQuery is not loaded!');
+        alert('jQuery is not loaded. Please refresh the page.');
+        return;
+    }
+    
     // Fetch candidate details via AJAX
     $.ajax({
-        url: '<?= base_url('A_dashboard/get_candidate_details') ?>',
+        url: '{$base_url}A_dashboard/get_candidate_details',
         type: 'POST',
         data: { candidate_id: id },
         dataType: 'json',
+        beforeSend: function() {
+            console.log('Sending AJAX request...');
+        },
         success: function(response) {
+            console.log('Response received:', response);
             if(response.success) {
                 const candidate = response.candidate;
                 let modalContent = `
@@ -268,12 +474,19 @@ function viewDetails(id) {
                 });
             }
         },
-        error: function() {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Failed to fetch candidate details'
-            });
+        error: function(xhr, status, error) {
+            console.error('AJAX Error:', status, error);
+            console.error('Response:', xhr.responseText);
+            
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to fetch candidate details: ' + error
+                });
+            } else {
+                alert('Error: Failed to fetch candidate details. Check console for details.');
+            }
         }
     });
 }
@@ -301,10 +514,56 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
-";
 
-$data['custom_script'] = $custom_script;
+// Reset filters function
+function resetFilters() {
+    $('#searchInput').val('');
+    $('#statusFilter').val('');
+    $('#progressFilter').val('');
+    $('#recruiterFilter').val('');
+    $('#jobFilter').val('');
+    var table = $('#candidatesTable').DataTable();
+    table.search('').draw();
+    if (typeof updateCounts === 'function') {
+        updateCounts();
+    }
+}
+
+// Export filtered data function
+function exportFilteredData() {
+    var table = $('#candidatesTable').DataTable();
+    var data = table.rows({ search: 'applied' }).data();
+    
+    // Create CSV content
+    var csv = 'No,Name,Recruiter,Job Title,Email,Phone,Progress,Status\\n';
+    data.each(function(row) {
+        // Clean HTML tags from data
+        var cleanRow = [];
+        for (var i = 0; i < row.length - 1; i++) { // Exclude Actions column
+            var cell = row[i].toString().replace(/<[^>]*>/g, '').replace(/,/g, ';');
+            cleanRow.push(cell);
+        }
+        csv += cleanRow.join(',') + '\\n';
+    });
+    
+    // Download CSV
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var url = window.URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'candidates_' + new Date().toISOString().slice(0,10) + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
+JAVASCRIPT;
 
 // Load the footer template
-$this->load->view('templates/admin_footer', $data);
+$this->load->view('templates/admin_footer');
 ?>
+
+<script>
+<?= $custom_script ?>
+</script>

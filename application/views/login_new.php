@@ -343,7 +343,7 @@
         <img src="<?php echo COMPANY_LOGO; ?>" alt="Company Logo">
       </div>
 
-      <h1>Welcome Back</h1>
+      <h1><?= isset($greeting) ? $greeting : 'Welcome Back' ?></h1>
       <p class="subtitle">Please enter your credentials to continue</p>
 
       <?php
@@ -391,10 +391,26 @@
         <span>or</span>
       </div>
 
-      <button class="btn-google" onclick="alert('Google login not configured yet')">
+      <?php
+      // Check if Google OAuth is configured in database
+      $google_config = null;
+      if ($this->db->table_exists('oauth_config')) {
+        $google_config = $this->db->where('provider', 'google')->get('oauth_config')->row();
+      }
+      $is_google_enabled = $google_config && !empty($google_config->client_id) && !empty($google_config->client_secret) && $google_config->is_enabled;
+      ?>
+      
+      <?php if ($is_google_enabled): ?>
+      <a href="<?= base_url('Login/google_login') ?>" class="btn-google">
+        <i class="fab fa-google"></i>
+        Continue with Google
+      </a>
+      <?php else: ?>
+      <button class="btn-google" onclick="alert('Google login is not configured yet.\n\nAdministrators can enable it from:\nSetup → Authentication & Security → Google OAuth')" type="button">
         <i class="fab fa-google"></i>
         Continue with Google
       </button>
+      <?php endif; ?>
 
       <div class="signup-link">
         Don't have an account?<a href="<?php echo SIGNUP_URL; ?>">Sign up now</a>

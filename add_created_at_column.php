@@ -1,67 +1,56 @@
 <?php
 /**
- * Add created_at column to users table
- * Run: http://localhost/rms/add_created_at_column.php
+ * Add created_at column to candidate_details table
+ * Run this file from browser: http://localhost/rms/add_created_at_column.php
  */
 
+// Database configuration
 $db_host = 'localhost';
 $db_user = 'root';
 $db_pass = '';
 $db_name = 'rmsdb';
 
+echo "<!DOCTYPE html><html><head><title>Add Created At Column</title></head><body>";
+echo "<h2>Adding created_at Column to candidate_details Table</h2>";
+echo "<hr>";
+
+// Connect to database
 $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
 
 if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+    die("<p style='color:red;'>Connection failed: " . $conn->connect_error . "</p>");
 }
 
-echo "<h1>Adding created_at Column to Users Table</h1>";
-echo "<hr>";
+echo "<p style='color:green;'>✓ Database connection successful!</p>";
 
-// Check if column already exists
-$check = $conn->query("SHOW COLUMNS FROM users LIKE 'u_created_at'");
+// Check if column exists
+$result = $conn->query("SHOW COLUMNS FROM candidate_details LIKE 'cd_created_at'");
 
-if ($check->num_rows > 0) {
-    echo "<p style='color: orange;'>⚠️ Column 'u_created_at' already exists!</p>";
+if ($result->num_rows > 0) {
+    echo "<p style='color:orange;'>⚠ Column 'cd_created_at' already exists!</p>";
 } else {
     // Add the column
-    $sql = "ALTER TABLE users ADD COLUMN u_created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER u_status";
+    $sql = "ALTER TABLE candidate_details ADD COLUMN cd_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP AFTER cd_interview_status";
     
     if ($conn->query($sql)) {
-        echo "<p style='color: green;'>✅ Successfully added 'u_created_at' column!</p>";
+        echo "<p style='color:green;'>✓ Column 'cd_created_at' added successfully!</p>";
         
-        // Update existing records with current timestamp
-        $update = "UPDATE users SET u_created_at = NOW() WHERE u_created_at IS NULL OR u_created_at = '0000-00-00 00:00:00'";
-        $conn->query($update);
+        // Update existing records with random dates in the past month
+        $update_sql = "UPDATE candidate_details 
+                      SET cd_created_at = DATE_SUB(NOW(), INTERVAL FLOOR(RAND() * 30) DAY)
+                      WHERE cd_created_at IS NULL OR cd_created_at = '0000-00-00 00:00:00'";
         
-        echo "<p style='color: green;'>✅ Updated existing records with current timestamp</p>";
+        if ($conn->query($update_sql)) {
+            echo "<p style='color:green;'>✓ Existing records updated with timestamps!</p>";
+        }
     } else {
-        echo "<p style='color: red;'>❌ Error: " . $conn->error . "</p>";
+        echo "<p style='color:red;'>✗ Error adding column: " . $conn->error . "</p>";
     }
 }
 
-// Verify the column
-$result = $conn->query("SHOW COLUMNS FROM users LIKE 'u_created_at'");
-if ($result->num_rows > 0) {
-    echo "<hr>";
-    echo "<h3>✅ Column Verified</h3>";
-    $column = $result->fetch_assoc();
-    echo "<pre>";
-    print_r($column);
-    echo "</pre>";
-}
+$conn->close();
 
 echo "<hr>";
-echo "<h3>Next Steps:</h3>";
-echo "<p><a href='A_dashboard/Arecruiter_view' style='display: inline-block; background: #667eea; color: white; padding: 15px 30px; border-radius: 8px; text-decoration: none; font-weight: bold;'>→ Go to Manage Recruiters</a></p>";
-echo "<p style='margin-top: 20px;'><small>You can delete this file after running it.</small></p>";
-
-$conn->close();
-?>
-
-<style>
-body { font-family: Arial; max-width: 800px; margin: 50px auto; padding: 20px; background: #f5f5f5; }
-h1 { color: #333; }
-a { color: #667eea; text-decoration: none; font-weight: bold; }
-pre { background: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; }
-</style>
+echo "<p><a href='index.php/A_dashboard/Asele_candidate_view'>Go to Selected Candidates Page</a></p>";
+echo "<p style='color:red;'><strong>Note:</strong> Delete this file after running!</p>";
+echo "</body></html>";

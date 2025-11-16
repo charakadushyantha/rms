@@ -594,7 +594,7 @@ When reporting bugs, please include:
 
 ---
 
-**Made with ❤️ by Your Team**
+**Made with ❤️ by Charaka Dushyantha**
 
 **Version**: 2.0  
 **Last Updated**: <?= date('F Y') ?>  

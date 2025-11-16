@@ -156,6 +156,19 @@
             text-align: center;
         }
 
+        .sidebar-heading {
+            padding: 20px 20px 10px 20px;
+            margin-top: 10px;
+        }
+
+        .sidebar-heading span {
+            color: rgba(255,255,255,0.5);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
         .sidebar-divider {
             height: 1px;
             background: rgba(255,255,255,0.1);
@@ -271,6 +284,238 @@
             font-size: 10px;
             padding: 2px 6px;
             border-radius: 10px;
+            font-weight: 600;
+        }
+
+        /* Enhanced Search Styles */
+        .topbar-search input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            outline: none;
+        }
+
+        .search-results {
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            max-height: 500px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+        }
+
+        .search-results.show {
+            display: block;
+            animation: fadeInDown 0.3s ease;
+        }
+
+        .search-category {
+            padding: 12px 16px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #666;
+        }
+
+        .search-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .search-item:hover {
+            background: #f8f9fa;
+            padding-left: 20px;
+        }
+
+        .search-item-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: white;
+        }
+
+        .search-item-content {
+            flex: 1;
+        }
+
+        .search-item-title {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+
+        .search-item-subtitle {
+            font-size: 12px;
+            color: #718096;
+        }
+
+        .search-no-results {
+            padding: 40px 20px;
+            text-align: center;
+            color: #a0aec0;
+        }
+
+        .search-no-results i {
+            font-size: 48px;
+            opacity: 0.3;
+            margin-bottom: 12px;
+        }
+
+        /* Notification Dropdown Styles */
+        .notification-icon {
+            position: relative;
+        }
+
+        .notification-dropdown {
+            position: absolute;
+            top: calc(100% + 15px);
+            right: 0;
+            width: 380px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            display: none;
+            z-index: 1000;
+        }
+
+        .notification-dropdown.show {
+            display: block;
+            animation: fadeInDown 0.3s ease;
+        }
+
+        .notification-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification-header h6 {
+            margin: 0;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .btn-mark-read {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-size: 12px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .btn-mark-read:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .notification-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 14px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            gap: 12px;
+        }
+
+        .notification-item:hover {
+            background: #f8f9fa;
+        }
+
+        .notification-item.unread {
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .notification-icon-wrapper {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .notification-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .notification-message {
+            font-size: 13px;
+            color: #718096;
+            margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .notification-time {
+            font-size: 11px;
+            color: #a0aec0;
+        }
+
+        .notification-footer {
+            padding: 12px 20px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+        }
+
+        .notification-footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .notification-footer a:hover {
+            text-decoration: underline;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .user-dropdown {
@@ -519,54 +764,277 @@
         </div>
         
         <ul class="sidebar-menu">
+            <?php
+            // Load module visibility settings
+            $module_visibility = array();
+            try {
+                if ($this->db->table_exists('module_visibility')) {
+                    $visibility_data = $this->db->get('module_visibility')->result_array();
+                    foreach ($visibility_data as $item) {
+                        $module_visibility[$item['module_key']] = $item['is_visible'];
+                    }
+                }
+            } catch (Exception $e) {
+                // Default to showing all if table doesn't exist
+            }
+            
+            // Helper function to check visibility
+            function is_module_visible($key, $visibility_array) {
+                return !isset($visibility_array[$key]) || $visibility_array[$key] == 1;
+            }
+            ?>
+            
+            <!-- Main Navigation -->
+            <?php if (is_module_visible('dashboard', $module_visibility)): ?>
             <li>
                 <a href="<?php echo A_DASHBOARD_URL; ?>" class="<?= ($this->uri->segment(2) == '' || $this->uri->segment(2) == 'index') ? 'active' : '' ?>">
-                    <i class="fas fa-home"></i>
+                    <i class="fas fa-tachometer-alt"></i>
                     <span>Dashboard</span>
                 </a>
             </li>
+            <?php endif; ?>
+            
+            <?php 
+            // Check if any recruitment modules are visible
+            $show_recruitment = is_module_visible('candidates', $module_visibility) || 
+                               is_module_visible('calendar', $module_visibility) || 
+                               is_module_visible('analytics', $module_visibility);
+            if ($show_recruitment): 
+            ?>
+            <div class="sidebar-divider"></div>
+            
+            <!-- Recruitment Management -->
+            <li class="sidebar-heading">
+                <span>RECRUITMENT</span>
+            </li>
+            <?php endif; ?>
+            
+            <?php if (is_module_visible('candidates', $module_visibility)): ?>
+            <li>
+                <a href="<?php echo A_SCANDIDATE_URL; ?>" class="<?= $this->uri->segment(2) == 'Ascandidate_view' ? 'active' : '' ?>">
+                    <i class="fas fa-users"></i>
+                    <span>Candidates</span>
+                </a>
+            </li>
+            <?php endif; ?>
+            
+            <?php if (is_module_visible('calendar', $module_visibility)): ?>
             <li>
                 <a href="<?php echo A_CALENDAR_URL; ?>" class="<?= $this->uri->segment(2) == 'Acalendar_view' ? 'active' : '' ?>">
                     <i class="fas fa-calendar-alt"></i>
                     <span>Calendar</span>
                 </a>
             </li>
-            <li>
-                <a href="<?php echo A_SCANDIDATE_URL; ?>" class="<?= $this->uri->segment(2) == 'Ascandidate_view' ? 'active' : '' ?>">
-                    <i class="fas fa-user-check"></i>
-                    <span>Candidates</span>
-                </a>
-            </li>
-            <li>
-                <a href="<?php echo A_RECRUITER_URL; ?>" class="<?= $this->uri->segment(2) == 'Arecruiter_view' ? 'active' : '' ?>">
-                    <i class="fas fa-user-plus"></i>
-                    <span>Recruiters</span>
-                </a>
-            </li>
+            <?php endif; ?>
+            
+            <?php if (is_module_visible('analytics', $module_visibility)): ?>
             <li>
                 <a href="<?php echo base_url('realtime_dashboard'); ?>" class="<?= $this->uri->segment(1) == 'realtime_dashboard' ? 'active' : '' ?>" style="background: linear-gradient(90deg, rgba(76, 222, 128, 0.2), rgba(59, 130, 246, 0.2)); border-left: 4px solid #4ade80;">
                     <i class="fas fa-chart-line" style="color: #4ade80;"></i>
-                    <span style="font-weight: 600;">Real-Time Dashboard</span>
+                    <span style="font-weight: 600;">Analytics</span>
                     <span class="badge" style="background: linear-gradient(90deg, #4ade80, #3b82f6); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto;">NEW</span>
+                </a>
+            </li>
+            <?php endif; ?>
+            
+            <div class="sidebar-divider"></div>
+            
+            <!-- Job Posting Integration -->
+            <li class="sidebar-heading">
+                <span>JOB POSTING</span>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Job_posting'); ?>" class="<?= $this->uri->segment(1) == 'Job_posting' ? 'active' : '' ?>">
+                    <i class="fas fa-briefcase"></i>
+                    <span>Job Postings</span>
+                    <span class="badge" style="background: linear-gradient(90deg, #f093fb, #f5576c); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto;">NEW</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Job_posting/analytics'); ?>" class="<?= ($this->uri->segment(1) == 'Job_posting' && $this->uri->segment(2) == 'analytics') ? 'active' : '' ?>">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Job Analytics</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Setup/job_posting_platforms'); ?>" class="<?= ($this->uri->segment(1) == 'Setup' && $this->uri->segment(2) == 'job_posting_platforms') ? 'active' : '' ?>">
+                    <i class="fas fa-share-alt"></i>
+                    <span>Platform Config</span>
                 </a>
             </li>
             
             <div class="sidebar-divider"></div>
             
+            <!-- Sales & Marketing Hub -->
+            <li class="sidebar-heading">
+                <span>SALES & MARKETING</span>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Sales_marketing'); ?>" class="<?= $this->uri->segment(1) == 'Sales_marketing' ? 'active' : '' ?>" style="background: linear-gradient(90deg, rgba(255, 107, 107, 0.2), rgba(255, 193, 7, 0.2)); border-left: 4px solid #ff6b6b;">
+                    <i class="fas fa-bullhorn" style="color: #ff6b6b;"></i>
+                    <span style="font-weight: 600;">Marketing Hub</span>
+                    <span class="badge" style="background: linear-gradient(90deg, #ff6b6b, #ffc107); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto;">HUB</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Candidate_sourcing'); ?>" class="<?= $this->uri->segment(1) == 'Candidate_sourcing' ? 'active' : '' ?>">
+                    <i class="fas fa-search"></i>
+                    <span>Candidate Sourcing</span>
+                    <span class="badge" style="background: linear-gradient(90deg, #ffecd2, #fcb69f); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto;">NEW</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Candidate_sourcing/pools'); ?>" class="<?= ($this->uri->segment(1) == 'Candidate_sourcing' && $this->uri->segment(2) == 'pools') ? 'active' : '' ?>">
+                    <i class="fas fa-layer-group"></i>
+                    <span>Talent Pools</span>
+                </a>
+            </li>
+            
+            <?php 
+            // Check if any user management modules are visible
+            $show_user_mgmt = is_module_visible('recruiters', $module_visibility) || 
+                             is_module_visible('interviewers', $module_visibility) || 
+                             is_module_visible('candidate_users', $module_visibility);
+            if ($show_user_mgmt): 
+            ?>
+            <div class="sidebar-divider"></div>
+            
+            <!-- User Management -->
+            <li class="sidebar-heading">
+                <span>USER MANAGEMENT</span>
+            </li>
+            <?php endif; ?>
+            
+            <?php if (is_module_visible('recruiters', $module_visibility)): ?>
+            <li>
+                <a href="<?php echo A_RECRUITER_URL; ?>" class="<?= $this->uri->segment(2) == 'Arecruiter_view' ? 'active' : '' ?>">
+                    <i class="fas fa-user-tie"></i>
+                    <span>Recruiters</span>
+                </a>
+            </li>
+            <?php endif; ?>
+            
+            <?php if (is_module_visible('interviewers', $module_visibility)): ?>
+            <li>
+                <a href="<?php echo base_url('A_dashboard/Ainterviewer_view'); ?>" class="<?= $this->uri->segment(2) == 'Ainterviewer_view' ? 'active' : '' ?>">
+                    <i class="fas fa-user-check"></i>
+                    <span>Interviewers</span>
+                </a>
+            </li>
+            <?php endif; ?>
+            
+            <?php if (is_module_visible('candidate_users', $module_visibility)): ?>
+            <li>
+                <a href="<?php echo base_url('A_dashboard/Acandidate_users_view'); ?>" class="<?= $this->uri->segment(2) == 'Acandidate_users_view' ? 'active' : '' ?>">
+                    <i class="fas fa-user-graduate"></i>
+                    <span>Candidate Users</span>
+                </a>
+            </li>
+            <?php endif; ?>
+            
+            <?php if (is_module_visible('reports', $module_visibility)): ?>
+            <div class="sidebar-divider"></div>
+            
+            <!-- Reports -->
+            <li class="sidebar-heading">
+                <span>REPORTS</span>
+            </li>
+            <li>
+                <a href="<?php echo base_url('A_dashboard/reports_view'); ?>" class="<?= $this->uri->segment(2) == 'reports_view' ? 'active' : '' ?>">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>MIS Reports</span>
+                </a>
+            </li>
+            <?php endif; ?>
+            
+            <div class="sidebar-divider"></div>
+            
+            <?php
+            // Load custom modules from database (with error handling)
+            try {
+                if ($this->db->table_exists('custom_modules')) {
+                    $this->db->where('is_active', 1);
+                    $this->db->order_by('order_num', 'ASC');
+                    $custom_modules = $this->db->get('custom_modules')->result_array();
+                    
+                    // Group modules by section
+                    $grouped_modules = array();
+                    foreach ($custom_modules as $module) {
+                        $grouped_modules[$module['section']][] = $module;
+                    }
+                    
+                    // Display grouped modules
+                    foreach ($grouped_modules as $section => $modules):
+                    ?>
+                    <!-- Custom Section: <?= $section ?> -->
+                    <li class="sidebar-heading">
+                        <span><?= strtoupper($section) ?></span>
+                    </li>
+                    <?php foreach ($modules as $module): ?>
+                    <li>
+                        <a href="<?= base_url($module['url']) ?>" class="<?= $this->uri->segment(2) == basename($module['url']) ? 'active' : '' ?>">
+                            <i class="<?= $module['icon'] ?>"></i>
+                            <span><?= $module['name'] ?></span>
+                            <?php if ($module['show_badge']): ?>
+                            <span class="badge" style="background: linear-gradient(90deg, #4ade80, #3b82f6); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto;"><?= $module['badge_text'] ?></span>
+                            <?php endif; ?>
+                        </a>
+                    </li>
+                    <?php endforeach; ?>
+                    
+                    <div class="sidebar-divider"></div>
+                    <?php 
+                    endforeach;
+                }
+            } catch (Exception $e) {
+                // Silently fail if table doesn't exist - no custom modules will be shown
+            }
+            ?>
+            
+            <?php 
+            // Check if any settings modules are visible
+            $show_settings = is_module_visible('roles', $module_visibility) || 
+                            is_module_visible('setup', $module_visibility) || 
+                            is_module_visible('account', $module_visibility);
+            if ($show_settings): 
+            ?>
+            <!-- Settings & Account -->
+            <li class="sidebar-heading">
+                <span>SETTINGS</span>
+            </li>
+            <?php endif; ?>
+            
+            <?php if (is_module_visible('roles', $module_visibility)): ?>
+            <li>
+                <a href="<?php echo base_url('A_dashboard/roles_permissions_view'); ?>" class="<?= $this->uri->segment(2) == 'roles_permissions_view' ? 'active' : '' ?>">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Roles & Permissions</span>
+                </a>
+            </li>
+            <?php endif; ?>
+            
+            <?php if (is_module_visible('setup', $module_visibility)): ?>
             <li>
                 <a href="<?php echo base_url('Setup'); ?>" class="<?= $this->uri->segment(1) == 'Setup' ? 'active' : '' ?>">
                     <i class="fas fa-cog"></i>
-                    <span>Setup</span>
+                    <span>System Setup</span>
                 </a>
             </li>
+            <?php endif; ?>
+            
+            <?php if (is_module_visible('account', $module_visibility)): ?>
             <li>
                 <a href="<?php echo A_AC_DETAILS_URL; ?>" class="<?= $this->uri->segment(2) == 'Aaccount_details_view' ? 'active' : '' ?>">
                     <i class="fas fa-user-circle"></i>
                     <span>My Account</span>
                 </a>
             </li>
+            <?php endif; ?>
+            
+            <div class="sidebar-divider"></div>
+            
             <li>
-                <a href="<?php echo A_LOGOUT_URL; ?>">
+                <a href="<?php echo A_LOGOUT_URL; ?>" style="color: #ff6b6b;">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>Logout</span>
                 </a>
@@ -586,21 +1054,45 @@
             </div>
             
             <div class="topbar-right">
+                <!-- Global Search -->
                 <div class="topbar-search">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search...">
+                    <input type="text" id="globalSearch" placeholder="Search candidates, jobs, interviews..." autocomplete="off">
+                    <div class="search-results" id="searchResults"></div>
                 </div>
                 
-                <div class="topbar-icon">
+                <!-- Notifications -->
+                <div class="topbar-icon notification-icon" id="notificationIcon">
                     <i class="fas fa-bell"></i>
-                    <span class="badge">3</span>
+                    <span class="badge" id="notificationCount">0</span>
+                    <div class="notification-dropdown" id="notificationDropdown">
+                        <div class="notification-header">
+                            <h6>Notifications</h6>
+                            <button class="btn-mark-read" onclick="markAllAsRead()">Mark all as read</button>
+                        </div>
+                        <div class="notification-list" id="notificationList">
+                            <div class="text-center py-4 text-muted">
+                                <i class="fas fa-bell-slash fa-2x mb-2"></i>
+                                <p>No new notifications</p>
+                            </div>
+                        </div>
+                        <div class="notification-footer">
+                            <a href="<?= base_url('A_dashboard/notifications') ?>">View all notifications</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Help -->
+                <div class="topbar-icon" data-bs-toggle="modal" data-bs-target="#helpModal" title="Help & Documentation">
+                    <i class="fas fa-question-circle"></i>
                 </div>
                 
                 <div class="user-dropdown dropdown">
                     <div class="user-info" data-bs-toggle="dropdown">
                         <?php 
-                        // Get profile picture from database
+                        // Get profile picture and display name from database
                         $username = $this->session->userdata('username');
+                        $display_name = $this->session->userdata('full_name') ? $this->session->userdata('full_name') : $username;
                         $user_pic = $this->db->select('profile_picture')
                                              ->where('u_username', $username)
                                              ->get(TBL_USERS)
@@ -615,11 +1107,11 @@
                                  style="object-fit: cover;">
                         <?php else: ?>
                             <div class="user-avatar">
-                                <?= strtoupper(substr($username, 0, 1)) ?>
+                                <?= strtoupper(substr($display_name, 0, 1)) ?>
                             </div>
                         <?php endif; ?>
                         <div class="user-details">
-                            <div class="user-name"><?= $username ?></div>
+                            <div class="user-name"><?= htmlspecialchars($display_name) ?></div>
                             <div class="user-role">Administrator</div>
                         </div>
                         <i class="fas fa-chevron-down" style="color: #999; font-size: 12px;"></i>
@@ -636,3 +1128,5 @@
 
         <!-- Content Area -->
         <div class="content-area">
+        
+        <?php $this->load->view('templates/help_modal'); ?>

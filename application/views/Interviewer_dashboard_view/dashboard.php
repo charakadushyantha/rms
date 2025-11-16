@@ -221,7 +221,7 @@ $this->load->view('templates/interviewer_header', $data);
 <div class="dashboard-container">
     <!-- Welcome Section -->
     <div class="welcome-section">
-        <h1><i class="fas fa-user-tie me-2"></i>Welcome back, <?php echo htmlspecialchars($uname); ?>!</h1>
+        <h1><i class="fas fa-user-tie me-2"></i>Welcome back, <?php echo htmlspecialchars(isset($display_name) ? $display_name : $uname); ?>!</h1>
         <p>Here's your interview schedule and pending tasks for today</p>
     </div>
 

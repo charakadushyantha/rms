@@ -272,6 +272,10 @@
         Selected Candidates
       </h3>
       <div class="selected-actions">
+        <a href="<?= base_url('R_dashboard/export_selected_candidates') ?>" class="btn-action btn-view" style="text-decoration: none;">
+          <i class="fas fa-download"></i>
+          Export List
+        </a>
         <div class="search-box">
           <i class="fas fa-search"></i>
           <input type="text" id="searchInput" placeholder="Search candidates...">
@@ -502,4 +506,28 @@ function viewCandidate(candidateId) {
 function contactCandidate(email) {
   window.location.href = 'mailto:' + email;
 }
+
+// Add CSS for detail items in modal
+const style = document.createElement('style');
+style.textContent = `
+  .detail-item {
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 3px solid #f97316;
+  }
+  .detail-item label {
+    font-weight: 600;
+    color: #666;
+    font-size: 13px;
+    margin-bottom: 5px;
+    display: block;
+  }
+  .detail-item p {
+    margin: 0;
+    color: #333;
+    font-size: 14px;
+  }
+`;
+document.head.appendChild(style);
 </script>

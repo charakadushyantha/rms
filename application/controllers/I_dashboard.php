@@ -17,6 +17,8 @@ class I_dashboard extends CI_Controller {
         }
 
         $data['uname'] = $this->session->userdata('username');
+        // Use full name if available from Google login, otherwise use username
+        $data['display_name'] = $this->session->userdata('full_name') ? $this->session->userdata('full_name') : $this->session->userdata('username');
         $data['page_title'] = 'Interviewer Dashboard';
         
         // Get dashboard stats

@@ -122,3 +122,5 @@ CREATE TABLE IF NOT EXISTS `dashboard_metrics` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `metric_name` (`metric_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+

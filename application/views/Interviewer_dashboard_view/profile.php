@@ -232,11 +232,17 @@ input:checked + .toggle-slider:before {
         <!-- Profile Header -->
         <div class="profile-header">
             <div class="profile-avatar">
-                <?php echo strtoupper(substr($uname, 0, 1)); ?>
+                <?php 
+                $display_name = isset($user_info['display_name']) ? $user_info['display_name'] : $uname;
+                echo strtoupper(substr($display_name, 0, 1)); 
+                ?>
             </div>
             <div class="profile-info">
-                <h2><?php echo htmlspecialchars($uname); ?></h2>
+                <h2><?php echo htmlspecialchars($display_name); ?></h2>
                 <p><i class="fas fa-envelope me-2"></i><?php echo htmlspecialchars($user_info['u_email']); ?></p>
+                <?php if (isset($user_info['pi_full_name']) && $user_info['pi_full_name'] != $uname): ?>
+                <p><i class="fas fa-user me-2"></i>Username: <?php echo htmlspecialchars($uname); ?></p>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -276,7 +282,7 @@ input:checked + .toggle-slider:before {
                         <div class="form-group">
                             <label class="form-label">Full Name</label>
                             <input type="text" class="form-control" name="full_name" 
-                                   value="<?php echo htmlspecialchars($user_info['u_username']); ?>" readonly>
+                                   value="<?php echo htmlspecialchars(isset($user_info['display_name']) ? $user_info['display_name'] : $user_info['u_username']); ?>" readonly>
                         </div>
                     </div>
                     <div class="col-md-6">

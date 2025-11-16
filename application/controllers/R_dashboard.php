@@ -451,10 +451,20 @@ class R_dashboard extends CI_Controller
         redirect('R_dashboard/Raccount_details_view');
     }
 
-    public function get_candidate_details($candidate_id)
+    public function get_candidate_details($candidate_id = null)
     {
         if (!$this->session->userdata('authenticated')) {
             echo json_encode(['success' => false, 'message' => 'Not authenticated']);
+            return;
+        }
+
+        // Get candidate ID from URL parameter or POST data
+        if (!$candidate_id) {
+            $candidate_id = $this->input->post('candidate_id');
+        }
+
+        if (!$candidate_id) {
+            echo json_encode(['success' => false, 'message' => 'Candidate ID is required']);
             return;
         }
 
@@ -658,6 +668,41 @@ class R_dashboard extends CI_Controller
         } else {
             echo json_encode(['success' => false, 'message' => 'Failed to cancel interview']);
         }
+    }
+
+    public function export_selected_candidates()
+    {
+        if (!$this->session->userdata('authenticated')) {
+            redirect(LOGIN_URL);
+        }
+
+        $username = $this->session->userdata('username');
+
+        // Get selected candidates for this recruiter
+        $this->db->select('cd_name, cd_email, cd_phone, cd_gender, cd_job_title, cd_source, cd_status');
+        $this->db->from('candidate_details');
+        $this->db->where('cd_rec_username', $username);
+        $this->db->where('cd_status', 'Selected');
+        $this->db->order_by('cd_id', 'DESC');
+        $query = $this->db->get();
+
+        // Set headers for CSV download
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename=selected_candidates_' . date('Y-m-d') . '.csv');
+
+        // Create output stream
+        $output = fopen('php://output', 'w');
+
+        // Add CSV headers
+        fputcsv($output, array('Name', 'Email', 'Phone', 'Gender', 'Job Title', 'Source', 'Status'));
+
+        // Add data rows
+        foreach ($query->result_array() as $row) {
+            fputcsv($output, $row);
+        }
+
+        fclose($output);
+        exit;
     }
 
 }
