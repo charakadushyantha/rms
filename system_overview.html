@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RMS - System Overview</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 50px;
+        }
+
+        .header h1 {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 20px;
+            opacity: 0.9;
+        }
+
+        .status-badge {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+
+        .systems-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .system-card {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            transition: transform 0.3s;
+        }
+
+        .system-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .system-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .system-card h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 28px;
+        }
+
+        .system-card p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .features-list {
+            list-style: none;
+            margin-bottom: 25px;
+        }
+
+        .features-list li {
+            padding: 8px 0;
+            color: #555;
+        }
+
+        .features-list li:before {
+            content: "✓ ";
+            color: #28a745;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .stats-section {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            margin-bottom: 30px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .quick-links {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+        }
+
+        .links-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .link-card {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .link-card h4 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .link-card a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .link-card a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .systems-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 RMS - Recruitment Management System</h1>
+            <p>Complete AI-Powered Recruitment Solution</p>
+            <span class="status-badge">✅ ALL SYSTEMS OPERATIONAL</span>
+        </div>
+
+        <div class="systems-grid">
+            <!-- AI Chatbot System -->
+            <div class="system-card">
+                <div class="system-icon">🤖</div>
+                <h2>AI Recruitment Chatbot</h2>
+                <p>Intelligent conversational AI that handles candidate interactions, CV parsing, and job matching automatically.</p>
+                
+                <ul class="features-list">
+                    <li>Natural language processing</li>
+                    <li>CV/Resume parsing (PDF, DOCX, TXT)</li>
+                    <li>Job matching & recommendations</li>
+                    <li>Entity extraction</li>
+                    <li>Chat history tracking</li>
+                    <li>Knowledge base integration</li>
+                </ul>
+
+                <a href="bot" class="btn btn-primary">
+                    <i class="fas fa-comments"></i> Open Chatbot
+                </a>
+                <a href="bot_demo.html" class="btn btn-secondary">
+                    <i class="fas fa-play"></i> Try Demo
+                </a>
+            </div>
+
+            <!-- Interview System -->
+            <div class="system-card">
+                <div class="system-icon">🎯</div>
+                <h2>Interview Management</h2>
+                <p>Complete interview system with customizable flows, unique candidate links, and automated scoring.</p>
+                
+                <ul class="features-list">
+                    <li>Interview flow templates</li>
+                    <li>Unique candidate links</li>
+                    <li>Real-time interview taking</li>
+                    <li>Response tracking & scoring</li>
+                    <li>Email notifications</li>
+                    <li>Analytics dashboard</li>
+                </ul>
+
+                <a href="interview" class="btn btn-primary">
+                    <i class="fas fa-clipboard-list"></i> Open Interviews
+                </a>
+                <a href="interview/flows" class="btn btn-secondary">
+                    <i class="fas fa-list"></i> View Flows
+                </a>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats-section">
+            <h2>📊 System Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value">2</div>
+                    <div class="stat-label">Major Systems</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">10+</div>
+                    <div class="stat-label">Database Tables</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">15+</div>
+                    <div class="stat-label">API Endpoints</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">20+</div>
+                    <div class="stat-label">View Templates</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="quick-links">
+            <h2>🔗 Quick Access Links</h2>
+            <div class="links-grid">
+                <div class="link-card">
+                    <h4>🤖 Chatbot</h4>
+                    <a href="bot">Main Interface</a><br>
+                    <a href="bot/chat">Chat Widget</a><br>
+                    <a href="bot_demo.html">Standalone Demo</a>
+                </div>
+
+                <div class="link-card">
+                    <h4>🎯 Interviews</h4>
+                    <a href="interview">Dashboard</a><br>
+                    <a href="interview/flows">Interview Flows</a><br>
+                    <a href="interview/create_flow">Create Flow</a>
+                </div>
+
+                <div class="link-card">
+                    <h4>📚 Documentation</h4>
+                    <a href="BOT_SETUP_GUIDE.md">Bot Setup Guide</a><br>
+                    <a href="INTERVIEW_SYSTEM_COMPLETE.md">Interview Guide</a><br>
+                    <a href="COMPLETE_SYSTEM_STATUS.md">System Status</a>
+                </div>
+
+                <div class="link-card">
+                    <h4>🧪 Testing</h4>
+                    <a href="test_bot.php">Test Bot</a><br>
+                    <a href="test_interview_api.php">Test Interview API</a><br>
+                    <a href="create_bot_tables.php">Setup Bot DB</a>
+                </div>
+
+                <div class="link-card">
+                    <h4>🔧 Setup Scripts</h4>
+                    <a href="create_bot_tables.php">Bot Tables</a><br>
+                    <a href="create_interview_tables.php">Interview Tables</a><br>
+                    <a href="migrate_to_central_config.php">DB Migration</a>
+                </div>
+
+                <div class="link-card">
+                    <h4>📖 API Docs</h4>
+                    <a href="INTERVIEW_API_GUIDE.md">Interview API</a><br>
+                    <a href="BOT_QUICK_START.md">Bot Quick Start</a><br>
+                    <a href="INTERVIEW_API_QUICK_START.txt">API Quick Start</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="text-align: center; color: white; margin-top: 50px; opacity: 0.9;">
+            <p>✨ RMS v1.0.0 - Complete & Operational</p>
+            <p style="margin-top: 10px;">Last Updated: November 16, 2025</p>
+        </div>
+    </div>
+</body>
+</html>

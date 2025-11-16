@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chatbot - Get Started</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            text-align: center;
+        }
+        h1 {
+            color: #667eea;
+            font-size: 42px;
+            margin-bottom: 20px;
+        }
+        .emoji {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+        p {
+            color: #666;
+            font-size: 18px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        .steps {
+            background: #f5f6fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+            text-align: left;
+        }
+        .step {
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        .step strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 600;
+            margin: 10px;
+            transition: transform 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            background: #6c757d;
+        }
+        .links {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #e0e0e0;
+        }
+        .links a {
+            display: block;
+            color: #667eea;
+            text-decoration: none;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+        .links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="emoji">🤖</div>
+        <h1>AI Chatbot Ready!</h1>
+        <p>Your intelligent recruitment assistant is set up and ready to help candidates and recruiters.</p>
+
+        <div class="steps">
+            <div class="step">
+                <strong>Step 1: Setup Database</strong>
+                Run the database setup script first
+            </div>
+            <div class="step">
+                <strong>Step 2: Test Setup</strong>
+                Verify everything is working correctly
+            </div>
+            <div class="step">
+                <strong>Step 3: Try the Bot</strong>
+                Start chatting with your AI assistant!
+            </div>
+        </div>
+
+        <a href="create_bot_tables.php" class="btn">1. Setup Database</a>
+        <a href="test_bot.php" class="btn btn-secondary">2. Test Setup</a>
+        <a href="bot_demo.html" class="btn">3. Try Demo</a>
+
+        <div class="links">
+            <strong style="color: #333; display: block; margin-bottom: 15px;">Quick Links:</strong>
+            <a href="index.php/bot">→ Full Chat Interface</a>
+            <a href="index.php/bot/widget">→ Chat Widget Only</a>
+            <a href="bot_demo.html">→ Demo Page with Widget</a>
+            <a href="test_bot.php">→ Test & Diagnostics</a>
+            <a href="BOT_QUICK_START.md">→ Quick Start Guide</a>
+            <a href="BOT_SETUP_GUIDE.md">→ Full Documentation</a>
+        </div>
+    </div>
+</body>
+</html>

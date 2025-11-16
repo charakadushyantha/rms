@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Bot Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-section {
+            background: #f5f5f5;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+        .test-link {
+            display: block;
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        .test-link:hover {
+            background: #764ba2;
+        }
+        .info {
+            background: #e7f3ff;
+            padding: 15px;
+            border-left: 4px solid #2196F3;
+            margin: 20px 0;
+        }
+        .success {
+            background: #d4edda;
+            padding: 15px;
+            border-left: 4px solid #28a745;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🤖 Bot System Test Page</h1>
+    
+    <div class="info">
+        <strong>ℹ️ Information:</strong><br>
+        The bot has been fixed! The issue was that the chat interface is a standalone page but was being wrapped with dashboard headers/footers.
+    </div>
+
+    <div class="success">
+        <strong>✅ Fix Applied:</strong><br>
+        The Bot controller now loads the chat interface as a standalone page without wrapper templates.
+    </div>
+
+    <div class="test-section">
+        <h2>Test Links</h2>
+        
+        <h3>1. Standalone Chat Interface (Full Screen)</h3>
+        <a href="http://localhost/rms/bot" class="test-link" target="_blank">
+            🤖 Open Bot Chat Interface
+        </a>
+        <p><small>This is the main bot interface - a beautiful standalone chat page</small></p>
+
+        <h3>2. Embedded Chat (Within Dashboard)</h3>
+        <a href="http://localhost/rms/bot/chat" class="test-link" target="_blank">
+            💬 Open Embedded Chat
+        </a>
+        <p><small>This version is embedded within the dashboard layout</small></p>
+
+        <h3>3. Chat Widget Only</h3>
+        <a href="http://localhost/rms/bot/widget" class="test-link" target="_blank">
+            📱 Open Chat Widget
+        </a>
+        <p><small>Just the widget component for embedding</small></p>
+    </div>
+
+    <div class="test-section">
+        <h2>What to Expect</h2>
+        <ul>
+            <li><strong>/bot</strong> - Beautiful full-screen chat interface with gradient background</li>
+            <li><strong>/bot/chat</strong> - Chat embedded in dashboard with admin header/footer</li>
+            <li><strong>/bot/widget</strong> - Minimal widget for embedding anywhere</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>Features to Test</h2>
+        <ol>
+            <li>Type a message and press Enter or click Send</li>
+            <li>Try quick reply buttons</li>
+            <li>Upload a CV using the paperclip icon</li>
+            <li>Ask about jobs, company info, or application status</li>
+        </ol>
+    </div>
+
+    <div class="info">
+        <strong>📝 Note:</strong><br>
+        Make sure you've run <code>create_bot_tables.php</code> to set up the database tables first!
+    </div>
+
+    <div class="test-section">
+        <h2>Quick Setup</h2>
+        <p>If you haven't set up the database yet:</p>
+        <ol>
+            <li>Visit: <a href="http://localhost/rms/create_bot_tables.php" target="_blank">create_bot_tables.php</a></li>
+            <li>Wait for all tables to be created</li>
+            <li>Then test the bot links above</li>
+        </ol>
+    </div>
+
+    <div style="text-align: center; margin-top: 40px; color: #666;">
+        <p>✨ Bot System v1.0.0 - Ready to Use!</p>
+    </div>
+</body>
+</html>
