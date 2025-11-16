@@ -827,6 +827,33 @@
             </li>
             <?php endif; ?>
             
+            <!-- Interview Management -->
+            <li>
+                <a href="<?php echo base_url('interview'); ?>" class="<?= $this->uri->segment(1) == 'interview' && $this->uri->segment(2) != 'management' ? 'active' : '' ?>" style="background: linear-gradient(90deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2)); border-left: 4px solid #667eea;">
+                    <i class="fas fa-video" style="color: #667eea;"></i>
+                    <span style="font-weight: 600;">Interviews</span>
+                    <span class="badge" style="background: linear-gradient(90deg, #667eea, #764ba2); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto;">NEW</span>
+                </a>
+            </li>
+            
+            <!-- IMS - Interview Management System -->
+            <li>
+                <a href="<?php echo base_url('interview/management'); ?>" class="<?= ($this->uri->segment(1) == 'interview' && $this->uri->segment(2) == 'management') ? 'active' : '' ?>" style="background: linear-gradient(90deg, rgba(56, 178, 172, 0.2), rgba(72, 187, 120, 0.2)); border-left: 4px solid #38b2ac;">
+                    <i class="fas fa-calendar-check" style="color: #38b2ac;"></i>
+                    <span style="font-weight: 600;">IMS</span>
+                    <span class="badge" style="background: linear-gradient(90deg, #38b2ac, #48bb78); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto;">PRO</span>
+                </a>
+            </li>
+            
+            <!-- Questions Bank -->
+            <li>
+                <a href="<?php echo base_url('questions_bank'); ?>" class="<?= $this->uri->segment(1) == 'questions_bank' ? 'active' : '' ?>" style="background: linear-gradient(90deg, rgba(251, 146, 60, 0.2), rgba(249, 115, 22, 0.2)); border-left: 4px solid #fb923c;">
+                    <i class="fas fa-question-circle" style="color: #fb923c;"></i>
+                    <span style="font-weight: 600;">Questions Bank</span>
+                    <span class="badge" style="background: linear-gradient(90deg, #fb923c, #f97316); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto;">NEW</span>
+                </a>
+            </li>
+            
             <?php if (is_module_visible('analytics', $module_visibility)): ?>
             <li>
                 <a href="<?php echo base_url('realtime_dashboard'); ?>" class="<?= $this->uri->segment(1) == 'realtime_dashboard' ? 'active' : '' ?>" style="background: linear-gradient(90deg, rgba(76, 222, 128, 0.2), rgba(59, 130, 246, 0.2)); border-left: 4px solid #4ade80;">
