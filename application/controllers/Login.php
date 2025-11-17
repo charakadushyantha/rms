@@ -43,8 +43,30 @@ class Login extends CI_Controller {
 
 	public function signup()
 	{
+		// Load signup controller model to check if signup is enabled
+		$this->load->model('Signup_controller_model');
+		$settings = $this->Signup_controller_model->get_signup_settings();
+		
 		// Add dynamic greeting
 		$data['greeting'] = $this->get_time_based_greeting('Asia/Kolkata');
+		$data['signup_settings'] = $settings;
+		
+		// Check if any role signup is enabled (with fallback for missing table)
+		try {
+			$signup_enabled = $settings->admin_signup_enabled || 
+			                 $settings->recruiter_signup_enabled || 
+			                 $settings->interviewer_signup_enabled || 
+			                 $settings->candidate_signup_enabled;
+			
+			if (!$signup_enabled) {
+				$this->session->set_flashdata('msgad', 'Registration is currently disabled. Please contact administrator.');
+				redirect(LOGIN_URL);
+				return;
+			}
+		} catch (Exception $e) {
+			// If there's an error (like missing table), allow default signup
+			log_message('error', 'Signup settings check failed: ' . $e->getMessage());
+		}
 		
 		$this->load->view('signup_new', $data); // Using new modern UI
 		// To use old design: $this->load->view('signup');

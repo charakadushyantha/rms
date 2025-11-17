@@ -507,4 +507,125 @@ class Candidate_model extends CI_Model {
         $query = $this->db->get();
         return $query->result_array();
     }
+
+    /**
+     * Get candidates by user ID (for bot)
+     */
+    public function get_by_user($user_id) {
+        if (!$user_id) {
+            return [];
+        }
+
+        $this->db->select('cd_id, cd_name as name, cd_job_title as position, cd_status as status, cd_created_at as created_at');
+        $this->db->from('candidate_details');
+        $this->db->where('cd_user_id', $user_id);
+        $this->db->or_where('cd_email', $this->get_user_email($user_id));
+        $this->db->order_by('cd_created_at', 'DESC');
+        $query = $this->db->get();
+        
+        $results = $query->result_array();
+        
+        // Add interview_date if available
+        foreach ($results as &$result) {
+            $result['interview_date'] = $this->get_interview_date($result['cd_id']);
+        }
+        
+        return $results;
+    }
+
+    /**
+     * Create candidate from CV data (for bot)
+     */
+    public function create_from_cv($cv_data) {
+        $data = [
+            'cd_name' => $cv_data['personal_info']['name'] ?? 'Unknown',
+            'cd_email' => $cv_data['personal_info']['email'] ?? '',
+            'cd_phone' => $cv_data['personal_info']['phone'] ?? '',
+            'cd_source' => 'AI Bot',
+            'cd_status' => 'New',
+            'cd_description' => $this->format_cv_description($cv_data),
+            'cd_created_at' => date('Y-m-d H:i:s')
+        ];
+
+        // Add skills if available
+        if (!empty($cv_data['skills']['technical'])) {
+            $data['cd_skills'] = implode(', ', $cv_data['skills']['technical']);
+        }
+
+        // Add experience if available
+        if (!empty($cv_data['experience'])) {
+            $data['cd_experience'] = count($cv_data['experience']) . ' positions';
+        }
+
+        $this->db->insert('candidate_details', $data);
+        return $this->db->insert_id();
+    }
+
+    /**
+     * Format CV data into description
+     */
+    private function format_cv_description($cv_data) {
+        $description = "Candidate submitted via AI Bot\n\n";
+        
+        if (!empty($cv_data['education'])) {
+            $description .= "Education:\n";
+            foreach ($cv_data['education'] as $edu) {
+                $description .= "- " . ($edu['degree'] ?? '') . " from " . ($edu['institution'] ?? '') . "\n";
+            }
+            $description .= "\n";
+        }
+        
+        if (!empty($cv_data['experience'])) {
+            $description .= "Experience:\n";
+            foreach ($cv_data['experience'] as $exp) {
+                $description .= "- " . ($exp['title'] ?? '') . " at " . ($exp['company'] ?? '') . "\n";
+            }
+            $description .= "\n";
+        }
+        
+        if (!empty($cv_data['skills']['technical'])) {
+            $description .= "Skills: " . implode(', ', $cv_data['skills']['technical']) . "\n";
+        }
+        
+        return $description;
+    }
+
+    /**
+     * Get user email by user ID
+     */
+    private function get_user_email($user_id) {
+        $this->db->select('email');
+        $this->db->from('users');
+        $this->db->where('id', $user_id);
+        $query = $this->db->get();
+        
+        if ($query->num_rows() > 0) {
+            $row = $query->row();
+            return $row->email;
+        }
+        
+        return '';
+    }
+
+    /**
+     * Get interview date for candidate
+     */
+    private function get_interview_date($candidate_id) {
+        // Check if interview table exists and get date
+        $this->db->select('interview_date, interview_time');
+        $this->db->from('interviews');
+        $this->db->where('candidate_id', $candidate_id);
+        $this->db->where('status !=', 'cancelled');
+        $this->db->order_by('interview_date', 'ASC');
+        $this->db->limit(1);
+        
+        $query = $this->db->get();
+        
+        if ($query && $query->num_rows() > 0) {
+            $row = $query->row();
+            return $row->interview_date . ' ' . $row->interview_time;
+        }
+        
+        return null;
+    }
 }

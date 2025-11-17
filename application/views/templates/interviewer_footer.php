@@ -36,5 +36,16 @@
         <?php echo $custom_script; ?>
     </script>
     <?php endif; ?>
+    
+    <!-- AI Chatbot Widget -->
+    <script>
+        $(document).ready(function() {
+            $.get('<?= base_url('bot/widget') ?>', function(data) {
+                $('body').append(data);
+            }).fail(function() {
+                console.log('Chatbot widget failed to load');
+            });
+        });
+    </script>
 </body>
 </html>

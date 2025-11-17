@@ -52,3 +52,15 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 $route['default_controller'] = 'Login';
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
+
+// Interview API Routes
+$route['api/interview_api/create_flow'] = 'api/interview_api/create_flow';
+$route['api/interview_api/get_flows'] = 'api/interview_api/get_flows';
+$route['api/interview_api/get_flow/(:num)'] = 'api/interview_api/get_flow/$1';
+$route['api/interview_api/create_interview'] = 'api/interview_api/create_interview';
+$route['api/interview_api/get_interviews'] = 'api/interview_api/get_interviews';
+$route['api/interview_api/get_interview/(:num)'] = 'api/interview_api/get_interview/$1';
+$route['api/interview_api/update_status/(:num)'] = 'api/interview_api/update_status/$1';
+
+// Interview Web Routes
+$route['interview/take/(:any)'] = 'interview/take/$1';

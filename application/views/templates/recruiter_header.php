@@ -380,6 +380,18 @@
                 </a>
             </li>
             <li>
+                <a href="<?php echo base_url('interview'); ?>" class="<?= $this->uri->segment(1) == 'interview' ? 'active' : '' ?>">
+                    <i class="fas fa-video"></i>
+                    <span style="background: linear-gradient(90deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;">Interviews</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?php echo base_url('questions_bank'); ?>" class="<?= $this->uri->segment(1) == 'questions_bank' ? 'active' : '' ?>">
+                    <i class="fas fa-question-circle"></i>
+                    <span style="background: linear-gradient(90deg, #fb923c, #f97316); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;">Questions Bank</span>
+                </a>
+            </li>
+            <li>
                 <a href="<?php echo base_url('realtime_dashboard'); ?>" class="<?= $this->uri->segment(1) == 'realtime_dashboard' ? 'active' : '' ?>">
                     <i class="fas fa-chart-line"></i>
                     <span style="background: linear-gradient(90deg, #4ade80, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;">Real-Time Dashboard</span>
