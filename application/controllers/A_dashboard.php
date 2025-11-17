@@ -66,7 +66,8 @@ class A_dashboard extends CI_Controller
   public function Acalendar_view()
   {
     $data['uname'] = $this->session->userdata('username');
-    $this->load->view('Admin_dashboard_view/Acalendar_new',$data); // Using new modern UI
+    $this->load->view('Admin_dashboard_view/Acalendar_modern',$data); // Using modern compact UI
+    // To use new design: $this->load->view('Admin_dashboard_view/Acalendar_new',$data);
     // To use old design: $this->load->view('Admin_dashboard_view/Acalendar',$data);
   }
 

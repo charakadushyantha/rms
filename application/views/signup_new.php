@@ -154,7 +154,8 @@
 
     input[type="text"],
     input[type="email"],
-    input[type="password"] {
+    input[type="password"],
+    select {
       width: 100%;
       padding: 14px 16px 14px 45px;
       border: 2px solid #e0e0e0;
@@ -166,10 +167,21 @@
 
     input[type="text"]:focus,
     input[type="email"]:focus,
-    input[type="password"]:focus {
+    input[type="password"]:focus,
+    select:focus {
       outline: none;
       border-color: #667eea;
       box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    }
+    
+    select {
+      cursor: pointer;
+      background: white;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 16px center;
+      padding-right: 40px;
     }
 
     .btn-signup {
@@ -406,6 +418,44 @@
             <input type="password" name="userpass" id="password" placeholder="Create a strong password" required>
           </div>
         </div>
+
+        <?php if (isset($signup_settings)): ?>
+        <div class="form-group">
+          <label for="role">I am a</label>
+          <div class="input-wrapper">
+            <i class="fas fa-user-tag"></i>
+            <select name="role" id="role" style="width: 100%; padding: 14px 16px 14px 45px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 15px; font-family: 'Inter', sans-serif; background: white; cursor: pointer;">
+              <?php if ($signup_settings->recruiter_signup_enabled): ?>
+              <option value="Recruiter" <?php echo ($signup_settings->default_signup_role == 'Recruiter') ? 'selected' : ''; ?>>Recruiter</option>
+              <?php endif; ?>
+              <?php if ($signup_settings->candidate_signup_enabled): ?>
+              <option value="Candidate" <?php echo ($signup_settings->default_signup_role == 'Candidate') ? 'selected' : ''; ?>>Candidate</option>
+              <?php endif; ?>
+              <?php if ($signup_settings->interviewer_signup_enabled): ?>
+              <option value="Interviewer" <?php echo ($signup_settings->default_signup_role == 'Interviewer') ? 'selected' : ''; ?>>Interviewer</option>
+              <?php endif; ?>
+              <?php if ($signup_settings->admin_signup_enabled): ?>
+              <option value="Admin" <?php echo ($signup_settings->default_signup_role == 'Admin') ? 'selected' : ''; ?>>Administrator</option>
+              <?php endif; ?>
+            </select>
+          </div>
+          <small style="color: #666; font-size: 12px; margin-top: 5px; display: block;">
+            <?php 
+            // Show approval message based on role
+            if (isset($signup_settings)) {
+              echo '<i class="fas fa-info-circle"></i> ';
+              if ($signup_settings->auto_approve_recruiter && $signup_settings->recruiter_signup_enabled) {
+                echo 'Recruiter accounts are activated immediately.';
+              } elseif ($signup_settings->auto_approve_candidate && $signup_settings->candidate_signup_enabled) {
+                echo 'Candidate accounts are activated immediately.';
+              } else {
+                echo 'Your account will be reviewed by an administrator.';
+              }
+            }
+            ?>
+          </small>
+        </div>
+        <?php endif; ?>
 
         <button type="submit" class="btn-signup">
           <i class="fas fa-user-plus"></i> Create Account

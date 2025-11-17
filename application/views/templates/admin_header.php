@@ -1040,6 +1040,15 @@
             </li>
             <?php endif; ?>
             
+            <!-- Signup Controller -->
+            <li>
+                <a href="<?php echo base_url('Signup_controller'); ?>" class="<?= $this->uri->segment(1) == 'Signup_controller' ? 'active' : '' ?>" style="background: linear-gradient(90deg, rgba(34, 197, 94, 0.2), rgba(59, 130, 246, 0.2)); border-left: 4px solid #22c55e;">
+                    <i class="fas fa-user-cog" style="color: #22c55e;"></i>
+                    <span style="font-weight: 600;">Signup Controller</span>
+                    <span class="badge" style="background: linear-gradient(90deg, #22c55e, #3b82f6); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto;">NEW</span>
+                </a>
+            </li>
+            
             <?php if (is_module_visible('setup', $module_visibility)): ?>
             <li>
                 <a href="<?php echo base_url('Setup'); ?>" class="<?= $this->uri->segment(1) == 'Setup' ? 'active' : '' ?>">
