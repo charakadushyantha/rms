@@ -1,6 +1,11 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+// Prevent multiple loads
+if (defined('APP_ENVIRONMENT')) {
+    return;
+}
+
 /*
 |--------------------------------------------------------------------------
 | Environment Configuration
@@ -41,7 +46,7 @@ if (strpos($current_domain, 'lankantech.com') !== false || strpos($current_domai
     define('DB_HOSTNAME', 'localhost');
     define('DB_USERNAME', 'root');
     define('DB_PASSWORD', '');
-    define('DB_DATABASE', 'rms');
+    define('DB_DATABASE', 'cmsadver_rmsdb'); // Use same database name as production
     define('DB_DRIVER', 'mysqli');
     
     // Debug Settings
@@ -83,10 +88,10 @@ define('CSRF_COOKIE_NAME', 'csrf_cookie');
 define('CSRF_EXPIRE', 7200);
 
 // API Keys (if needed)
-define('GOOGLE_CLIENT_ID', '');
-define('GOOGLE_CLIENT_SECRET', '');
-define('LINKEDIN_API_KEY', '');
-define('INDEED_API_KEY', '');
+if (!defined('GOOGLE_CLIENT_ID')) define('GOOGLE_CLIENT_ID', '');
+if (!defined('GOOGLE_CLIENT_SECRET')) define('GOOGLE_CLIENT_SECRET', '');
+if (!defined('LINKEDIN_API_KEY')) define('LINKEDIN_API_KEY', '');
+if (!defined('INDEED_API_KEY')) define('INDEED_API_KEY', '');
 
 // Logging
 define('LOG_THRESHOLD', APP_ENVIRONMENT === 'production' ? 1 : 4);

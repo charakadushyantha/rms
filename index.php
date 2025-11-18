@@ -55,6 +55,9 @@
  */
 	define('ENVIRONMENT', isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : 'development');
 
+// Start output buffering to prevent "headers already sent" errors
+ob_start();
+
 /*
  *---------------------------------------------------------------
  * ERROR REPORTING
