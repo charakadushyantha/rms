@@ -27,9 +27,9 @@
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-start mb-3">
                                     <div>
-                                        <h5 class="card-title mb-1"><?= htmlspecialchars($pool->pool_name) ?></h5>
-                                        <span class="badge bg-<?= $pool->pool_type == 'Dynamic' ? 'info' : 'secondary' ?>">
-                                            <?= htmlspecialchars($pool->pool_type) ?>
+                                        <h5 class="card-title mb-1"><?= htmlspecialchars($pool['pool_name']??'Unnamed Pool') ?></h5>
+                                        <span class="badge bg-<?= ($pool['pool_type']??'Static') == 'Dynamic' ? 'info' : 'secondary' ?>">
+                                            <?= htmlspecialchars($pool['pool_type']??'Static') ?>
                                         </span>
                                     </div>
                                     <div class="dropdown">
@@ -37,14 +37,14 @@
                                             <i class="fas fa-ellipsis-v"></i>
                                         </button>
                                         <ul class="dropdown-menu">
-                                            <li><a class="dropdown-item" href="<?= base_url('Candidate_sourcing/view_pool/' . $pool->pool_id) ?>">
+                                            <li><a class="dropdown-item" href="<?= base_url('Candidate_sourcing/view_pool/' . ($pool['pool_id']??'')) ?>">
                                                 <i class="fas fa-eye"></i> View Pool
                                             </a></li>
-                                            <li><a class="dropdown-item" href="#" onclick="editPool(<?= $pool->pool_id ?>)">
+                                            <li><a class="dropdown-item" href="#" onclick="editPool(<?= $pool['pool_id']??0 ?>)">
                                                 <i class="fas fa-edit"></i> Edit
                                             </a></li>
                                             <li><hr class="dropdown-divider"></li>
-                                            <li><a class="dropdown-item text-danger" href="#" onclick="deletePool(<?= $pool->pool_id ?>)">
+                                            <li><a class="dropdown-item text-danger" href="#" onclick="deletePool(<?= $pool['pool_id']??0 ?>)">
                                                 <i class="fas fa-trash"></i> Delete
                                             </a></li>
                                         </ul>
@@ -52,15 +52,15 @@
                                 </div>
                                 
                                 <p class="card-text text-muted small">
-                                    <?= htmlspecialchars($pool->description ?? 'No description') ?>
+                                    <?= htmlspecialchars($pool['description'] ?? 'No description') ?>
                                 </p>
                                 
                                 <div class="d-flex justify-content-between align-items-center mt-3">
                                     <div>
                                         <i class="fas fa-users text-primary"></i>
-                                        <strong><?= $pool->member_count ?></strong> candidates
+                                        <strong><?= $pool['member_count']??0 ?></strong> candidates
                                     </div>
-                                    <a href="<?= base_url('Candidate_sourcing/view_pool/' . $pool->pool_id) ?>" 
+                                    <a href="<?= base_url('Candidate_sourcing/view_pool/' . ($pool['pool_id']??'')) ?>" 
                                        class="btn btn-sm btn-outline-primary">
                                         View Pool <i class="fas fa-arrow-right"></i>
                                     </a>
@@ -68,9 +68,9 @@
                                 
                                 <div class="mt-3 pt-3 border-top">
                                     <small class="text-muted">
-                                        <i class="fas fa-user"></i> Created by <?= htmlspecialchars($pool->created_by) ?>
+                                        <i class="fas fa-user"></i> Created by <?= htmlspecialchars($pool['created_by']??'Unknown') ?>
                                         <br>
-                                        <i class="fas fa-clock"></i> <?= date('M d, Y', strtotime($pool->created_at)) ?>
+                                        <i class="fas fa-clock"></i> <?= date('M d, Y', strtotime($pool['created_at']??date('Y-m-d'))) ?>
                                     </small>
                                 </div>
                             </div>
@@ -168,11 +168,4 @@ function deletePool(poolId) {
         });
     } else {
         if (confirm('Are you sure you want to delete this pool?')) {
-            window.location.href = '<?= base_url("Candidate_sourcing/delete_pool/") ?>' + poolId;
-        }
-    }
-}
-</script>
-
-<?php $this->load->view('templates/admin_footer'); ?>
-""
+            window.location.href = '<?= base_url("Candidate_sourcing/delete_pool/")
