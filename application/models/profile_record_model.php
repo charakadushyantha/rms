@@ -1,6 +1,6 @@
 <?php
 
-class profile_record_model extends CI_Model
+class Profile_record_model extends CI_Model
 {
     public function rec_profile()
     {

@@ -168,4 +168,10 @@ function deletePool(poolId) {
         });
     } else {
         if (confirm('Are you sure you want to delete this pool?')) {
-            window.location.href = '<?= base_url("Candidate_sourcing/delete_pool/")
+            window.location.href = '<?= base_url("Candidate_sourcing/delete_pool/") ?>' + poolId;
+        }
+    }
+}
+</script>
+
+<?php $this->load->view('templates/admin_footer'); ?>
