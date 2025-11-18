@@ -85,54 +85,62 @@ defined('EXIT__AUTO_MIN')      OR define('EXIT__AUTO_MIN', 9); // lowest automat
 defined('EXIT__AUTO_MAX')      OR define('EXIT__AUTO_MAX', 125); // highest automatically-assigned error code
 
 
-/* USSER DEFINE CONSTANTS FOR APPLICATION */
-define('BASE_URL','http://localhost/rms');
+/* USER DEFINED CONSTANTS FOR APPLICATION */
+// Load environment configuration first (if not already loaded)
+if (!defined('APP_ENVIRONMENT')) {
+    require_once(APPPATH . 'config/environment.php');
+}
 
-define('COMPANY_LOGO',BASE_URL.'/Assets/Recruiter_Dashboard/img/logo/CompanyLogo.png');
-define('COMPANY_NAME',BASE_URL.'/Assets/Recruiter_Dashboard/img/logo/CompanyName.png');
-define('TAB_LOGO',BASE_URL.'/Assets/Recruiter_Dashboard/img/logo/tablogo.png');
-define('SENDER_EMAIL','charakaucsc@gmail.com'); // Enter Email Address Bot Email Address
-define('SENDER_PASSWORD','hekunrvfdftkapkf'); // Enter Email id Password real one MIT@UCSC@2020
+// Use APP_URL from environment.php (auto-detects production vs development)
+if (!defined('BASE_URL')) {
+    define('BASE_URL', rtrim(APP_URL, '/'));
+}
+
+if (!defined('COMPANY_LOGO')) define('COMPANY_LOGO',BASE_URL.'/Assets/Recruiter_Dashboard/img/logo/CompanyLogo.png');
+if (!defined('COMPANY_NAME')) define('COMPANY_NAME',BASE_URL.'/Assets/Recruiter_Dashboard/img/logo/CompanyName.png');
+if (!defined('TAB_LOGO')) define('TAB_LOGO',BASE_URL.'/Assets/Recruiter_Dashboard/img/logo/tablogo.png');
+if (!defined('SENDER_EMAIL')) define('SENDER_EMAIL','charakaucsc@gmail.com'); // Enter Email Address Bot Email Address
+if (!defined('SENDER_PASSWORD')) define('SENDER_PASSWORD','hekunrvfdftkapkf'); // Enter Email id Password real one MIT@UCSC@2020
 
 // for assets
-define('REC_ASSETS_PATH',BASE_URL.'/Assets/Recruiter_Dashboard');
-define('ADMIN_ASSETS_PATH',BASE_URL.'/Assets/Admin_Dashboard');
-define('CAL_ASSETS_PATH',BASE_URL.'/Assets/Calendar_script/fullcalendar');
-define('SIGN_LOGIN_ASSETS_PATH',BASE_URL.'/Assets/login_page');
+if (!defined('REC_ASSETS_PATH')) define('REC_ASSETS_PATH',BASE_URL.'/Assets/Recruiter_Dashboard');
+if (!defined('ADMIN_ASSETS_PATH')) define('ADMIN_ASSETS_PATH',BASE_URL.'/Assets/Admin_Dashboard');
+if (!defined('CAL_ASSETS_PATH')) define('CAL_ASSETS_PATH',BASE_URL.'/Assets/Calendar_script/fullcalendar');
+if (!defined('SIGN_LOGIN_ASSETS_PATH')) define('SIGN_LOGIN_ASSETS_PATH',BASE_URL.'/Assets/login_page');
 
 // TBLs
-define('TBL_USERS','users');
-define('TBL_CANDIDATE_DETAILS','candidate_details');
-define('TBL_CALENDAR','calendar_events');
-define('TBL_PROFILE','profile_info'); // profile INFO TABLE
+if (!defined('TBL_USERS')) define('TBL_USERS','users');
+if (!defined('TBL_CANDIDATE_DETAILS')) define('TBL_CANDIDATE_DETAILS','candidate_details');
+if (!defined('TBL_CALENDAR')) define('TBL_CALENDAR','calendar_events');
+if (!defined('TBL_PROFILE')) define('TBL_PROFILE','profile_info'); // profile INFO TABLE
 
 
 
 //Controller
-define('LOGIN_URL',BASE_URL.'/index.php/Login');
-define('SIGNUP_URL',BASE_URL.'/index.php/Login/signup');
-define('FORGOT_PASSWORD_URL',BASE_URL.'/index.php/Login/forgotpassword');
-define('RESET_PASSWORD_URL',BASE_URL.'/index.php/Login/reset_password');
+if (!defined('LOGIN_URL')) define('LOGIN_URL',BASE_URL.'/index.php/Login');
+if (!defined('SIGNUP_URL')) define('SIGNUP_URL',BASE_URL.'/index.php/Login/signup');
+if (!defined('FORGOT_PASSWORD_URL')) define('FORGOT_PASSWORD_URL',BASE_URL.'/index.php/Login/forgotpassword');
+if (!defined('RESET_PASSWORD_URL')) define('RESET_PASSWORD_URL',BASE_URL.'/index.php/Login/reset_password');
 
-define('R_DASHBOARD_URL',BASE_URL.'/index.php/R_dashboard');
-define('R_CALENDAR_URL',BASE_URL.'/index.php/R_dashboard/Rcalendar_view');
-define('R_CANDIDATE_URL',BASE_URL.'/index.php/R_dashboard/Rcandidate_view');
-define('R_AC_DETAILS_URL',BASE_URL.'/index.php/R_dashboard/Raccount_details_view');
-define('R_SCANDIDATE_URL',BASE_URL.'/index.php/R_dashboard/Rscandidate_view');
-define('R_SCHEDULE_URL',BASE_URL.'/index.php/R_dashboard/Rschedule_view');
-define('R_STATUS_URL',BASE_URL.'/index.php/R_dashboard/Rstatus_view');
-define('R_LOGOUT_URL',BASE_URL.'/index.php/R_dashboard/logout');
+if (!defined('R_DASHBOARD_URL')) define('R_DASHBOARD_URL',BASE_URL.'/index.php/R_dashboard');
+if (!defined('R_CALENDAR_URL')) define('R_CALENDAR_URL',BASE_URL.'/index.php/R_dashboard/Rcalendar_view');
+if (!defined('R_CANDIDATE_URL')) define('R_CANDIDATE_URL',BASE_URL.'/index.php/R_dashboard/Rcandidate_view');
+if (!defined('R_AC_DETAILS_URL')) define('R_AC_DETAILS_URL',BASE_URL.'/index.php/R_dashboard/Raccount_details_view');
+if (!defined('R_SCANDIDATE_URL')) define('R_SCANDIDATE_URL',BASE_URL.'/index.php/R_dashboard/Rscandidate_view');
+if (!defined('R_SCHEDULE_URL')) define('R_SCHEDULE_URL',BASE_URL.'/index.php/R_dashboard/Rschedule_view');
+if (!defined('R_STATUS_URL')) define('R_STATUS_URL',BASE_URL.'/index.php/R_dashboard/Rstatus_view');
+if (!defined('R_LOGOUT_URL')) define('R_LOGOUT_URL',BASE_URL.'/index.php/R_dashboard/logout');
 
 
 
-define('A_DASHBOARD_URL',BASE_URL.'/index.php/A_dashboard');
-define('A_CALENDAR_URL',BASE_URL.'/index.php/A_dashboard/Acalendar_view');
-define('A_RECRUITER_URL',BASE_URL.'/index.php/A_dashboard/Arecruiter_view');
-define('A_AC_DETAILS_URL',BASE_URL.'/index.php/A_dashboard/Aaccount_details_view');
-define('A_SCANDIDATE_URL',BASE_URL.'/index.php/A_dashboard/Ascandidate_view');
-define('A_HISTORY_URL',BASE_URL.'/index.php/A_dashboard/Ahistory_view');
-define('A_TIMESHEET_URL',BASE_URL.'/index.php/A_dashboard/Atime_sheet_view');
-define('A_LOGOUT_URL',BASE_URL.'/index.php/A_dashboard/logout');
+if (!defined('A_DASHBOARD_URL')) define('A_DASHBOARD_URL',BASE_URL.'/index.php/A_dashboard');
+if (!defined('A_CALENDAR_URL')) define('A_CALENDAR_URL',BASE_URL.'/index.php/A_dashboard/Acalendar_view');
+if (!defined('A_RECRUITER_URL')) define('A_RECRUITER_URL',BASE_URL.'/index.php/A_dashboard/Arecruiter_view');
+if (!defined('A_AC_DETAILS_URL')) define('A_AC_DETAILS_URL',BASE_URL.'/index.php/A_dashboard/Aaccount_details_view');
+if (!defined('A_SCANDIDATE_URL')) define('A_SCANDIDATE_URL',BASE_URL.'/index.php/A_dashboard/Ascandidate_view');
+if (!defined('A_HISTORY_URL')) define('A_HISTORY_URL',BASE_URL.'/index.php/A_dashboard/Ahistory_view');
+if (!defined('A_TIMESHEET_URL')) define('A_TIMESHEET_URL',BASE_URL.'/index.php/A_dashboard/Atime_sheet_view');
+if (!defined('A_LOGOUT_URL')) define('A_LOGOUT_URL',BASE_URL.'/index.php/A_dashboard/logout');
 
 
 /*
@@ -151,10 +159,10 @@ define('A_LOGOUT_URL',BASE_URL.'/index.php/A_dashboard/logout');
 */
 
 // Google OAuth Client ID (Get from Google Cloud Console)
-define('GOOGLE_CLIENT_ID', '211766688118-sid64ufknl82qceqlaneefmsk5rdo1vt.apps.googleusercontent.com');
+if (!defined('GOOGLE_CLIENT_ID')) define('GOOGLE_CLIENT_ID', '211766688118-sid64ufknl82qceqlaneefmsk5rdo1vt.apps.googleusercontent.com');
 
 // Google OAuth Client Secret (Get from Google Cloud Console)
-define('GOOGLE_CLIENT_SECRET', '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');
+if (!defined('GOOGLE_CLIENT_SECRET')) define('GOOGLE_CLIENT_SECRET', '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');
 
 // Enable/Disable Google Login (Set to TRUE after configuring credentials)
-define('GOOGLE_LOGIN_ENABLED', TRUE);
+if (!defined('GOOGLE_LOGIN_ENABLED')) define('GOOGLE_LOGIN_ENABLED', TRUE);
