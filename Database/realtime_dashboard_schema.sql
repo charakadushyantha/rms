@@ -100,6 +100,7 @@ CREATE TABLE IF NOT EXISTS `interviewer_availability` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Real-time activity log
+
 CREATE TABLE IF NOT EXISTS `pipeline_activity_log` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `candidate_id` int(11) NOT NULL,
