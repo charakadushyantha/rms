@@ -55,6 +55,9 @@
  */
 	define('ENVIRONMENT', isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : 'development');
 
+// Start output buffering to prevent "headers already sent" errors
+ob_start();
+
 /*
  *---------------------------------------------------------------
  * ERROR REPORTING
@@ -71,13 +74,14 @@ switch (ENVIRONMENT)
 		// Suppress PHP 8.2+ dynamic property deprecation warnings for CodeIgniter compatibility
 		if (version_compare(PHP_VERSION, '8.2.0', '>='))
 		{
-			error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
+			error_reporting(E_ALL & ~E_DEPRECATED);
 		}
 	break;
 
 	case 'testing':
 	case 'production':
 		ini_set('display_errors', 0);
+		error_reporting(E_ALL & ~E_DEPRECATED);
 		if (version_compare(PHP_VERSION, '5.3', '>='))
 		{
 			error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED & ~E_STRICT & ~E_USER_NOTICE & ~E_USER_DEPRECATED);

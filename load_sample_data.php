@@ -95,7 +95,7 @@ echo "<li><strong>Shortlisted:</strong> 40</li>";
 echo "<li><strong>Rejected:</strong> 20</li>";
 echo "<li><strong>Hold:</strong> 20</li>";
 echo "<li><strong>Calendar Events:</strong> 13 interviews (5 past, 8 upcoming)</li>";
-echo "</ul>"
+echo "</ul>";
 
 echo "<hr>";
 echo "<p><a href='index.php/Login'>Go to Login Page</a></p>";

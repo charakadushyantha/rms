@@ -355,7 +355,7 @@ class Login extends CI_Controller {
 	            </head>
 	            <body>
 								 <h3>Click the below link for set new Password</h3>
-	              <h4><a href='http://localhost/rms/index.php/Login/reset_password/".$rec_email."'>Reset Password</a></h4>
+	              <h4><a href='".base_url('Login/reset_password/'.$rec_email)."'>Reset Password</a></h4>
 	            </body>
 	            </html>
 	            ";
