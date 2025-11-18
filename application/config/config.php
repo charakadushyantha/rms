@@ -1,6 +1,9 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+// Load centralized environment configuration
+require_once(APPPATH . 'config/environment.php');
+
 /*
 |--------------------------------------------------------------------------
 | Base Site URL
@@ -23,7 +26,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 | a PHP script and you can easily do that on your own.
 |
 */
-$config['base_url'] = 'http://localhost/rms/';
+$config['base_url'] = APP_URL;
 
 /*
 |--------------------------------------------------------------------------
