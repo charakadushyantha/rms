@@ -1,0 +1,41 @@
+rmsftpuser
+Charaka@321
+
+
+Use the Production URL
+You need to access your production site, not localhost:
+
+Correct URL:
+https://rms.lankantech.com/
+
+NOT: ~~https://localhost/rms/~~
+
+📋 Steps to Fix Admin Password on Production
+1. Access the Fix Script on Production
+Visit: https://rms.lankantech.com/fix_admin_password.php
+
+2. After Running the Script
+Login at: https://rms.lankantech.com/
+
+Username: admin
+Password: admin123
+🔧 If You Want to Work Locally
+If you want to test on localhost, you need to:
+
+Use the local .htaccess:
+
+Rename .htaccess to .htaccess.production
+Rename .htaccess.local to .htaccess
+Access without HTTPS:
+
+Use: http://localhost/rms/ (not https)
+Run the fix script locally:
+
+Visit: http://localhost/rms/fix_admin_password.php
+🎯 Recommended Action
+Work on the production site directly:
+
+Go to https://rms.lankantech.com/fix_admin_password.php
+Run the script to fix the password
+Login at https://rms.lankantech.com/
+The localhost error is normal - you're trying to access a local development environment that either doesn't exist or isn't configured with SSL. Use the production URL instead!

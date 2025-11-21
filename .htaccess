@@ -1,10 +1,6 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /
-    
-    # Force HTTPS (SSL)
-    RewriteCond %{HTTPS} off
-    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+    RewriteBase /rms/
     
     # Remove index.php from URLs
     RewriteCond %{REQUEST_FILENAME} !-f
@@ -17,16 +13,3 @@ Options -Indexes
 
 # Default index files
 DirectoryIndex index.php index.html
-
-# Protect sensitive files
-<FilesMatch "(^#.*#|\.(bak|conf|dist|fla|in[ci]|log|psd|sh|sql|sw[op])|~)$">
-    Order allow,deny
-    Deny from all
-    Satisfy All
-</FilesMatch>
-
-# Protect configuration files
-<FilesMatch "(environment\.php|database\.php|config\.php|autoload\.php|constants\.php|routes\.php)$">
-    Order allow,deny
-    Deny from all
-</FilesMatch>

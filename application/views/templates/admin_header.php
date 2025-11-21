@@ -784,7 +784,7 @@
             }
             ?>
             
-            <!-- Main Navigation -->
+            <!-- Main Dashboard -->
             <?php if (is_module_visible('dashboard', $module_visibility)): ?>
             <li>
                 <a href="<?php echo A_DASHBOARD_URL; ?>" class="<?= ($this->uri->segment(2) == '' || $this->uri->segment(2) == 'index') ? 'active' : '' ?>">
@@ -803,9 +803,9 @@
             ?>
             <div class="sidebar-divider"></div>
             
-            <!-- Recruitment Management -->
+            <!-- Core Recruitment -->
             <li class="sidebar-heading">
-                <span>RECRUITMENT</span>
+                <span>CORE RECRUITMENT</span>
             </li>
             <?php endif; ?>
             
@@ -829,52 +829,48 @@
             
             <!-- Interview Management -->
             <li>
-                <a href="<?php echo base_url('interview'); ?>" class="<?= $this->uri->segment(1) == 'interview' && $this->uri->segment(2) != 'management' ? 'active' : '' ?>" style="background: linear-gradient(90deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2)); border-left: 4px solid #667eea;">
-                    <i class="fas fa-video" style="color: #667eea;"></i>
-                    <span style="font-weight: 600;">Interviews</span>
-                    <span class="badge" style="background: linear-gradient(90deg, #667eea, #764ba2); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto;">NEW</span>
+                <a href="<?php echo base_url('interview'); ?>" class="<?= $this->uri->segment(1) == 'interview' && $this->uri->segment(2) != 'management' ? 'active' : '' ?>">
+                    <i class="fas fa-video"></i>
+                    <span>Interviews</span>
                 </a>
             </li>
             
             <!-- IMS - Interview Management System -->
             <li>
-                <a href="<?php echo base_url('interview/management'); ?>" class="<?= ($this->uri->segment(1) == 'interview' && $this->uri->segment(2) == 'management') ? 'active' : '' ?>" style="background: linear-gradient(90deg, rgba(56, 178, 172, 0.2), rgba(72, 187, 120, 0.2)); border-left: 4px solid #38b2ac;">
-                    <i class="fas fa-calendar-check" style="color: #38b2ac;"></i>
-                    <span style="font-weight: 600;">IMS</span>
-                    <span class="badge" style="background: linear-gradient(90deg, #38b2ac, #48bb78); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto;">PRO</span>
+                <a href="<?php echo base_url('interview/management'); ?>" class="<?= ($this->uri->segment(1) == 'interview' && $this->uri->segment(2) == 'management') ? 'active' : '' ?>">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Interview Management</span>
+                    <span class="badge" style="background: #38b2ac; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto;">IMS</span>
                 </a>
             </li>
             
             <!-- Questions Bank -->
             <li>
-                <a href="<?php echo base_url('questions_bank'); ?>" class="<?= $this->uri->segment(1) == 'questions_bank' ? 'active' : '' ?>" style="background: linear-gradient(90deg, rgba(251, 146, 60, 0.2), rgba(249, 115, 22, 0.2)); border-left: 4px solid #fb923c;">
-                    <i class="fas fa-question-circle" style="color: #fb923c;"></i>
-                    <span style="font-weight: 600;">Questions Bank</span>
-                    <span class="badge" style="background: linear-gradient(90deg, #fb923c, #f97316); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto;">NEW</span>
+                <a href="<?php echo base_url('questions_bank'); ?>" class="<?= $this->uri->segment(1) == 'questions_bank' ? 'active' : '' ?>">
+                    <i class="fas fa-question-circle"></i>
+                    <span>Questions Bank</span>
                 </a>
             </li>
             
             <?php if (is_module_visible('analytics', $module_visibility)): ?>
             <li>
-                <a href="<?php echo base_url('realtime_dashboard'); ?>" class="<?= $this->uri->segment(1) == 'realtime_dashboard' ? 'active' : '' ?>" style="background: linear-gradient(90deg, rgba(76, 222, 128, 0.2), rgba(59, 130, 246, 0.2)); border-left: 4px solid #4ade80;">
-                    <i class="fas fa-chart-line" style="color: #4ade80;"></i>
-                    <span style="font-weight: 600;">Analytics</span>
-                    <span class="badge" style="background: linear-gradient(90deg, #4ade80, #3b82f6); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto;">NEW</span>
+                <a href="<?php echo base_url('realtime_dashboard'); ?>" class="<?= $this->uri->segment(1) == 'realtime_dashboard' ? 'active' : '' ?>">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Analytics & Reports</span>
                 </a>
             </li>
             <?php endif; ?>
             
             <div class="sidebar-divider"></div>
             
-            <!-- Job Posting Integration -->
+            <!-- Job Management -->
             <li class="sidebar-heading">
-                <span>JOB POSTING</span>
+                <span>JOB MANAGEMENT</span>
             </li>
             <li>
-                <a href="<?php echo base_url('Job_posting'); ?>" class="<?= $this->uri->segment(1) == 'Job_posting' ? 'active' : '' ?>">
+                <a href="<?php echo base_url('Job_posting'); ?>" class="<?= $this->uri->segment(1) == 'Job_posting' && $this->uri->segment(2) != 'analytics' ? 'active' : '' ?>">
                     <i class="fas fa-briefcase"></i>
                     <span>Job Postings</span>
-                    <span class="badge" style="background: linear-gradient(90deg, #f093fb, #f5576c); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto;">NEW</span>
                 </a>
             </li>
             <li>
@@ -883,37 +879,145 @@
                     <span>Job Analytics</span>
                 </a>
             </li>
-            <li>
-                <a href="<?php echo base_url('Setup/job_posting_platforms'); ?>" class="<?= ($this->uri->segment(1) == 'Setup' && $this->uri->segment(2) == 'job_posting_platforms') ? 'active' : '' ?>">
-                    <i class="fas fa-share-alt"></i>
-                    <span>Platform Config</span>
-                </a>
-            </li>
             
             <div class="sidebar-divider"></div>
             
-            <!-- Sales & Marketing Hub -->
+            <!-- Recruitment Marketing -->
             <li class="sidebar-heading">
-                <span>SALES & MARKETING</span>
+                <span>RECRUITMENT MARKETING</span>
             </li>
             <li>
-                <a href="<?php echo base_url('Sales_marketing'); ?>" class="<?= $this->uri->segment(1) == 'Sales_marketing' ? 'active' : '' ?>" style="background: linear-gradient(90deg, rgba(255, 107, 107, 0.2), rgba(255, 193, 7, 0.2)); border-left: 4px solid #ff6b6b;">
-                    <i class="fas fa-bullhorn" style="color: #ff6b6b;"></i>
-                    <span style="font-weight: 600;">Marketing Hub</span>
-                    <span class="badge" style="background: linear-gradient(90deg, #ff6b6b, #ffc107); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto;">HUB</span>
+                <a href="<?php echo base_url('Sales_marketing'); ?>" class="<?= $this->uri->segment(1) == 'Sales_marketing' ? 'active' : '' ?>">
+                    <i class="fas fa-bullhorn"></i>
+                    <span>Marketing Campaigns</span>
                 </a>
             </li>
             <li>
-                <a href="<?php echo base_url('Candidate_sourcing'); ?>" class="<?= $this->uri->segment(1) == 'Candidate_sourcing' ? 'active' : '' ?>">
+                <a href="<?php echo base_url('Marketing_campaigns'); ?>" class="<?= $this->uri->segment(1) == 'Marketing_campaigns' ? 'active' : '' ?>">
+                    <i class="fas fa-envelope-open-text"></i>
+                    <span>Email Campaigns</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Candidate_sourcing'); ?>" class="<?= $this->uri->segment(1) == 'Candidate_sourcing' && $this->uri->segment(2) != 'pools' ? 'active' : '' ?>">
                     <i class="fas fa-search"></i>
                     <span>Candidate Sourcing</span>
-                    <span class="badge" style="background: linear-gradient(90deg, #ffecd2, #fcb69f); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto;">NEW</span>
                 </a>
             </li>
             <li>
                 <a href="<?php echo base_url('Candidate_sourcing/pools'); ?>" class="<?= ($this->uri->segment(1) == 'Candidate_sourcing' && $this->uri->segment(2) == 'pools') ? 'active' : '' ?>">
                     <i class="fas fa-layer-group"></i>
                     <span>Talent Pools</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Referral'); ?>" class="<?= $this->uri->segment(1) == 'Referral' ? 'active' : '' ?>">
+                    <i class="fas fa-user-friends"></i>
+                    <span>Referral Program</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Recruitment_events'); ?>" class="<?= $this->uri->segment(1) == 'Recruitment_events' ? 'active' : '' ?>">
+                    <i class="fas fa-calendar-star"></i>
+                    <span>Recruitment Events</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Employee_advocacy'); ?>" class="<?= $this->uri->segment(1) == 'Employee_advocacy' ? 'active' : '' ?>">
+                    <i class="fas fa-users-cog"></i>
+                    <span>Employee Advocacy</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Employer_profile'); ?>" class="<?= $this->uri->segment(1) == 'Employer_profile' ? 'active' : '' ?>">
+                    <i class="fas fa-building"></i>
+                    <span>Employer Branding</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Paid_advertising'); ?>" class="<?= $this->uri->segment(1) == 'Paid_advertising' ? 'active' : '' ?>">
+                    <i class="fas fa-ad"></i>
+                    <span>Paid Advertising</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Roi_tracking'); ?>" class="<?= $this->uri->segment(1) == 'Roi_tracking' ? 'active' : '' ?>">
+                    <i class="fas fa-chart-line"></i>
+                    <span>ROI Tracking</span>
+                </a>
+            </li>
+            
+            <div class="sidebar-divider"></div>
+            
+            <!-- CRM & Engagement -->
+            <li class="sidebar-heading">
+                <span>CRM & ENGAGEMENT</span>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Candidate_crm'); ?>" class="<?= $this->uri->segment(1) == 'Candidate_crm' ? 'active' : '' ?>">
+                    <i class="fas fa-handshake"></i>
+                    <span>Candidate CRM</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Media_gallery'); ?>" class="<?= $this->uri->segment(1) == 'Media_gallery' ? 'active' : '' ?>">
+                    <i class="fas fa-images"></i>
+                    <span>Media Gallery</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Reviews_management'); ?>" class="<?= $this->uri->segment(1) == 'Reviews_management' ? 'active' : '' ?>">
+                    <i class="fas fa-star"></i>
+                    <span>Reviews Management</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Awards_recognition'); ?>" class="<?= $this->uri->segment(1) == 'Awards_recognition' ? 'active' : '' ?>">
+                    <i class="fas fa-trophy"></i>
+                    <span>Awards & Recognition</span>
+                </a>
+            </li>
+            
+            <div class="sidebar-divider"></div>
+            
+            <!-- Integrations -->
+            <li class="sidebar-heading">
+                <span>INTEGRATIONS</span>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Integration_hub'); ?>" class="<?= $this->uri->segment(1) == 'Integration_hub' ? 'active' : '' ?>">
+                    <i class="fas fa-plug"></i>
+                    <span>Integration Hub</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Video_integrations'); ?>" class="<?= $this->uri->segment(1) == 'Video_integrations' ? 'active' : '' ?>">
+                    <i class="fas fa-video"></i>
+                    <span>Video Platforms</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Assessment_integrations'); ?>" class="<?= $this->uri->segment(1) == 'Assessment_integrations' ? 'active' : '' ?>">
+                    <i class="fas fa-code"></i>
+                    <span>Assessment Tools</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Background_check'); ?>" class="<?= $this->uri->segment(1) == 'Background_check' ? 'active' : '' ?>">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Background Checks</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Ats_integrations'); ?>" class="<?= $this->uri->segment(1) == 'Ats_integrations' ? 'active' : '' ?>">
+                    <i class="fas fa-sync-alt"></i>
+                    <span>ATS Integrations</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Setup/job_posting_platforms'); ?>" class="<?= ($this->uri->segment(1) == 'Setup' && $this->uri->segment(2) == 'job_posting_platforms') ? 'active' : '' ?>">
+                    <i class="fas fa-share-alt"></i>
+                    <span>Job Board Platforms</span>
                 </a>
             </li>
             
@@ -962,9 +1066,9 @@
             <?php if (is_module_visible('reports', $module_visibility)): ?>
             <div class="sidebar-divider"></div>
             
-            <!-- Reports -->
+            <!-- Reports & Analytics -->
             <li class="sidebar-heading">
-                <span>REPORTS</span>
+                <span>REPORTS & ANALYTICS</span>
             </li>
             <li>
                 <a href="<?php echo base_url('A_dashboard/reports_view'); ?>" class="<?= $this->uri->segment(2) == 'reports_view' ? 'active' : '' ?>">
@@ -972,64 +1076,92 @@
                     <span>MIS Reports</span>
                 </a>
             </li>
+            <li>
+                <a href="<?php echo base_url('Custom_reports'); ?>" class="<?= $this->uri->segment(1) == 'Custom_reports' ? 'active' : '' ?>">
+                    <i class="fas fa-file-chart-line"></i>
+                    <span>Custom Reports</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Export_data'); ?>" class="<?= $this->uri->segment(1) == 'Export_data' ? 'active' : '' ?>">
+                    <i class="fas fa-file-export"></i>
+                    <span>Export Data</span>
+                </a>
+            </li>
             <?php endif; ?>
             
             <div class="sidebar-divider"></div>
             
+            <!-- Automation -->
+            <li class="sidebar-heading">
+                <span>AUTOMATION</span>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Marketing_automation'); ?>" class="<?= $this->uri->segment(1) == 'Marketing_automation' ? 'active' : '' ?>">
+                    <i class="fas fa-robot"></i>
+                    <span>Marketing Automation</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Auto_distribution'); ?>" class="<?= $this->uri->segment(1) == 'Auto_distribution' ? 'active' : '' ?>">
+                    <i class="fas fa-random"></i>
+                    <span>Auto Distribution</span>
+                </a>
+            </li>
+            
             <?php
             // Load custom modules from database (with error handling)
+            $has_custom_modules = false;
             try {
                 if ($this->db->table_exists('custom_modules')) {
                     $this->db->where('is_active', 1);
                     $this->db->order_by('order_num', 'ASC');
                     $custom_modules = $this->db->get('custom_modules')->result_array();
                     
-                    // Group modules by section
-                    $grouped_modules = array();
-                    foreach ($custom_modules as $module) {
-                        $grouped_modules[$module['section']][] = $module;
+                    if (!empty($custom_modules)) {
+                        $has_custom_modules = true;
+                        
+                        // Group modules by section
+                        $grouped_modules = array();
+                        foreach ($custom_modules as $module) {
+                            $grouped_modules[$module['section']][] = $module;
+                        }
+                        
+                        // Display grouped modules
+                        foreach ($grouped_modules as $section => $modules):
+                        ?>
+                        <div class="sidebar-divider"></div>
+                        
+                        <!-- Custom Section: <?= $section ?> -->
+                        <li class="sidebar-heading">
+                            <span><?= strtoupper($section) ?></span>
+                        </li>
+                        <?php foreach ($modules as $module): ?>
+                        <li>
+                            <a href="<?= base_url($module['url']) ?>" class="<?= $this->uri->segment(2) == basename($module['url']) ? 'active' : '' ?>">
+                                <i class="<?= $module['icon'] ?>"></i>
+                                <span><?= $module['name'] ?></span>
+                                <?php if ($module['show_badge']): ?>
+                                <span class="badge" style="background: #10b981; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto;"><?= $module['badge_text'] ?></span>
+                                <?php endif; ?>
+                            </a>
+                        </li>
+                        <?php endforeach; ?>
+                        <?php 
+                        endforeach;
                     }
-                    
-                    // Display grouped modules
-                    foreach ($grouped_modules as $section => $modules):
-                    ?>
-                    <!-- Custom Section: <?= $section ?> -->
-                    <li class="sidebar-heading">
-                        <span><?= strtoupper($section) ?></span>
-                    </li>
-                    <?php foreach ($modules as $module): ?>
-                    <li>
-                        <a href="<?= base_url($module['url']) ?>" class="<?= $this->uri->segment(2) == basename($module['url']) ? 'active' : '' ?>">
-                            <i class="<?= $module['icon'] ?>"></i>
-                            <span><?= $module['name'] ?></span>
-                            <?php if ($module['show_badge']): ?>
-                            <span class="badge" style="background: linear-gradient(90deg, #4ade80, #3b82f6); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto;"><?= $module['badge_text'] ?></span>
-                            <?php endif; ?>
-                        </a>
-                    </li>
-                    <?php endforeach; ?>
-                    
-                    <div class="sidebar-divider"></div>
-                    <?php 
-                    endforeach;
                 }
             } catch (Exception $e) {
                 // Silently fail if table doesn't exist - no custom modules will be shown
             }
             ?>
             
-            <?php 
-            // Check if any settings modules are visible
-            $show_settings = is_module_visible('roles', $module_visibility) || 
-                            is_module_visible('setup', $module_visibility) || 
-                            is_module_visible('account', $module_visibility);
-            if ($show_settings): 
-            ?>
-            <!-- Settings & Account -->
+            <div class="sidebar-divider"></div>
+            
+            <!-- System & Settings -->
             <li class="sidebar-heading">
-                <span>SETTINGS</span>
+                <span>SYSTEM & SETTINGS</span>
             </li>
-            <?php endif; ?>
             
             <?php if (is_module_visible('roles', $module_visibility)): ?>
             <li>
@@ -1042,18 +1174,43 @@
             
             <!-- Signup Controller -->
             <li>
-                <a href="<?php echo base_url('Signup_controller'); ?>" class="<?= $this->uri->segment(1) == 'Signup_controller' ? 'active' : '' ?>" style="background: linear-gradient(90deg, rgba(34, 197, 94, 0.2), rgba(59, 130, 246, 0.2)); border-left: 4px solid #22c55e;">
-                    <i class="fas fa-user-cog" style="color: #22c55e;"></i>
-                    <span style="font-weight: 600;">Signup Controller</span>
-                    <span class="badge" style="background: linear-gradient(90deg, #22c55e, #3b82f6); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto;">NEW</span>
+                <a href="<?php echo base_url('Signup_controller'); ?>" class="<?= $this->uri->segment(1) == 'Signup_controller' ? 'active' : '' ?>">
+                    <i class="fas fa-user-cog"></i>
+                    <span>Signup Controller</span>
+                </a>
+            </li>
+            
+            <!-- Chatbot -->
+            <li>
+                <a href="<?php echo base_url('Chatbot'); ?>" class="<?= $this->uri->segment(1) == 'Chatbot' ? 'active' : '' ?>">
+                    <i class="fas fa-robot"></i>
+                    <span>AI Chatbot</span>
                 </a>
             </li>
             
             <?php if (is_module_visible('setup', $module_visibility)): ?>
             <li>
-                <a href="<?php echo base_url('Setup'); ?>" class="<?= $this->uri->segment(1) == 'Setup' ? 'active' : '' ?>">
+                <a href="<?php echo base_url('Setup'); ?>" class="<?= $this->uri->segment(1) == 'Setup' && $this->uri->segment(2) == '' ? 'active' : '' ?>">
                     <i class="fas fa-cog"></i>
                     <span>System Setup</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Setup/module_manager'); ?>" class="<?= ($this->uri->segment(1) == 'Setup' && $this->uri->segment(2) == 'module_manager') ? 'active' : '' ?>">
+                    <i class="fas fa-th-large"></i>
+                    <span>Module Manager</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Setup/company_settings'); ?>" class="<?= ($this->uri->segment(1) == 'Setup' && $this->uri->segment(2) == 'company_settings') ? 'active' : '' ?>">
+                    <i class="fas fa-building"></i>
+                    <span>Company Settings</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?php echo base_url('Setup/email_configuration'); ?>" class="<?= ($this->uri->segment(1) == 'Setup' && $this->uri->segment(2) == 'email_configuration') ? 'active' : '' ?>">
+                    <i class="fas fa-envelope"></i>
+                    <span>Email Configuration</span>
                 </a>
             </li>
             <?php endif; ?>

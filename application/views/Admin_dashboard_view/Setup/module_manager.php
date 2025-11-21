@@ -60,6 +60,28 @@ $this->load->view('templates/admin_header', $data);
     <p class="mb-0 opacity-90">Add and manage custom modules in the sidebar navigation</p>
 </div>
 
+<!-- DEBUG MESSAGE - VERY VISIBLE -->
+<?php
+if (!isset($system_modules)) {
+    echo "<div class='alert alert-danger' style='font-size: 18px; font-weight: bold; border: 3px solid red;'>";
+    echo "❌ DEBUG: Variable \$system_modules is NOT SET from controller!<br>";
+    echo "This means the controller is not passing data to the view.<br>";
+    echo "Solution: Restart Apache in XAMPP and refresh this page.";
+    echo "</div>";
+} elseif (empty($system_modules)) {
+    echo "<div class='alert alert-warning' style='font-size: 18px; font-weight: bold; border: 3px solid orange;'>";
+    echo "⚠️ DEBUG: Variable \$system_modules is EMPTY!<br>";
+    echo "Database query returned no results.<br>";
+    echo "Solution: Run update_module_visibility_complete.php again.";
+    echo "</div>";
+} else {
+    echo "<div class='alert alert-success' style='font-size: 18px; font-weight: bold; border: 3px solid green;'>";
+    echo "✅ DEBUG: Found " . count($system_modules) . " modules from controller!<br>";
+    echo "The data is being passed correctly. You should see " . count($system_modules) . " modules below.";
+    echo "</div>";
+}
+?>
+
 <!-- Flash Messages -->
 <?php if($this->session->flashdata('success_msg')): ?>
 <div class="alert alert-success alert-dismissible fade show" id="successAlert">
@@ -118,20 +140,95 @@ setTimeout(function() {
                             }
                         }
                         
-                        // Default modules configuration
-                        $default_modules = array(
-                            array('key' => 'dashboard', 'name' => 'Dashboard', 'icon' => 'fas fa-tachometer-alt', 'section' => 'Main'),
-                            array('key' => 'candidates', 'name' => 'Candidates', 'icon' => 'fas fa-users', 'section' => 'Recruitment'),
-                            array('key' => 'calendar', 'name' => 'Calendar', 'icon' => 'fas fa-calendar-alt', 'section' => 'Recruitment'),
-                            array('key' => 'analytics', 'name' => 'Analytics', 'icon' => 'fas fa-chart-line', 'section' => 'Recruitment'),
-                            array('key' => 'recruiters', 'name' => 'Recruiters', 'icon' => 'fas fa-user-tie', 'section' => 'User Management'),
-                            array('key' => 'interviewers', 'name' => 'Interviewers', 'icon' => 'fas fa-user-check', 'section' => 'User Management'),
-                            array('key' => 'candidate_users', 'name' => 'Candidate Users', 'icon' => 'fas fa-user-graduate', 'section' => 'User Management'),
-                            array('key' => 'reports', 'name' => 'MIS Reports', 'icon' => 'fas fa-chart-bar', 'section' => 'Reports'),
-                            array('key' => 'roles', 'name' => 'Roles & Permissions', 'icon' => 'fas fa-shield-alt', 'section' => 'Settings'),
-                            array('key' => 'setup', 'name' => 'System Setup', 'icon' => 'fas fa-cog', 'section' => 'Settings'),
-                            array('key' => 'account', 'name' => 'My Account', 'icon' => 'fas fa-user-circle', 'section' => 'Settings'),
-                        );
+                        // Load ALL modules from controller data
+                        $default_modules = array();
+                        
+                        // DEBUG: Check if data is passed from controller
+                        if (!isset($system_modules)) {
+                            echo "<div class='alert alert-danger' style='font-size: 16px;'>❌ DEBUG: \$system_modules NOT SET from controller!</div>";
+                        } elseif (empty($system_modules)) {
+                            echo "<div class='alert alert-warning' style='font-size: 16px;'>⚠️ DEBUG: \$system_modules is EMPTY!</div>";
+                        } else {
+                            echo "<div class='alert alert-info' style='font-size: 16px;'>✅ DEBUG: Found " . count($system_modules) . " modules from controller</div>";
+                            echo "<div class='alert alert-secondary' style='font-size: 14px;'>First module: " . $system_modules[0]['module_key'] . " - " . (isset($system_modules[0]['module_name']) ? $system_modules[0]['module_name'] : 'NO NAME') . "</div>";
+                        }
+                        
+                        if (isset($system_modules) && !empty($system_modules)) {
+                            $modules_from_db = $system_modules;
+                            
+                            foreach ($modules_from_db as $mod) {
+                                // Map module keys to icons
+                                $icon_map = array(
+                                    'dashboard' => 'fas fa-tachometer-alt',
+                                    'candidates' => 'fas fa-users',
+                                    'calendar' => 'fas fa-calendar-alt',
+                                    'interviews' => 'fas fa-video',
+                                    'interview_management' => 'fas fa-calendar-check',
+                                    'questions_bank' => 'fas fa-question-circle',
+                                    'analytics' => 'fas fa-chart-line',
+                                    'job_posting' => 'fas fa-briefcase',
+                                    'job_analytics' => 'fas fa-chart-pie',
+                                    'sales_marketing' => 'fas fa-bullhorn',
+                                    'marketing_campaigns' => 'fas fa-envelope-open-text',
+                                    'candidate_sourcing' => 'fas fa-search',
+                                    'talent_pools' => 'fas fa-layer-group',
+                                    'referral_program' => 'fas fa-user-friends',
+                                    'recruitment_events' => 'fas fa-calendar-star',
+                                    'employee_advocacy' => 'fas fa-users-cog',
+                                    'employer_branding' => 'fas fa-building',
+                                    'paid_advertising' => 'fas fa-ad',
+                                    'roi_tracking' => 'fas fa-chart-line',
+                                    'candidate_crm' => 'fas fa-handshake',
+                                    'media_gallery' => 'fas fa-images',
+                                    'reviews_management' => 'fas fa-star',
+                                    'awards_recognition' => 'fas fa-trophy',
+                                    'integration_hub' => 'fas fa-plug',
+                                    'video_integrations' => 'fas fa-video',
+                                    'assessment_integrations' => 'fas fa-code',
+                                    'background_check' => 'fas fa-shield-alt',
+                                    'ats_integrations' => 'fas fa-sync-alt',
+                                    'job_board_platforms' => 'fas fa-share-alt',
+                                    'recruiters' => 'fas fa-user-tie',
+                                    'interviewers' => 'fas fa-user-check',
+                                    'candidate_users' => 'fas fa-user-graduate',
+                                    'reports' => 'fas fa-chart-bar',
+                                    'custom_reports' => 'fas fa-file-chart-line',
+                                    'export_data' => 'fas fa-file-export',
+                                    'marketing_automation' => 'fas fa-robot',
+                                    'auto_distribution' => 'fas fa-random',
+                                    'roles' => 'fas fa-shield-alt',
+                                    'signup_controller' => 'fas fa-user-cog',
+                                    'chatbot' => 'fas fa-robot',
+                                    'setup' => 'fas fa-cog',
+                                    'module_manager' => 'fas fa-th-large',
+                                    'company_settings' => 'fas fa-building',
+                                    'email_configuration' => 'fas fa-envelope',
+                                    'account' => 'fas fa-user-circle',
+                                );
+                                
+                                $default_modules[] = array(
+                                    'key' => $mod['module_key'],
+                                    'name' => isset($mod['module_name']) && $mod['module_name'] ? $mod['module_name'] : ucwords(str_replace('_', ' ', $mod['module_key'])),
+                                    'icon' => isset($icon_map[$mod['module_key']]) ? $icon_map[$mod['module_key']] : 'fas fa-puzzle-piece',
+                                    'section' => isset($mod['section']) && $mod['section'] ? $mod['section'] : 'Other'
+                                );
+                            }
+                        }
+                        
+                        // DEBUG: Show how many modules were processed
+                        echo "<div class='alert alert-primary' style='font-size: 16px;'>📊 DEBUG: Processed " . count($default_modules) . " modules into \$default_modules array</div>";
+                        
+                        // If no modules in database, use fallback
+                        if (empty($default_modules)) {
+                            echo "<div class='alert alert-danger' style='font-size: 16px;'>❌ DEBUG: \$default_modules is EMPTY! Using fallback (3 modules)</div>";
+                            $default_modules = array(
+                                array('key' => 'dashboard', 'name' => 'Dashboard', 'icon' => 'fas fa-tachometer-alt', 'section' => 'Main'),
+                                array('key' => 'candidates', 'name' => 'Candidates', 'icon' => 'fas fa-users', 'section' => 'Recruitment'),
+                                array('key' => 'calendar', 'name' => 'Calendar', 'icon' => 'fas fa-calendar-alt', 'section' => 'Recruitment'),
+                            );
+                        } else {
+                            echo "<div class='alert alert-success' style='font-size: 16px;'>✅ DEBUG: \$default_modules has " . count($default_modules) . " modules - will display them below</div>";
+                        }
                         
                         foreach ($default_modules as $module):
                             $is_visible = isset($visibility_settings[$module['key']]) ? $visibility_settings[$module['key']] : 1;

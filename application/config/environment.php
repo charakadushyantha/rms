@@ -18,8 +18,31 @@ if (defined('APP_ENVIRONMENT')) {
 // Detect environment based on domain
 $current_domain = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
 
+// Check if running on production server (multiple detection methods)
+$is_production = false;
+
+// Method 1: Check domain (most reliable)
+if (strpos($current_domain, 'lankantech.com') !== false) {
+    $is_production = true;
+}
+
+// Method 2: Check server path (Linux production servers have /home/username/)
+if (isset($_SERVER['DOCUMENT_ROOT']) && strpos($_SERVER['DOCUMENT_ROOT'], '/home/cmsadver') !== false) {
+    $is_production = true;
+}
+
+// Method 3: Explicitly check for localhost/127.0.0.1 (force development)
+if (in_array($current_domain, ['localhost', '127.0.0.1', 'localhost:80', 'localhost:8080', 'localhost:3000'])) {
+    $is_production = false;
+}
+
+// Method 4: Check if running on Windows (development)
+if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+    $is_production = false;
+}
+
 // Environment settings
-if (strpos($current_domain, 'lankantech.com') !== false || strpos($current_domain, 'rms.lankantech.com') !== false) {
+if ($is_production) {
     // PRODUCTION ENVIRONMENT
     define('APP_ENVIRONMENT', 'production');
     define('APP_URL', 'https://rms.lankantech.com/');

@@ -1261,6 +1261,35 @@ class Setup extends CI_Controller
                                            ->get('custom_modules')
                                            ->result_array();
         
+        // Get ALL system modules from module_visibility table
+        $data['system_modules'] = array();
+        if ($this->db->table_exists('module_visibility')) {
+            // Use simple query without ORDER BY to get ALL modules first
+            $query = $this->db->query("SELECT * FROM module_visibility");
+            
+            if ($query) {
+                $all_modules = $query->result_array();
+                
+                // Sort in PHP instead of SQL to avoid any SQL issues
+                usort($all_modules, function($a, $b) {
+                    // Sort by section first, then by module_name
+                    $section_a = isset($a['section']) ? $a['section'] : 'ZZZ';
+                    $section_b = isset($b['section']) ? $b['section'] : 'ZZZ';
+                    
+                    if ($section_a != $section_b) {
+                        return strcmp($section_a, $section_b);
+                    }
+                    
+                    $name_a = isset($a['module_name']) ? $a['module_name'] : $a['module_key'];
+                    $name_b = isset($b['module_name']) ? $b['module_name'] : $b['module_key'];
+                    
+                    return strcmp($name_a, $name_b);
+                });
+                
+                $data['system_modules'] = $all_modules;
+            }
+        }
+        
         $this->load->view('Admin_dashboard_view/Setup/module_manager', $data);
     }
 
