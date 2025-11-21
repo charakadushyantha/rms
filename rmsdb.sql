@@ -113,6 +113,153 @@ CREATE TABLE IF NOT EXISTS `ad_campaigns` (
 -- Dumping data for table cmsadver_rmsdb.ad_campaigns: ~0 rows (approximately)
 DELETE FROM `ad_campaigns`;
 
+-- Dumping structure for table cmsadver_rmsdb.assessment_platform_config
+DROP TABLE IF EXISTS `assessment_platform_config`;
+CREATE TABLE IF NOT EXISTS `assessment_platform_config` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `platform` varchar(50) NOT NULL COMMENT 'hackerrank, codility',
+  `api_key` varchar(255) NOT NULL,
+  `api_secret` varchar(255) DEFAULT NULL,
+  `webhook_secret` varchar(255) DEFAULT NULL,
+  `is_enabled` tinyint(1) DEFAULT 0,
+  `settings` text DEFAULT NULL COMMENT 'JSON settings',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `platform` (`platform`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table cmsadver_rmsdb.assessment_platform_config: ~2 rows (approximately)
+DELETE FROM `assessment_platform_config`;
+INSERT INTO `assessment_platform_config` (`id`, `platform`, `api_key`, `api_secret`, `webhook_secret`, `is_enabled`, `settings`, `created_at`, `updated_at`) VALUES
+	(1, 'hackerrank', '', NULL, NULL, 0, '{"default_duration": 90, "auto_send": false, "difficulty_level": "medium", "test_type": "coding"}', '2025-11-21 03:14:19', '2025-11-21 03:14:19'),
+	(2, 'codility', '', NULL, NULL, 0, '{"default_duration": 90, "auto_send": false, "test_type": "coding"}', '2025-11-21 03:14:19', '2025-11-21 03:14:19');
+
+-- Dumping structure for table cmsadver_rmsdb.assessment_results
+DROP TABLE IF EXISTS `assessment_results`;
+CREATE TABLE IF NOT EXISTS `assessment_results` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `assessment_id` int(11) NOT NULL,
+  `question_id` varchar(255) DEFAULT NULL,
+  `question_title` varchar(255) DEFAULT NULL,
+  `score` decimal(5,2) DEFAULT NULL,
+  `max_score` decimal(5,2) DEFAULT NULL,
+  `time_taken` int(11) DEFAULT NULL COMMENT 'Time in seconds',
+  `result_data` text DEFAULT NULL COMMENT 'JSON data',
+  PRIMARY KEY (`id`),
+  KEY `assessment_id` (`assessment_id`),
+  CONSTRAINT `assessment_results_ibfk_1` FOREIGN KEY (`assessment_id`) REFERENCES `candidate_assessments` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table cmsadver_rmsdb.assessment_results: ~0 rows (approximately)
+DELETE FROM `assessment_results`;
+
+-- Dumping structure for table cmsadver_rmsdb.ats_candidate_mapping
+DROP TABLE IF EXISTS `ats_candidate_mapping`;
+CREATE TABLE IF NOT EXISTS `ats_candidate_mapping` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `platform` varchar(50) NOT NULL,
+  `local_candidate_id` int(11) NOT NULL,
+  `remote_candidate_id` varchar(255) NOT NULL,
+  `last_synced_at` datetime DEFAULT NULL,
+  `sync_status` varchar(50) DEFAULT 'synced',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_candidate_mapping` (`platform`,`local_candidate_id`),
+  KEY `idx_local_candidate` (`local_candidate_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table cmsadver_rmsdb.ats_candidate_mapping: ~0 rows (approximately)
+DELETE FROM `ats_candidate_mapping`;
+
+-- Dumping structure for table cmsadver_rmsdb.ats_field_mapping
+DROP TABLE IF EXISTS `ats_field_mapping`;
+CREATE TABLE IF NOT EXISTS `ats_field_mapping` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `platform` varchar(50) NOT NULL,
+  `local_field` varchar(100) NOT NULL,
+  `remote_field` varchar(100) NOT NULL,
+  `field_type` varchar(50) DEFAULT 'text',
+  `is_required` tinyint(1) DEFAULT 0,
+  `transform_rule` text DEFAULT NULL COMMENT 'JSON transformation rules',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_mapping` (`platform`,`local_field`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table cmsadver_rmsdb.ats_field_mapping: ~0 rows (approximately)
+DELETE FROM `ats_field_mapping`;
+
+-- Dumping structure for table cmsadver_rmsdb.ats_job_mapping
+DROP TABLE IF EXISTS `ats_job_mapping`;
+CREATE TABLE IF NOT EXISTS `ats_job_mapping` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `platform` varchar(50) NOT NULL,
+  `local_job_id` int(11) NOT NULL,
+  `remote_job_id` varchar(255) NOT NULL,
+  `last_synced_at` datetime DEFAULT NULL,
+  `sync_status` varchar(50) DEFAULT 'synced',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_job_mapping` (`platform`,`local_job_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table cmsadver_rmsdb.ats_job_mapping: ~0 rows (approximately)
+DELETE FROM `ats_job_mapping`;
+
+-- Dumping structure for table cmsadver_rmsdb.ats_platform_config
+DROP TABLE IF EXISTS `ats_platform_config`;
+CREATE TABLE IF NOT EXISTS `ats_platform_config` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `platform` varchar(50) NOT NULL COMMENT 'greenhouse, lever, workday, bamboohr',
+  `api_key` varchar(255) DEFAULT NULL,
+  `client_id` varchar(255) DEFAULT NULL,
+  `client_secret` varchar(255) DEFAULT NULL,
+  `tenant_name` varchar(255) DEFAULT NULL,
+  `subdomain` varchar(255) DEFAULT NULL,
+  `username` varchar(255) DEFAULT NULL,
+  `password` varchar(255) DEFAULT NULL,
+  `webhook_secret` varchar(255) DEFAULT NULL,
+  `is_enabled` tinyint(1) DEFAULT 0,
+  `settings` text DEFAULT NULL COMMENT 'JSON settings',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `platform` (`platform`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table cmsadver_rmsdb.ats_platform_config: ~4 rows (approximately)
+DELETE FROM `ats_platform_config`;
+INSERT INTO `ats_platform_config` (`id`, `platform`, `api_key`, `client_id`, `client_secret`, `tenant_name`, `subdomain`, `username`, `password`, `webhook_secret`, `is_enabled`, `settings`, `created_at`, `updated_at`) VALUES
+	(1, 'greenhouse', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '{"sync_direction": "bidirectional", "auto_sync": false, "sync_interval": 3600, "sync_candidates": true, "sync_jobs": true, "sync_interviews": true}', '2025-11-21 03:14:19', '2025-11-21 03:14:19'),
+	(2, 'lever', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '{"sync_direction": "bidirectional", "auto_sync": false, "sync_interval": 3600}', '2025-11-21 03:14:19', '2025-11-21 03:14:19'),
+	(3, 'workday', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '{"sync_direction": "export", "auto_sync": false}', '2025-11-21 03:14:19', '2025-11-21 03:14:19'),
+	(4, 'bamboohr', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '{"sync_direction": "export", "auto_sync": false}', '2025-11-21 03:14:19', '2025-11-21 03:14:19');
+
+-- Dumping structure for table cmsadver_rmsdb.ats_sync_logs
+DROP TABLE IF EXISTS `ats_sync_logs`;
+CREATE TABLE IF NOT EXISTS `ats_sync_logs` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `platform` varchar(50) NOT NULL,
+  `sync_type` varchar(50) NOT NULL COMMENT 'candidates, jobs, interviews, full',
+  `direction` varchar(20) NOT NULL COMMENT 'import, export, bidirectional',
+  `status` varchar(50) DEFAULT 'in_progress' COMMENT 'in_progress, completed, failed',
+  `records_processed` int(11) DEFAULT 0,
+  `records_success` int(11) DEFAULT 0,
+  `records_failed` int(11) DEFAULT 0,
+  `error_message` text DEFAULT NULL,
+  `started_at` datetime NOT NULL,
+  `completed_at` datetime DEFAULT NULL,
+  `triggered_by` varchar(100) DEFAULT 'system',
+  PRIMARY KEY (`id`),
+  KEY `idx_platform` (`platform`),
+  KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table cmsadver_rmsdb.ats_sync_logs: ~0 rows (approximately)
+DELETE FROM `ats_sync_logs`;
+
 -- Dumping structure for table cmsadver_rmsdb.audit_logs
 DROP TABLE IF EXISTS `audit_logs`;
 CREATE TABLE IF NOT EXISTS `audit_logs` (
@@ -155,6 +302,73 @@ INSERT INTO `audit_logs` (`id`, `user_id`, `username`, `user_email`, `user_role`
 	(6, NULL, 'recruiter2', 'recruiter2@example.com', 'Recruiter', 'EXPORT', 'Report', NULL, 'Candidate Report', 'Exported candidate list to CSV', NULL, NULL, '192.168.1.108', NULL, NULL, NULL, 'success', NULL, '2025-11-12 05:16:27'),
 	(7, NULL, 'admin', 'admin@example.com', 'Admin', 'CREATE', 'User', NULL, 'newrecruiter@example.com', 'Created new recruiter account', NULL, NULL, '192.168.1.100', NULL, NULL, NULL, 'success', NULL, '2025-11-12 05:21:27'),
 	(8, NULL, 'recruiter1', 'recruiter@example.com', 'Recruiter', 'LOGOUT', 'System', NULL, NULL, 'User logged out of the system', NULL, NULL, '192.168.1.105', NULL, NULL, NULL, 'success', NULL, '2025-11-12 05:24:27');
+
+-- Dumping structure for table cmsadver_rmsdb.background_checks
+DROP TABLE IF EXISTS `background_checks`;
+CREATE TABLE IF NOT EXISTS `background_checks` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `service` varchar(50) NOT NULL,
+  `check_id` varchar(255) NOT NULL,
+  `candidate_id` int(11) NOT NULL,
+  `package_type` varchar(100) NOT NULL,
+  `status` varchar(50) DEFAULT 'pending' COMMENT 'pending, in_progress, completed, cancelled, disputed',
+  `result` varchar(50) DEFAULT NULL COMMENT 'clear, consider, suspended',
+  `report_url` varchar(500) DEFAULT NULL,
+  `candidate_info` text DEFAULT NULL COMMENT 'JSON candidate information',
+  `check_data` text DEFAULT NULL COMMENT 'JSON check results',
+  `initiated_by` varchar(100) NOT NULL,
+  `initiated_at` datetime NOT NULL,
+  `completed_at` datetime DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_candidate` (`candidate_id`),
+  KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table cmsadver_rmsdb.background_checks: ~0 rows (approximately)
+DELETE FROM `background_checks`;
+
+-- Dumping structure for table cmsadver_rmsdb.background_check_components
+DROP TABLE IF EXISTS `background_check_components`;
+CREATE TABLE IF NOT EXISTS `background_check_components` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `check_id` int(11) NOT NULL,
+  `component_type` varchar(100) NOT NULL COMMENT 'criminal, employment, education, credit, etc',
+  `status` varchar(50) DEFAULT 'pending',
+  `result` varchar(50) DEFAULT NULL,
+  `details` text DEFAULT NULL COMMENT 'JSON details',
+  `completed_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `check_id` (`check_id`),
+  CONSTRAINT `background_check_components_ibfk_1` FOREIGN KEY (`check_id`) REFERENCES `background_checks` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table cmsadver_rmsdb.background_check_components: ~0 rows (approximately)
+DELETE FROM `background_check_components`;
+
+-- Dumping structure for table cmsadver_rmsdb.background_check_config
+DROP TABLE IF EXISTS `background_check_config`;
+CREATE TABLE IF NOT EXISTS `background_check_config` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `service` varchar(50) NOT NULL COMMENT 'checkr, sterling, accurate',
+  `api_key` varchar(255) NOT NULL,
+  `client_id` varchar(255) DEFAULT NULL,
+  `webhook_url` varchar(500) DEFAULT NULL,
+  `is_enabled` tinyint(1) DEFAULT 0,
+  `settings` text DEFAULT NULL COMMENT 'JSON settings',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `service` (`service`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table cmsadver_rmsdb.background_check_config: ~3 rows (approximately)
+DELETE FROM `background_check_config`;
+INSERT INTO `background_check_config` (`id`, `service`, `api_key`, `client_id`, `webhook_url`, `is_enabled`, `settings`, `created_at`, `updated_at`) VALUES
+	(1, 'checkr', '', NULL, NULL, 0, '{"package_type": "standard", "auto_initiate": false, "check_types": ["criminal", "employment"]}', '2025-11-21 03:14:19', '2025-11-21 03:14:19'),
+	(2, 'sterling', '', NULL, NULL, 0, '{"package_type": "standard", "auto_initiate": false}', '2025-11-21 03:14:19', '2025-11-21 03:14:19'),
+	(3, 'accurate', '', NULL, NULL, 0, '{"package_type": "standard", "auto_initiate": false}', '2025-11-21 03:14:19', '2025-11-21 03:14:19');
 
 -- Dumping structure for table cmsadver_rmsdb.bot_analytics
 DROP TABLE IF EXISTS `bot_analytics`;
@@ -421,6 +635,38 @@ CREATE TABLE IF NOT EXISTS `candidate_applications` (
 
 -- Dumping data for table cmsadver_rmsdb.candidate_applications: ~0 rows (approximately)
 DELETE FROM `candidate_applications`;
+
+-- Dumping structure for table cmsadver_rmsdb.candidate_assessments
+DROP TABLE IF EXISTS `candidate_assessments`;
+CREATE TABLE IF NOT EXISTS `candidate_assessments` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `platform` varchar(50) NOT NULL,
+  `assessment_id` varchar(255) NOT NULL,
+  `assessment_url` varchar(500) NOT NULL,
+  `candidate_id` int(11) NOT NULL,
+  `candidate_email` varchar(255) NOT NULL,
+  `test_id` varchar(255) NOT NULL,
+  `test_name` varchar(255) NOT NULL,
+  `duration` int(11) NOT NULL COMMENT 'Duration in minutes',
+  `deadline` datetime DEFAULT NULL,
+  `status` varchar(50) DEFAULT 'sent' COMMENT 'sent, started, completed, expired',
+  `score` decimal(5,2) DEFAULT NULL,
+  `max_score` decimal(5,2) DEFAULT NULL,
+  `percentage` decimal(5,2) DEFAULT NULL,
+  `result` varchar(50) DEFAULT NULL COMMENT 'pass, fail, pending',
+  `report_url` varchar(500) DEFAULT NULL,
+  `started_at` datetime DEFAULT NULL,
+  `completed_at` datetime DEFAULT NULL,
+  `created_by` varchar(100) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_candidate` (`candidate_id`),
+  KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table cmsadver_rmsdb.candidate_assessments: ~0 rows (approximately)
+DELETE FROM `candidate_assessments`;
 
 -- Dumping structure for table cmsadver_rmsdb.candidate_details
 DROP TABLE IF EXISTS `candidate_details`;
@@ -1059,11 +1305,49 @@ CREATE TABLE IF NOT EXISTS `ci_sessions` (
   KEY `ci_sessions_timestamp` (`timestamp`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
--- Dumping data for table cmsadver_rmsdb.ci_sessions: ~2 rows (approximately)
+-- Dumping data for table cmsadver_rmsdb.ci_sessions: ~40 rows (approximately)
 DELETE FROM `ci_sessions`;
 INSERT INTO `ci_sessions` (`id`, `ip_address`, `timestamp`, `data`) VALUES
-	('135tatm98u5qgvcpu4vla8kqgaslopf4', '::1', 1763460472, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333436303437323b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b),
-	('j2beukukqrv25m9j4lmlucc64uashd7d', '::1', 1763460623, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333436303437323b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b);
+	('lkpdnc2e0iqpk4l055uetq0dgd7ni8cp', '::1', 1763693282, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333639333238323b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b),
+	('lm12tl9ntlv545vsiilmf11nulpbnqbt', '::1', 1763693596, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333639333539363b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b),
+	('215b4nknf08maam3aca2cckdbr4jvfq6', '::1', 1763693828, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333639333539363b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b),
+	('uhkffcvi7tkprobruodjfbpnpblq4maf', '::1', 1763693875, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333639333833353b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b),
+	('8i479sumpcj8nka5oie7uu8gt1cmrh10', '::1', 1763694104, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333639333838313b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b),
+	('543n24nhu9abvh5b6cvf52n1r4pc3p19', '::1', 1763694379, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333639343131353b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b),
+	('urjh1vcq2kkvgv97crog5cbkkmfjn2h6', '::1', 1763694451, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333639343430303b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b),
+	('g4gr76f5s64gp65nal5h9di8pmgcj60o', '::1', 1763694637, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333639343435373b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b),
+	('537nue50dufud2s09g4kb2g1tp9lb3me', '::1', 1763694786, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333639343635333b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b),
+	('2pb4shukt0tdmo5rmnnpit498bsr734c', '::1', 1763694865, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333639343739343b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b),
+	('tp97b1rqeo0e9vdtv8emtbp800u17d9l', '::1', 1763694964, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333639343837383b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b),
+	('ripob27io4qd05krfq8r8ov70blieer0', '::1', 1763695813, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333639353033313b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b6163746976655f6d656e757c733a353a227365747570223b737563636573735f6d73677c733a37303a224d6f64756c65207669736962696c6974792073657474696e6773207361766564207375636365737366756c6c7921205265667265736820746f20736565206368616e6765732e223b5f5f63695f766172737c613a313a7b733a31313a22737563636573735f6d7367223b733a333a226f6c64223b7d),
+	('pneendcrk32na0fgtbua8t61thc3qftn', '::1', 1763700076, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333639353330313b6d736770777c733a36323a2257726f6e672050617373776f72642e2054727920616761696e206f7220636c69636b20466f72676f742070617373776f726420746f207265736574206974223b5f5f63695f766172737c613a313a7b733a353a226d73677077223b733a333a226f6c64223b7d69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b6163746976655f6d656e757c733a353a227365747570223b),
+	('9jbbi4nbl41gdfnouvkms280rt0f1hem', '::1', 1763696042, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333639353832303b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b6163746976655f6d656e757c733a353a227365747570223b),
+	('45sdl980obtc0jon2tk7l0uq40euksla', '::1', 1763696255, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333639363036343b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b6163746976655f6d656e757c733a353a227365747570223b737563636573735f6d73677c733a37303a224d6f64756c65207669736962696c6974792073657474696e6773207361766564207375636365737366756c6c7921205265667265736820746f20736565206368616e6765732e223b5f5f63695f766172737c613a313a7b733a31313a22737563636573735f6d7367223b733a333a226f6c64223b7d),
+	('uke4qhqscg4a05t9tcc5h6jk1j7uhpce', '::1', 1763696637, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333639363633373b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b6163746976655f6d656e757c733a353a227365747570223b),
+	('nhcp5lpp4k3jsci74n4ebn15380ahioa', '::1', 1763696645, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333639363633373b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b6163746976655f6d656e757c733a353a227365747570223b),
+	('rlvmvp9ooslhu0ffp9th2hunrdk7g3ja', '::1', 1763696681, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333639363635313b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b6163746976655f6d656e757c733a353a227365747570223b),
+	('uubl8m0ehl7vci83sa800j6qpuik9p06', '::1', 1763696713, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333639363638393b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b6163746976655f6d656e757c733a353a227365747570223b),
+	('pjs80mgoptls6sreg95jmmrjbre3e83d', '::1', 1763696911, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333639363732303b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b6163746976655f6d656e757c733a353a227365747570223b),
+	('7ptrhb8v77ntp1lfmbm2ms3hdl4m4f4b', '::1', 1763697161, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333639363932303b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b6163746976655f6d656e757c733a353a227365747570223b),
+	('83rjr7jhlb4pk54ut9kcitc1930cd5fs', '::1', 1763697305, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333639373136373b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b6163746976655f6d656e757c733a353a227365747570223b),
+	('go79l6ampv0s6uf79hbu8bust6dgbtn0', '::1', 1763697456, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333639373332353b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b6163746976655f6d656e757c733a353a227365747570223b),
+	('cojqhsuf2le30d26gq9a51u6i0359pcf', '::1', 1763697514, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333639373436333b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b6163746976655f6d656e757c733a353a227365747570223b),
+	('54ckelo36ti6c6sl9qrf8i37h2trb9vn', '::1', 1763698343, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333639383334333b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b6163746976655f6d656e757c733a353a227365747570223b),
+	('8hieucp65g1i0tpab77s4bvfko75h5ds', '::1', 1763698929, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333639383932393b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b6163746976655f6d656e757c733a353a227365747570223b737563636573735f6d73677c733a37313a224d6f64756c65206164646564207375636365737366756c6c79212049742077696c6c2061707065617220696e20746865207369646562617220616674657220726566726573682e223b5f5f63695f766172737c613a313a7b733a31313a22737563636573735f6d7367223b733a333a226f6c64223b7d),
+	('pf8g505mdoakn82t79ci6n4lrc02ngfr', '::1', 1763699029, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333639383932393b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b6163746976655f6d656e757c733a353a227365747570223b737563636573735f6d73677c733a37313a224d6f64756c65206164646564207375636365737366756c6c79212049742077696c6c2061707065617220696e20746865207369646562617220616674657220726566726573682e223b5f5f63695f766172737c613a313a7b733a31313a22737563636573735f6d7367223b733a333a226f6c64223b7d),
+	('jcgkr8n7ipel66guqeura57vmlrjkpth', '::1', 1763699137, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333639393035363b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b6163746976655f6d656e757c733a353a227365747570223b),
+	('4b7eon042suc8klmupceqifaghqbaefm', '::1', 1763699281, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333639393136313b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b6163746976655f6d656e757c733a353a227365747570223b),
+	('l6u3sruhbsarsnj3ehhddn0opmib9p4f', '::1', 1763699457, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333639393239303b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b6163746976655f6d656e757c733a353a227365747570223b),
+	('e38qicnjisjlijee4a6k0edfbjcilmr0', '::1', 1763699542, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333639393436333b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b6163746976655f6d656e757c733a353a227365747570223b),
+	('rphkqok76hocmsi3hgnpvqhpopevlb1b', '::1', 1763699908, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333639393930383b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b6163746976655f6d656e757c733a353a227365747570223b),
+	('s6ahv5cjsv6mc06oivp2cj73nudomasn', '::1', 1763699928, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333639393930383b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b6163746976655f6d656e757c733a353a227365747570223b),
+	('jsp1fmvs6mnc3le4hm1b8298am82acup', '::1', 1763700067, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333639393933373b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b6163746976655f6d656e757c733a353a227365747570223b),
+	('rqb4115qliqjmbqda3gqdunjpvsgk4j1', '::1', 1763700660, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333730303339383b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b6163746976655f6d656e757c733a353a227365747570223b),
+	('7mrsavjvlrqnncrgrmmb59l2q15k97ll', '::1', 1763700896, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333730303636363b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b6163746976655f6d656e757c733a353a227365747570223b),
+	('ohdt481nq501c81lso4f74bcuf4m32ss', '::1', 1763701034, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333730303932343b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b6163746976655f6d656e757c733a353a227365747570223b),
+	('apl1mpb0c1nhjfu05clcal37al6tgvb6', '::1', 1763701104, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333730313033393b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b6163746976655f6d656e757c733a353a227365747570223b),
+	('qcj1rbfr6gsos258m2ms6tj8un2f8dhi', '::1', 1763701427, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333730313432373b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b6163746976655f6d656e757c733a353a227365747570223b),
+	('837fgv74q6ktm6j8gi9ki7pmhl48elhb', '::1', 1763701465, _binary 0x5f5f63695f6c6173745f726567656e65726174657c693a313736333730313432373b69647c733a323a223337223b757365726e616d657c733a373a2243686172616b61223b656d61696c7c733a32313a2263686172616b616e69626d40676d61696c2e636f6d223b526f6c657c733a353a2241646d696e223b61757468656e746963617465647c623a313b6163746976655f6d656e757c733a353a227365747570223b737563636573735f6d73677c733a37313a224d6f64756c65206164646564207375636365737366756c6c79212049742077696c6c2061707065617220696e20746865207369646562617220616674657220726566726573682e223b5f5f63695f766172737c613a313a7b733a31313a22737563636573735f6d7367223b733a333a226f6c64223b7d);
 
 -- Dumping structure for table cmsadver_rmsdb.company_settings
 DROP TABLE IF EXISTS `company_settings`;
@@ -1297,13 +1581,14 @@ CREATE TABLE IF NOT EXISTS `custom_modules` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Dumping data for table cmsadver_rmsdb.custom_modules: ~2 rows (approximately)
+-- Dumping data for table cmsadver_rmsdb.custom_modules: ~3 rows (approximately)
 DELETE FROM `custom_modules`;
 INSERT INTO `custom_modules` (`id`, `name`, `section`, `icon`, `url`, `order_num`, `is_active`, `show_badge`, `badge_text`, `created_at`, `updated_at`) VALUES
 	(1, 'Training', 'CUSTOM', 'fas fa-graduation-cap', 'A_dashboard/training_view', 5, 1, 1, 'NEW', '2025-11-12 03:44:30', '2025-11-12 03:44:30'),
-	(2, 'Test', 'CUSTOM', 'fas fa-file-alt', 'A_dashboard/documents_view', 6, 1, 0, 'NEW', '2025-11-12 03:44:30', '2025-11-12 04:12:54');
+	(2, 'Test', 'CUSTOM', 'fas fa-file-alt', 'A_dashboard/documents_view', 6, 1, 0, 'NEW', '2025-11-12 03:44:30', '2025-11-12 04:12:54'),
+	(6, 'Charaka Test', 'CHARAKA TEST SECTION NAME', 'fas fa-file-alt', 'A_dashboard/documents_view', 10, 1, 0, 'NEW', '2025-11-21 04:13:29', '2025-11-21 04:13:29');
 
 -- Dumping structure for table cmsadver_rmsdb.cv_processing_history
 DROP TABLE IF EXISTS `cv_processing_history`;
@@ -1611,6 +1896,43 @@ INSERT INTO `hiring_decisions` (`id`, `candidate_id`, `decision_type`, `created_
 	(3, 15, 'move_forward', 1, '2025-11-08 22:30:41', NULL, 'open', NULL),
 	(4, 5, 'move_forward', 1, '2025-11-08 22:30:41', NULL, 'open', NULL),
 	(5, 4, 'move_forward', 1, '2025-11-08 22:30:41', NULL, 'open', NULL);
+
+-- Dumping structure for table cmsadver_rmsdb.integration_usage_stats
+DROP TABLE IF EXISTS `integration_usage_stats`;
+CREATE TABLE IF NOT EXISTS `integration_usage_stats` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `integration_type` varchar(50) NOT NULL,
+  `platform` varchar(50) NOT NULL,
+  `action` varchar(100) NOT NULL,
+  `count` int(11) DEFAULT 1,
+  `date` date NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_stat` (`integration_type`,`platform`,`action`,`date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table cmsadver_rmsdb.integration_usage_stats: ~0 rows (approximately)
+DELETE FROM `integration_usage_stats`;
+
+-- Dumping structure for table cmsadver_rmsdb.integration_webhooks
+DROP TABLE IF EXISTS `integration_webhooks`;
+CREATE TABLE IF NOT EXISTS `integration_webhooks` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `integration_type` varchar(50) NOT NULL COMMENT 'video, assessment, background_check, ats',
+  `platform` varchar(50) NOT NULL,
+  `event_type` varchar(100) NOT NULL,
+  `payload` text NOT NULL,
+  `status` varchar(50) DEFAULT 'received' COMMENT 'received, processed, failed',
+  `error_message` text DEFAULT NULL,
+  `processed_at` datetime DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_integration` (`integration_type`,`platform`),
+  KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table cmsadver_rmsdb.integration_webhooks: ~0 rows (approximately)
+DELETE FROM `integration_webhooks`;
 
 -- Dumping structure for table cmsadver_rmsdb.interviewer_availability
 DROP TABLE IF EXISTS `interviewer_availability`;
@@ -2156,7 +2478,7 @@ INSERT INTO `module_visibility` (`id`, `module_key`, `is_visible`, `updated_at`)
 	(6, 'interviewers', 1, '2025-11-12 03:53:45'),
 	(7, 'candidate_users', 1, '2025-11-12 03:53:45'),
 	(8, 'reports', 1, '2025-11-12 03:53:45'),
-	(9, 'roles', 0, '2025-11-12 03:53:52'),
+	(9, 'roles', 1, '2025-11-21 03:35:07'),
 	(10, 'setup', 1, '2025-11-12 03:53:45'),
 	(11, 'account', 1, '2025-11-12 03:53:45');
 
@@ -2906,9 +3228,9 @@ CREATE TABLE IF NOT EXISTS `users` (
   `rejected_by` varchar(100) DEFAULT NULL,
   `rejection_reason` text DEFAULT NULL,
   PRIMARY KEY (`u_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
--- Dumping data for table cmsadver_rmsdb.users: ~26 rows (approximately)
+-- Dumping data for table cmsadver_rmsdb.users: ~27 rows (approximately)
 DELETE FROM `users`;
 INSERT INTO `users` (`u_id`, `u_username`, `u_email`, `u_profile_picture`, `profile_picture`, `u_password`, `u_role`, `u_status`, `u_created_at`, `created_at`, `created_by`, `approved_at`, `approved_by`, `rejected_at`, `rejected_by`, `rejection_reason`) VALUES
 	(1, 'johndoe', 'john.doe@example.com', NULL, '4d5c702558be058030bd9a51e0f680d2.png', 'cc03e747a6afbbcbf8be7668acfebee5', 'Admin', 'Active', '2025-11-08 23:03:25', '2025-11-17 02:13:50', NULL, NULL, NULL, NULL, NULL, NULL),
@@ -2936,7 +3258,80 @@ INSERT INTO `users` (`u_id`, `u_username`, `u_email`, `u_profile_picture`, `prof
 	(33, 'testcandidate1', 'testcandidate1@gmail.com', NULL, NULL, 'fe3a4038a951dea171805fc6e056c889', 'Candidate', 'Active', '2025-11-12 01:24:41', '2025-11-17 02:13:50', NULL, NULL, NULL, NULL, NULL, NULL),
 	(35, 'charakacreations', 'charakacreations@gmail.com', NULL, 'https://lh3.googleusercontent.com/a/ACg8ocJddEQMoxIICLzW3S6KtMsto1kcTqoc0EeJHzQlUAz1SsBEpqY=s96-c', 'caef72b317170a55fc05f15412e70a2a', 'Candidate', 'Active', '2025-11-14 06:52:42', '2025-11-17 02:13:50', NULL, NULL, NULL, NULL, NULL, NULL),
 	(36, 'rasika', 'charakaucsc@gmail.com', NULL, NULL, '272c3321acd69c0113ec0a6ff3a8608c', 'Admin', 'Active', '2025-11-16 16:40:08', '2025-11-17 02:13:50', NULL, NULL, NULL, NULL, NULL, NULL),
-	(37, 'Charaka', 'charakanibm@gmail.com', NULL, NULL, '5c81248257d1c13f9ca0a88bb8b94866', 'Admin', 'Active', '2025-11-17 02:18:45', '2025-11-16 21:48:45', 'self_registration', NULL, NULL, NULL, NULL, NULL);
+	(37, 'Charaka', 'charakanibm@gmail.com', NULL, NULL, '5c81248257d1c13f9ca0a88bb8b94866', 'Admin', 'Active', '2025-11-17 02:18:45', '2025-11-16 21:48:45', 'self_registration', NULL, NULL, NULL, NULL, NULL),
+	(38, 'admin', 'admin@lankantech.com', NULL, NULL, '0192023a7bbd73250516f069df18b500', 'Admin', 'Active', '2025-11-18 16:00:39', '2025-11-18 16:00:39', NULL, NULL, NULL, NULL, NULL, NULL);
+
+-- Dumping structure for table cmsadver_rmsdb.video_meetings
+DROP TABLE IF EXISTS `video_meetings`;
+CREATE TABLE IF NOT EXISTS `video_meetings` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `platform` varchar(50) NOT NULL,
+  `meeting_id` varchar(255) NOT NULL,
+  `meeting_url` varchar(500) NOT NULL,
+  `password` varchar(100) DEFAULT NULL,
+  `title` varchar(255) NOT NULL,
+  `start_time` datetime NOT NULL,
+  `duration` int(11) NOT NULL COMMENT 'Duration in minutes',
+  `interview_id` int(11) DEFAULT NULL,
+  `candidate_id` int(11) DEFAULT NULL,
+  `created_by` varchar(100) NOT NULL,
+  `status` varchar(50) DEFAULT 'scheduled' COMMENT 'scheduled, started, ended, cancelled',
+  `recording_url` varchar(500) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_interview` (`interview_id`),
+  KEY `idx_candidate` (`candidate_id`),
+  KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table cmsadver_rmsdb.video_meetings: ~0 rows (approximately)
+DELETE FROM `video_meetings`;
+
+-- Dumping structure for table cmsadver_rmsdb.video_meeting_attendees
+DROP TABLE IF EXISTS `video_meeting_attendees`;
+CREATE TABLE IF NOT EXISTS `video_meeting_attendees` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `meeting_id` int(11) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `role` varchar(50) DEFAULT 'attendee' COMMENT 'host, co-host, attendee',
+  `join_time` datetime DEFAULT NULL,
+  `leave_time` datetime DEFAULT NULL,
+  `duration` int(11) DEFAULT NULL COMMENT 'Duration in minutes',
+  PRIMARY KEY (`id`),
+  KEY `meeting_id` (`meeting_id`),
+  CONSTRAINT `video_meeting_attendees_ibfk_1` FOREIGN KEY (`meeting_id`) REFERENCES `video_meetings` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table cmsadver_rmsdb.video_meeting_attendees: ~0 rows (approximately)
+DELETE FROM `video_meeting_attendees`;
+
+-- Dumping structure for table cmsadver_rmsdb.video_platform_config
+DROP TABLE IF EXISTS `video_platform_config`;
+CREATE TABLE IF NOT EXISTS `video_platform_config` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `platform` varchar(50) NOT NULL COMMENT 'zoom, teams, meet',
+  `api_key` varchar(255) DEFAULT NULL,
+  `api_secret` varchar(255) DEFAULT NULL,
+  `client_id` varchar(255) DEFAULT NULL,
+  `client_secret` varchar(255) DEFAULT NULL,
+  `tenant_id` varchar(255) DEFAULT NULL,
+  `webhook_secret` varchar(255) DEFAULT NULL,
+  `is_enabled` tinyint(1) DEFAULT 0,
+  `settings` text DEFAULT NULL COMMENT 'JSON settings',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `platform` (`platform`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table cmsadver_rmsdb.video_platform_config: ~3 rows (approximately)
+DELETE FROM `video_platform_config`;
+INSERT INTO `video_platform_config` (`id`, `platform`, `api_key`, `api_secret`, `client_id`, `client_secret`, `tenant_id`, `webhook_secret`, `is_enabled`, `settings`, `created_at`, `updated_at`) VALUES
+	(1, 'zoom', NULL, NULL, NULL, NULL, NULL, NULL, 0, '{"default_duration": 60, "auto_recording": false, "waiting_room": true, "join_before_host": false}', '2025-11-21 03:14:19', '2025-11-21 03:14:19'),
+	(2, 'teams', NULL, NULL, NULL, NULL, NULL, NULL, 0, '{"default_duration": 60, "auto_recording": false, "lobby_enabled": true}', '2025-11-21 03:14:19', '2025-11-21 03:14:19'),
+	(3, 'meet', NULL, NULL, NULL, NULL, NULL, NULL, 0, '{"default_duration": 60, "auto_recording": false}', '2025-11-21 03:14:19', '2025-11-21 03:14:19');
 
 -- Dumping structure for table cmsadver_rmsdb.whatsapp_config
 DROP TABLE IF EXISTS `whatsapp_config`;
