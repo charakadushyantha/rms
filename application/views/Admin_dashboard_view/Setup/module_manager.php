@@ -60,28 +60,6 @@ $this->load->view('templates/admin_header', $data);
     <p class="mb-0 opacity-90">Add and manage custom modules in the sidebar navigation</p>
 </div>
 
-<!-- DEBUG MESSAGE - VERY VISIBLE -->
-<?php
-if (!isset($system_modules)) {
-    echo "<div class='alert alert-danger' style='font-size: 18px; font-weight: bold; border: 3px solid red;'>";
-    echo "❌ DEBUG: Variable \$system_modules is NOT SET from controller!<br>";
-    echo "This means the controller is not passing data to the view.<br>";
-    echo "Solution: Restart Apache in XAMPP and refresh this page.";
-    echo "</div>";
-} elseif (empty($system_modules)) {
-    echo "<div class='alert alert-warning' style='font-size: 18px; font-weight: bold; border: 3px solid orange;'>";
-    echo "⚠️ DEBUG: Variable \$system_modules is EMPTY!<br>";
-    echo "Database query returned no results.<br>";
-    echo "Solution: Run update_module_visibility_complete.php again.";
-    echo "</div>";
-} else {
-    echo "<div class='alert alert-success' style='font-size: 18px; font-weight: bold; border: 3px solid green;'>";
-    echo "✅ DEBUG: Found " . count($system_modules) . " modules from controller!<br>";
-    echo "The data is being passed correctly. You should see " . count($system_modules) . " modules below.";
-    echo "</div>";
-}
-?>
-
 <!-- Flash Messages -->
 <?php if($this->session->flashdata('success_msg')): ?>
 <div class="alert alert-success alert-dismissible fade show" id="successAlert">
@@ -143,16 +121,7 @@ setTimeout(function() {
                         // Load ALL modules from controller data
                         $default_modules = array();
                         
-                        // DEBUG: Check if data is passed from controller
-                        if (!isset($system_modules)) {
-                            echo "<div class='alert alert-danger' style='font-size: 16px;'>❌ DEBUG: \$system_modules NOT SET from controller!</div>";
-                        } elseif (empty($system_modules)) {
-                            echo "<div class='alert alert-warning' style='font-size: 16px;'>⚠️ DEBUG: \$system_modules is EMPTY!</div>";
-                        } else {
-                            echo "<div class='alert alert-info' style='font-size: 16px;'>✅ DEBUG: Found " . count($system_modules) . " modules from controller</div>";
-                            echo "<div class='alert alert-secondary' style='font-size: 14px;'>First module: " . $system_modules[0]['module_key'] . " - " . (isset($system_modules[0]['module_name']) ? $system_modules[0]['module_name'] : 'NO NAME') . "</div>";
-                        }
-                        
+                        // Load modules from controller
                         if (isset($system_modules) && !empty($system_modules)) {
                             $modules_from_db = $system_modules;
                             
@@ -215,19 +184,13 @@ setTimeout(function() {
                             }
                         }
                         
-                        // DEBUG: Show how many modules were processed
-                        echo "<div class='alert alert-primary' style='font-size: 16px;'>📊 DEBUG: Processed " . count($default_modules) . " modules into \$default_modules array</div>";
-                        
                         // If no modules in database, use fallback
                         if (empty($default_modules)) {
-                            echo "<div class='alert alert-danger' style='font-size: 16px;'>❌ DEBUG: \$default_modules is EMPTY! Using fallback (3 modules)</div>";
                             $default_modules = array(
                                 array('key' => 'dashboard', 'name' => 'Dashboard', 'icon' => 'fas fa-tachometer-alt', 'section' => 'Main'),
                                 array('key' => 'candidates', 'name' => 'Candidates', 'icon' => 'fas fa-users', 'section' => 'Recruitment'),
                                 array('key' => 'calendar', 'name' => 'Calendar', 'icon' => 'fas fa-calendar-alt', 'section' => 'Recruitment'),
                             );
-                        } else {
-                            echo "<div class='alert alert-success' style='font-size: 16px;'>✅ DEBUG: \$default_modules has " . count($default_modules) . " modules - will display them below</div>";
                         }
                         
                         foreach ($default_modules as $module):

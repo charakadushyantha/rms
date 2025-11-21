@@ -1251,8 +1251,64 @@ class Setup extends CI_Controller
         $this->load->view('Admin_dashboard_view/Setup/security_settings');
     }
 
-    // Module Manager
+    // Module Manager - NEW VERSION (bypasses cache)
+    public function module_manager_v2()
+    {
+        $this->session->set_userdata('active_menu', 'setup');
+        
+        // Get ALL system modules - DIRECT MYSQLI (no CodeIgniter)
+        $data['system_modules'] = array();
+        
+        $mysqli = new mysqli('localhost', 'root', '', 'rmsdb');
+        
+        if (!$mysqli->connect_error) {
+            $result = $mysqli->query("SELECT * FROM module_visibility");
+            
+            if ($result) {
+                $all_modules = array();
+                while ($row = $result->fetch_assoc()) {
+                    $all_modules[] = $row;
+                }
+                
+                $data['debug_query_count'] = count($all_modules);
+                
+                usort($all_modules, function($a, $b) {
+                    $section_a = isset($a['section']) ? $a['section'] : 'ZZZ';
+                    $section_b = isset($b['section']) ? $b['section'] : 'ZZZ';
+                    
+                    if ($section_a != $section_b) {
+                        return strcmp($section_a, $section_b);
+                    }
+                    
+                    $name_a = isset($a['module_name']) ? $a['module_name'] : $a['module_key'];
+                    $name_b = isset($b['module_name']) ? $b['module_name'] : $b['module_key'];
+                    
+                    return strcmp($name_a, $name_b);
+                });
+                
+                $data['system_modules'] = $all_modules;
+            }
+            
+            $mysqli->close();
+        }
+        
+        // Get custom modules
+        $data['custom_modules'] = $this->db->order_by('order_num', 'ASC')
+                                           ->get('custom_modules')
+                                           ->result_array();
+        
+        $this->load->view('Admin_dashboard_view/Setup/module_manager', $data);
+    }
+    
+    // Module Manager - OLD VERSION (keeping for compatibility)
     public function module_manager()
+    {
+        // Redirect to new version
+        redirect('Setup/module_manager_v2');
+    }
+    
+    // Module Manager - ORIGINAL (for reference)
+    public function module_manager_old()
     {
         $this->session->set_userdata('active_menu', 'setup');
         
@@ -1262,15 +1318,34 @@ class Setup extends CI_Controller
                                            ->result_array();
         
         // Get ALL system modules from module_visibility table
+        // BYPASS CodeIgniter database class - use direct mysqli
         $data['system_modules'] = array();
-        if ($this->db->table_exists('module_visibility')) {
-            // Use simple query without ORDER BY to get ALL modules first
-            $query = $this->db->query("SELECT * FROM module_visibility");
+        
+        // Get database credentials from CodeIgniter config
+        $db_config = $this->db->database;
+        
+        // Create direct mysqli connection
+        $mysqli = new mysqli(
+            $this->db->hostname,
+            $this->db->username,
+            $this->db->password,
+            $this->db->database
+        );
+        
+        if (!$mysqli->connect_error) {
+            // Direct query - bypasses any CodeIgniter limitations
+            $result = $mysqli->query("SELECT * FROM module_visibility");
             
-            if ($query) {
-                $all_modules = $query->result_array();
+            if ($result) {
+                $all_modules = array();
+                while ($row = $result->fetch_assoc()) {
+                    $all_modules[] = $row;
+                }
                 
-                // Sort in PHP instead of SQL to avoid any SQL issues
+                // DEBUG: Store count
+                $data['debug_query_count'] = count($all_modules);
+                
+                // Sort in PHP
                 usort($all_modules, function($a, $b) {
                     // Sort by section first, then by module_name
                     $section_a = isset($a['section']) ? $a['section'] : 'ZZZ';
@@ -1287,7 +1362,13 @@ class Setup extends CI_Controller
                 });
                 
                 $data['system_modules'] = $all_modules;
+            } else {
+                $data['debug_query_count'] = 0;
             }
+            
+            $mysqli->close();
+        } else {
+            $data['debug_query_count'] = -999; // Connection error
         }
         
         $this->load->view('Admin_dashboard_view/Setup/module_manager', $data);
