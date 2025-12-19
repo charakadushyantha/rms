@@ -39,3 +39,43 @@ Go to https://rms.lankantech.com/fix_admin_password.php
 Run the script to fix the password
 Login at https://rms.lankantech.com/
 The localhost error is normal - you're trying to access a local development environment that either doesn't exist or isn't configured with SSL. Use the production URL instead!
+
+
+Test Credentials:
+Customer: test@promisenaturalproducts.com / test123
+
+Admin: admin@promisenaturalproducts.com / admin123
+
+
+Test Credentials:
+Customer: test@promisenaturalproducts.com / testc123
+
+Admin: admin@promisenaturalproducts.com / admin123
+
+Super Admin: promisenaturalproducts@gmail.com / promise2024
+
+superadmin@promisenatural.com
+superadmin123
+
+
+Wathru 
+
+Gear Box 	- 01 
+Motor 		- 01
+Water Level Sensor - 01
+Button Panel - 01
+Wire hanssai - 01
+Spreen 		 - 04
+Brand New - Board eka use karanna 04 years Puluwan
+
+Gam eka gihin 
+
+
+Card Number	Expiry	CVC	ZIP/Postal
+4242 4242 4242 4242	Any future date (e.g., 12/30)	Any 3 digits (e.g., 123)	Any valid ZIP (e.g., 90
+
+
+Publishable Key: pk_test_TYooMQauvdEDq54NiTphI7jx
+Secret Key: sk_test_4eC39HqLyjWDarjtT1zdp7dc
+
+ofr VIva Install IntelliPHP (0.12) AI-assisted development for PHP.
