@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Candidate – Use Case Diagram</title>
+<style>
+  body {
+    margin: 0;
+    padding: 20px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: Arial, sans-serif;
+  }
+  canvas {
+    border: 1px solid #ccc;
+    display: block;
+  }
+  #printBtn {
+    margin-top: 14px;
+    padding: 8px 20px;
+    font-size: 13px;
+    cursor: pointer;
+    background: #f9f9f9;
+    border: 1px solid #333;
+    border-radius: 4px;
+  }
+  #printBtn:hover { background: #eee; }
+  @media print {
+    #printBtn { display: none; }
+    body { padding: 0; }
+    canvas { border: none; }
+  }
+</style>
+</head>
+<body>
+<canvas id="ucd" width="1100" height="800"></canvas>
+<button id="printBtn" onclick="window.print()">📸 Print / Save as Image</button>
+<script>
+const canvas = document.getElementById('ucd');
+const ctx = canvas.getContext('2d');
+
+// ─── helpers ────────────────────────────────────────────────────────────────
+
+function roundRect(x, y, w, h, r, fill, stroke, lw) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw || 1; ctx.stroke(); }
+}
+
+function ellipseUC(cx, cy, rx, ry, fill, stroke, lw) {
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw || 1; ctx.stroke(); }
+}
+
+function line(x1, y1, x2, y2, color, lw, dash) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.strokeStyle = color || '#000';
+  ctx.lineWidth = lw || 1;
+  if (dash) ctx.setLineDash(dash);
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function openArrow(x, y, angle, size) {
+  // open V arrowhead pointing in direction `angle`
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle);
+  ctx.beginPath();
+  ctx.moveTo(-size, -size * 0.6);
+  ctx.lineTo(0, 0);
+  ctx.lineTo(-size, size * 0.6);
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.2;
+  ctx.setLineDash([]);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function dashedArrow(x1, y1, x2, y2, label) {
+  // dashed line
+  ctx.save();
+  ctx.beginPath();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.2;
+  ctx.setLineDash([5, 4]);
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+  ctx.restore();
+  // open arrowhead at target
+  const angle = Math.atan2(y2 - y1, x2 - x1);
+  openArrow(x2, y2, angle, 8);
+  // label
+  if (label) {
+    const mx = (x1 + x2) / 2;
+    const my = (y1 + y2) / 2 - 8;
+    ctx.save();
+    ctx.font = 'italic 10px Arial';
+    ctx.fillStyle = '#666';
+    ctx.textAlign = 'center';
+    ctx.fillText(label, mx, my);
+    ctx.restore();
+  }
+}
+
+function stickFigure(cx, cy) {
+  const headR = 14;
+  // head
+  ctx.beginPath();
+  ctx.arc(cx, cy - 30, headR, 0, Math.PI * 2);
+  ctx.fillStyle = '#fff';
+  ctx.fill();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  // body
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - 16);
+  ctx.lineTo(cx, cy + 14);
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.8;
+  ctx.stroke();
+  // arms
+  ctx.beginPath();
+  ctx.moveTo(cx - 18, cy);
+  ctx.lineTo(cx + 18, cy);
+  ctx.stroke();
+  // legs
+  ctx.beginPath();
+  ctx.moveTo(cx, cy + 14);
+  ctx.lineTo(cx - 14, cy + 34);
+  ctx.moveTo(cx, cy + 14);
+  ctx.lineTo(cx + 14, cy + 34);
+  ctx.stroke();
+}
+
+function actorLabel(cx, cy, text, bold) {
+  ctx.save();
+  ctx.font = (bold ? 'bold ' : '') + '13px Arial';
+  ctx.fillStyle = '#000';
+  ctx.textAlign = 'center';
+  ctx.fillText(text, cx, cy + 55);
+  ctx.restore();
+}
+
+function drawCylinder(cx, cy) {
+  const w = 44, h = 54, ry = 10;
+  const rx = w / 2;
+  // body rect
+  ctx.fillStyle = '#EEE';
+  ctx.fillRect(cx - rx, cy - h / 2, w, h);
+  // bottom ellipse
+  ctx.beginPath();
+  ctx.ellipse(cx, cy + h / 2, rx, ry, 0, 0, Math.PI * 2);
+  ctx.fillStyle = '#EEE';
+  ctx.fill();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  // side lines
+  ctx.beginPath();
+  ctx.moveTo(cx - rx, cy - h / 2);
+  ctx.lineTo(cx - rx, cy + h / 2);
+  ctx.moveTo(cx + rx, cy - h / 2);
+  ctx.lineTo(cx + rx, cy + h / 2);
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  // top ellipse (on top)
+  ctx.beginPath();
+  ctx.ellipse(cx, cy - h / 2, rx, ry, 0, 0, Math.PI * 2);
+  ctx.fillStyle = '#DDD';
+  ctx.fill();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+}
+
+function drawEnvelope(cx, cy) {
+  const w = 44, h = 30;
+  // rect
+  ctx.beginPath();
+  ctx.rect(cx - w / 2, cy - h / 2, w, h);
+  ctx.fillStyle = '#fff';
+  ctx.fill();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  // V-line
+  ctx.beginPath();
+  ctx.moveTo(cx - w / 2, cy - h / 2);
+  ctx.lineTo(cx, cy + 2);
+  ctx.lineTo(cx + w / 2, cy - h / 2);
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+}
+
+function ucLabel(cx, cy, text, fontSize) {
+  ctx.save();
+  ctx.font = 'bold ' + (fontSize || 13) + 'px Arial';
+  ctx.fillStyle = '#000';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  // word wrap for long names
+  const words = text.split(' ');
+  // try to split into two lines if text is long
+  if (text.length > 18) {
+    // find midpoint
+    let mid = Math.floor(words.length / 2);
+    // prefer natural break
+    if (text === 'Respond to Interview Invitation') {
+      ctx.fillText('Respond to Interview', cx, cy - 7);
+      ctx.fillText('Invitation', cx, cy + 9);
+    } else if (text === 'Filter by Skills & Location') {
+      ctx.fillText('Filter by Skills', cx, cy - 7);
+      ctx.fillText('& Location', cx, cy + 9);
+    } else if (text === 'Upload CV / Resume') {
+      ctx.fillText('Upload CV / Resume', cx, cy);
+    } else if (text === 'View Application Status') {
+      ctx.fillText('View Application', cx, cy - 7);
+      ctx.fillText('Status', cx, cy + 9);
+    } else if (text === 'Confirm / Decline Interview') {
+      ctx.fillText('Confirm / Decline', cx, cy - 7);
+      ctx.fillText('Interview', cx, cy + 9);
+    } else {
+      let line1 = words.slice(0, mid).join(' ');
+      let line2 = words.slice(mid).join(' ');
+      ctx.fillText(line1, cx, cy - 7);
+      ctx.fillText(line2, cx, cy + 9);
+    }
+  } else {
+    ctx.fillText(text, cx, cy);
+  }
+  ctx.restore();
+}
+
+// ─── DRAW ────────────────────────────────────────────────────────────────────
+
+// 1. White background
+ctx.fillStyle = '#fff';
+ctx.fillRect(0, 0, 1100, 800);
+
+// 2. Title
+ctx.save();
+ctx.font = 'bold 20px Arial';
+ctx.fillStyle = '#000';
+ctx.textAlign = 'center';
+ctx.fillText('Candidate \u2013 Use Case Diagram', 550, 35);
+ctx.restore();
+// separator
+line(0, 50, 1100, 50, '#999', 1);
+
+// 3. System boundary
+roundRect(180, 60, 720, 720, 10, '#F9F9F9', '#000', 1.5);
+// label top center
+ctx.save();
+ctx.font = 'bold 13px Arial';
+ctx.fillStyle = '#000';
+ctx.textAlign = 'center';
+ctx.fillText('Recruitment Management System', 540, 78);
+ctx.restore();
+// rotated «system» label on left edge
+ctx.save();
+ctx.translate(192, 420);
+ctx.rotate(-Math.PI / 2);
+ctx.font = 'italic 11px Arial';
+ctx.fillStyle = '#666';
+ctx.textAlign = 'center';
+ctx.fillText('\u00ABsystem\u00BB', 0, 0);
+ctx.restore();
+
+// 4. RELATIONSHIP LINES (drawn before shapes so shapes sit on top)
+
+// --- Association lines: Candidate → primary UCs (solid black 1.5px, no arrowhead)
+const candX = 94, candY = 400;
+const primaryUCs = [
+  [430, 160], [430, 300], [430, 440], [430, 580], [430, 720]
+];
+primaryUCs.forEach(([ucx, ucy]) => {
+  line(candX, candY, ucx - 105, ucy, '#000', 1.5);
+});
+
+// --- «include» dashed arrows: primary → extended
+const includeLinks = [
+  [535, 160, 665, 160],
+  [535, 300, 665, 300],
+  [535, 440, 665, 440],
+  [535, 580, 665, 580],
+  [535, 720, 665, 720],
+];
+includeLinks.forEach(([x1, y1, x2, y2]) => {
+  dashedArrow(x1, y1, x2, y2, '\u00ABinclude\u00BB');
+});
+
+// --- Secondary actor association lines (solid gray #666, lw 1, no arrowhead)
+// System → Verify Email
+line(1006, 260, 855, 160, '#666', 1);
+// System → Upload CV / Resume
+line(1006, 260, 855, 440, '#666', 1);
+// Recruiter → View Application Status
+line(1006, 500, 855, 580, '#666', 1);
+// Recruiter → Confirm / Decline Interview
+line(1006, 500, 855, 720, '#666', 1);
+// Email Service → Verify Email (routed, gray dashed)
+ctx.save();
+ctx.beginPath();
+ctx.strokeStyle = '#666';
+ctx.lineWidth = 1;
+ctx.setLineDash([4, 3]);
+ctx.moveTo(1006, 700);
+ctx.lineTo(960, 700);
+ctx.lineTo(960, 130);
+ctx.lineTo(855, 160);
+ctx.stroke();
+ctx.restore();
+// Email Service → Confirm / Decline Interview
+line(1006, 700, 855, 720, '#666', 1);
+
+// 5. USE CASE ELLIPSES
+
+// Primary UCs (rx=105, ry=32)
+const primaryNames = [
+  'Register Account',
+  'Search Jobs',
+  'Apply for Job',
+  'Track Application',
+  'Respond to Interview Invitation'
+];
+primaryUCs.forEach(([cx, cy], i) => {
+  ellipseUC(cx, cy, 105, 32, '#fff', '#000', 1.5);
+  ucLabel(cx, cy, primaryNames[i], 13);
+});
+
+// Extended UCs (rx=95, ry=28)
+const extUCs = [
+  [760, 160], [760, 300], [760, 440], [760, 580], [760, 720]
+];
+const extNames = [
+  'Verify Email',
+  'Filter by Skills & Location',
+  'Upload CV / Resume',
+  'View Application Status',
+  'Confirm / Decline Interview'
+];
+extUCs.forEach(([cx, cy], i) => {
+  ellipseUC(cx, cy, 95, 28, '#fff', '#000', 1);
+  ucLabel(cx, cy, extNames[i], 12);
+});
+
+// 6. ACTORS
+
+// Candidate (left, outside boundary)
+stickFigure(80, 400);
+actorLabel(80, 400, 'Candidate', true);
+
+// System (right, cylinder)
+drawCylinder(1020, 260);
+ctx.save();
+ctx.font = 'bold 13px Arial';
+ctx.fillStyle = '#000';
+ctx.textAlign = 'center';
+ctx.fillText('System', 1020, 260 + 27 + 10 + 13);
+ctx.restore();
+
+// Recruiter (right, stick figure)
+stickFigure(1020, 500);
+actorLabel(1020, 500, 'Recruiter', true);
+
+// Email Service (right, envelope)
+drawEnvelope(1020, 700);
+ctx.save();
+ctx.font = 'bold 13px Arial';
+ctx.fillStyle = '#000';
+ctx.textAlign = 'center';
+ctx.fillText('Email Service', 1020, 700 + 15 + 13 + 2);
+ctx.restore();
+
+// 7. LEGEND
+const lx = 10, ly = 718, lw = 162, lh = 68;
+ctx.beginPath();
+ctx.rect(lx, ly, lw, lh);
+ctx.fillStyle = '#fff';
+ctx.fill();
+ctx.strokeStyle = '#999';
+ctx.lineWidth = 1;
+ctx.stroke();
+
+ctx.save();
+ctx.font = 'bold 11px Arial';
+ctx.fillStyle = '#000';
+ctx.fillText('Legend', lx + 8, ly + 14);
+ctx.restore();
+
+// Row 1: Association
+line(lx + 8, ly + 30, lx + 38, ly + 30, '#000', 1.5);
+ctx.save();
+ctx.font = '10px Arial';
+ctx.fillStyle = '#333';
+ctx.fillText('Association', lx + 44, ly + 34);
+ctx.restore();
+
+// Row 2: «include» dashed + arrowhead
+ctx.save();
+ctx.beginPath();
+ctx.strokeStyle = '#000';
+ctx.lineWidth = 1.2;
+ctx.setLineDash([4, 3]);
+ctx.moveTo(lx + 8, ly + 52);
+ctx.lineTo(lx + 38, ly + 52);
+ctx.stroke();
+ctx.restore();
+openArrow(lx + 38, ly + 52, 0, 6);
+ctx.save();
+ctx.font = 'italic 10px Arial';
+ctx.fillStyle = '#333';
+ctx.fillText('\u00ABinclude\u00BB', lx + 44, ly + 56);
+ctx.restore();
+
+// 8. FOOTER
+line(0, 783, 1100, 783, '#ccc', 1);
+ctx.save();
+ctx.font = '10px Arial';
+ctx.fillStyle = '#999';
+ctx.textAlign = 'center';
+ctx.fillText('RMS \u00B7 Use-Case Diagram \u00B7 Candidate Actor', 550, 792);
+ctx.restore();
+
+</script>
+</body>
+</html>

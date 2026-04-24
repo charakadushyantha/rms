@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Figure 3.18: Candidate Application Form</title>
+<style>
+  body { margin: 0; padding: 20px; background: #fff; font-family: Arial, sans-serif; }
+  canvas { display: block; margin: 0 auto; border: 1px solid #EEE; }
+  #printBtn {
+    display: block; margin: 12px auto; padding: 8px 20px;
+    background: #333; color: #fff; border: none; border-radius: 4px;
+    font-size: 13px; font-family: Arial, sans-serif; cursor: pointer;
+  }
+  #printBtn:hover { background: #555; }
+  @media print {
+    #printBtn { display: none; }
+    body { padding: 0; }
+    canvas { border: none; }
+  }
+</style>
+</head>
+<body>
+<button id="printBtn" onclick="window.print()">📸 Print / Save as Image</button>
+<canvas id="c" width="1200" height="1020"></canvas>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function roundRect(x,y,w,h,r,fill,stroke,lw){
+  r=r||0;
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+  if(fill){ctx.fillStyle=fill;ctx.fill();}
+  if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw||1;ctx.stroke();}
+}
+function lbl(text,x,y,size,color,align,bold,italic){
+  let style='';
+  if(bold&&italic)style='bold italic ';
+  else if(bold)style='bold ';
+  else if(italic)style='italic ';
+  ctx.font=style+size+'px Arial';
+  ctx.fillStyle=color||'#000';
+  ctx.textAlign=align||'left';
+  ctx.textBaseline='middle';
+  ctx.fillText(text,x,y);
+}
+function hline(x1,x2,y,color,lw){
+  ctx.beginPath();ctx.strokeStyle=color||'#CCC';ctx.lineWidth=lw||1;
+  ctx.moveTo(x1,y);ctx.lineTo(x2,y);ctx.stroke();
+}
+function inputBox(x,y,w,h,placeholder,value){
+  roundRect(x,y,w,h,4,'#FFF','#CCC',1);
+  if(value){lbl(value,x+12,y+h/2,11,'#333','left',false);}
+  else{lbl(placeholder,x+12,y+h/2,11,'#AAA','left',false);}
+}
+function sectionCard(x,y,w,h,title){
+  roundRect(x,y,w,h,4,'#FFF','#DDD',1);
+  ctx.fillStyle='#F8F8F8';
+  ctx.fillRect(x+1,y+1,w-2,36);
+  lbl(title,x+16,y+22,12,'#333','left',true);
+  hline(x,x+w,y+36,'#DDD',1);
+}
+function radioOption(cx,cy,selected,labelText){
+  ctx.beginPath();ctx.arc(cx,cy,5,0,Math.PI*2);
+  if(selected){ctx.fillStyle='#333';ctx.fill();}
+  else{ctx.fillStyle='#FFF';ctx.fill();}
+  ctx.strokeStyle='#888';ctx.lineWidth=1;ctx.stroke();
+  lbl(labelText,cx+10,cy,11,'#333','left',false);
+}
+function checkbox(x,y,checked){
+  roundRect(x,y,14,14,2,'#FFF','#888',1);
+  if(checked){
+    ctx.save();
+    ctx.strokeStyle='#333';ctx.lineWidth=2;ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.moveTo(x+3,y+7);ctx.lineTo(x+6,y+11);ctx.lineTo(x+11,y+3);
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+function progressBar(x,y,w,h,pct,fillColor){
+  ctx.fillStyle='#EEE';ctx.fillRect(x,y,w,h);
+  ctx.fillStyle=fillColor||'#555';ctx.fillRect(x,y,w*pct,h);
+  ctx.strokeStyle='#CCC';ctx.lineWidth=1;ctx.strokeRect(x,y,w,h);
+}
+
+// ── 1. White background ───────────────────────────────────────────────────────
+ctx.fillStyle='#FFF';
+ctx.fillRect(0,0,1200,1020);
+
+// ── 2. Figure caption + line ──────────────────────────────────────────────────
+lbl('Figure 3.18: Candidate Application Form',600,22,14,'#000','center',true);
+hline(10,1190,30,'#CCC',1);
+
+// ── 3. Browser chrome ─────────────────────────────────────────────────────────
+roundRect(10,35,1180,975,0,'#F0F0F0','#888',1);
+// Browser bar
+ctx.fillStyle='#DDD';
+ctx.fillRect(10,35,1180,28);
+ctx.strokeStyle='#888';ctx.lineWidth=1;
+ctx.strokeRect(10,35,1180,28);
+// Traffic light circles
+[25,42,59].forEach(cx=>{
+  ctx.beginPath();ctx.arc(cx,49,6,0,Math.PI*2);
+  ctx.fillStyle='#BBB';ctx.fill();
+});
+// URL bar
+roundRect(80,40,700,18,3,'#FFF','#AAA',1);
+lbl('http://localhost/rms/C_dashboard/apply?jobId=42',88,49,10,'#555','left',false);
+
+// ── 4. Top navigation bar ─────────────────────────────────────────────────────
+ctx.fillStyle='#111';
+ctx.fillRect(10,63,1180,48);
+// Logo
+roundRect(20,75,120,24,3,'#333',null,0);
+lbl('RMS',80,87,14,'#FFF','center',true);
+// Nav items
+lbl('Dashboard',200,87,11,'#FFF','left',false);
+lbl('Browse Jobs',295,87,11,'#FFF','left',false);
+lbl('My Applications',400,87,11,'#FFF','left',false);
+lbl('My CV',510,87,11,'#FFF','left',false);
+// Avatar
+ctx.beginPath();ctx.arc(1150,87,14,0,Math.PI*2);
+ctx.fillStyle='#555';ctx.fill();
+lbl('CA',1150,87,10,'#FFF','center',true);
+
+// ── 5. Main content background ────────────────────────────────────────────────
+ctx.fillStyle='#F5F5F5';
+ctx.fillRect(10,111,1180,899);
+
+// ── 6. Page header ────────────────────────────────────────────────────────────
+ctx.fillStyle='#FFF';
+ctx.fillRect(10,111,1180,55);
+hline(10,1190,166,'#DDD',1);
+lbl('Apply for: Senior Frontend Developer',40,133,18,'#111','left',true);
+lbl('TechCorp · Colombo, Sri Lanka · Full-time · LKR 150,000 – 200,000',40,152,11,'#777','left',false);
+// "View Job Details →" with underline
+ctx.font='11px Arial';
+ctx.fillStyle='#555';
+ctx.textAlign='right';
+ctx.textBaseline='middle';
+ctx.fillText('View Job Details →',900,140);
+const vw=ctx.measureText('View Job Details →').width;
+ctx.beginPath();ctx.strokeStyle='#555';ctx.lineWidth=1;
+ctx.moveTo(900-vw,143);ctx.lineTo(900,143);ctx.stroke();
+
+// ── 7. Job summary banner ─────────────────────────────────────────────────────
+ctx.fillStyle='#EEE';
+ctx.fillRect(10,166,1180,44);
+lbl('📋 Application for: Senior Frontend Developer at TechCorp',40,188,11,'#333','left',false);
+lbl('Deadline: 30 April 2026',1100,188,11,'#888','right',false);
+
+// ── 8. Section A: Personal Information ───────────────────────────────────────
+const sAx=30, sAy=220, sAw=790, sAh=200;
+sectionCard(sAx,sAy,sAw,sAh,'A. Personal Information');
+
+// Row 1 labels + inputs
+lbl('First Name *',sAx+16,sAy+56+(-10),10,'#555','left',false);
+inputBox(sAx+16,sAy+56,360,34,'','Emily');
+lbl('Last Name *',sAx+396,sAy+56+(-10),10,'#555','left',false);
+inputBox(sAx+396,sAy+56,360,34,'','Johnson');
+
+// Row 2
+lbl('Email Address *',sAx+16,sAy+116+(-10),10,'#555','left',false);
+inputBox(sAx+16,sAy+116,360,34,'','emily.johnson@email.com');
+lbl('Phone Number *',sAx+396,sAy+116+(-10),10,'#555','left',false);
+inputBox(sAx+396,sAy+116,360,34,'+94 77 123 4567','');
+
+// Row 3
+lbl('Current Location *',sAx+16,sAy+176+(-10),10,'#555','left',false);
+inputBox(sAx+16,sAy+176,360,34,'Colombo, Sri Lanka','');
+
+// ── 9. Section B: CV / Resume Upload ─────────────────────────────────────────
+const sBx=30, sBy=432, sBw=790, sBh=160;
+sectionCard(sBx,sBy,sBw,sBh,'B. CV / Resume Upload');
+
+// Upload zone
+const uzx=sBx+16, uzy=sBy+52, uzw=758, uzh=80;
+const cx_uz=uzx+uzw/2, cy_uz=uzy+uzh/2;
+ctx.save();
+ctx.setLineDash([6,4]);
+ctx.strokeStyle='#AAA';ctx.lineWidth=1.5;
+roundRect(uzx,uzy,uzw,uzh,6,'#F8F8F8',null,0);
+ctx.fillStyle='#F8F8F8';ctx.fill();
+ctx.stroke();
+ctx.restore();
+
+// Document icon
+const icx=cx_uz-90, icy=cy_uz-10;
+ctx.fillStyle='#CCC';
+ctx.fillRect(icx,icy-15,24,30);
+ctx.fillStyle='#F8F8F8';
+ctx.beginPath();
+ctx.moveTo(icx+16,icy-15);
+ctx.lineTo(icx+24,icy-7);
+ctx.lineTo(icx+16,icy-7);
+ctx.closePath();
+ctx.fill();
+ctx.strokeStyle='#AAA';ctx.lineWidth=1;
+ctx.strokeRect(icx,icy-15,24,30);
+ctx.beginPath();
+ctx.moveTo(icx+16,icy-15);ctx.lineTo(icx+16,icy-7);ctx.lineTo(icx+24,icy-7);
+ctx.stroke();
+// Lines on doc
+ctx.strokeStyle='#AAA';ctx.lineWidth=0.8;
+[icy-4,icy+2,icy+8].forEach(ly=>{
+  ctx.beginPath();ctx.moveTo(icx+4,ly);ctx.lineTo(icx+20,ly);ctx.stroke();
+});
+
+// Upload text
+lbl('Drag & drop your CV here, or',cx_uz,cy_uz+2,12,'#555','center',false);
+// "Browse Files" bold underlined
+ctx.font='bold 12px Arial';
+ctx.fillStyle='#333';
+ctx.textAlign='left';
+ctx.textBaseline='middle';
+const dragW=ctx.measureText('Drag & drop your CV here, or ').width;
+const bfx=cx_uz - ctx.measureText('Drag & drop your CV here, or')/2 + dragW - 60;
+// simpler approach: measure and place
+ctx.textAlign='center';
+ctx.font='12px Arial';
+const dragText='Drag & drop your CV here, or';
+const dtw=ctx.measureText(dragText).width;
+ctx.font='bold 12px Arial';
+const bfText='Browse Files';
+const bfw=ctx.measureText(bfText).width;
+const totalW=dtw+8+bfw;
+const startX=cx_uz - totalW/2;
+ctx.font='12px Arial';
+ctx.fillStyle='#555';
+ctx.textAlign='left';
+ctx.fillText(dragText,startX,cy_uz+2);
+ctx.font='bold 12px Arial';
+ctx.fillStyle='#333';
+ctx.fillText(bfText,startX+dtw+8,cy_uz+2);
+// underline Browse Files
+const bfStartX=startX+dtw+8;
+ctx.beginPath();ctx.strokeStyle='#333';ctx.lineWidth=1;
+ctx.moveTo(bfStartX,cy_uz+9);ctx.lineTo(bfStartX+bfw,cy_uz+9);ctx.stroke();
+
+lbl('Supported: PDF, DOC, DOCX · Max size: 5MB',cx_uz,cy_uz+18,10,'#AAA','center',false);
+
+// Existing CV note
+lbl('✓ Current CV: Emily_Johnson_CV.pdf (uploaded 20 Apr)',sBx+16,sBy+148,10,'#555','left',false);
+// [Replace] link
+ctx.font='10px Arial';
+ctx.fillStyle='#777';
+ctx.textAlign='left';
+ctx.textBaseline='middle';
+ctx.fillText('[Replace]',sBx+380,sBy+148);
+const rw=ctx.measureText('[Replace]').width;
+ctx.beginPath();ctx.strokeStyle='#777';ctx.lineWidth=1;
+ctx.moveTo(sBx+380,sBy+153);ctx.lineTo(sBx+380+rw,sBy+153);ctx.stroke();
+
+// ── 10. Section C: Screening Questions ───────────────────────────────────────
+const sCx=30, sCy=604, sCw=790, sCh=260;
+roundRect(sCx,sCy,sCw,sCh,4,'#FFF','#DDD',1);
+ctx.fillStyle='#F8F8F8';
+ctx.fillRect(sCx+1,sCy+1,sCw-2,36);
+lbl('C. Screening Questions',sCx+16,sCy+16,12,'#333','left',true);
+lbl('Please answer all questions honestly. Responses help us match you to the role.',sCx+16+ctx.measureText('C. Screening Questions').width+20,sCy+22,10,'#888','left',false,true);
+hline(sCx,sCx+sCw,sCy+36,'#DDD',1);
+
+// Q1
+lbl('1. How many years of experience do you have with React.js?',sCx+16,sCy+52,11,'#333','left',true);
+const q1opts=[['Less than 1 year',false],['1–2 years',false],['3–5 years',true],['5+ years',false]];
+q1opts.forEach(([txt,sel],i)=>{
+  radioOption(sCx+16+i*140,sCy+70,sel,txt);
+});
+
+// Q2
+lbl('2. Are you available to start within 30 days?',sCx+16,sCy+100,11,'#333','left',true);
+const q2opts=[['Yes',true],['No',false],['Negotiable',false]];
+q2opts.forEach(([txt,sel],i)=>{
+  radioOption(sCx+16+i*100,sCy+118,sel,txt);
+});
+
+// Q3
+lbl('3. What is your expected monthly salary (LKR)?',sCx+16,sCy+148,11,'#333','left',true);
+inputBox(sCx+16,sCy+164,300,34,'e.g. 180,000','');
+
+// Q4
+lbl('4. Briefly describe why you are a good fit for this role.',sCx+16,sCy+210,11,'#333','left',true);
+roundRect(sCx+16,sCy+226,758,60,4,'#FFF','#CCC',1);
+lbl('I have 4 years of experience in React and have led frontend teams...',sCx+28,sCy+256,11,'#AAA','left',false,true);
+
+// ── 11. Section D: Consent & Declaration ─────────────────────────────────────
+const sDx=30, sDy=876, sDw=790, sDh=80;
+sectionCard(sDx,sDy,sDw,sDh,'D. Consent & Declaration');
+
+// Consent row 1
+checkbox(sDx+16,sDy+49,true);
+lbl('I confirm that all information provided is accurate and complete.',sDx+36,sDy+56,11,'#333','left',false);
+
+// Consent row 2
+checkbox(sDx+16,sDy+69,true);
+// "I agree to the " + "Privacy Policy" underlined + " and consent to data processing."
+ctx.font='11px Arial';
+ctx.textBaseline='middle';
+ctx.textAlign='left';
+const t1='I agree to the ';
+const t2='Privacy Policy';
+const t3=' and consent to data processing.';
+const t1w=ctx.measureText(t1).width;
+const t2w=ctx.measureText(t2).width;
+ctx.fillStyle='#333';ctx.fillText(t1,sDx+36,sDy+76);
+ctx.fillStyle='#555';ctx.fillText(t2,sDx+36+t1w,sDy+76);
+ctx.beginPath();ctx.strokeStyle='#555';ctx.lineWidth=1;
+ctx.moveTo(sDx+36+t1w,sDy+80);ctx.lineTo(sDx+36+t1w+t2w,sDy+80);ctx.stroke();
+ctx.fillStyle='#333';ctx.fillText(t3,sDx+36+t1w+t2w,sDy+76);
+
+// ── 12. Sidebar Card 1: Job Summary ──────────────────────────────────────────
+const sb1x=850, sb1y=220, sb1w=330, sb1h=200;
+sectionCard(sb1x,sb1y,sb1w,sb1h,'Job Summary');
+
+const jobRows=[
+  ['Position:','Senior Frontend Dev'],
+  ['Company:','TechCorp'],
+  ['Location:','Colombo, LK'],
+  ['Type:','Full-time'],
+  ['Salary:','LKR 150k–200k'],
+  ['Deadline:','30 April 2026'],
+];
+jobRows.forEach(([key,val],i)=>{
+  const ry=sb1y+46+i*24;
+  lbl(key,sb1x+14,ry,11,'#777','left',false);
+  lbl(val,sb1x+90,ry,11,i===5?'#888':'#333','left',false);
+});
+
+// ── 13. Sidebar Card 2: Application Tips ─────────────────────────────────────
+const sb2x=850, sb2y=432, sb2w=330, sb2h=220;
+sectionCard(sb2x,sb2y,sb2w,sb2h,'Application Tips');
+
+const tips=[
+  '✓ Keep your CV under 5MB',
+  '✓ Use PDF format for best results',
+  '✓ Answer all screening questions',
+  '✓ Double-check contact details',
+  '✓ Be honest in your responses',
+];
+tips.forEach((tip,i)=>{
+  lbl(tip,sb2x+14,sb2y+52+i*32,10,'#555','left',false);
+});
+
+// ── 14. Sidebar Card 3: Profile Strength ─────────────────────────────────────
+const sb3x=850, sb3y=664, sb3w=330, sb3h=120;
+roundRect(sb3x,sb3y,sb3w,sb3h,4,'#FFF','#DDD',1);
+ctx.fillStyle='#F8F8F8';
+ctx.fillRect(sb3x+1,sb3y+1,sb3w-2,36);
+lbl('Profile Strength',sb3x+16,sb3y+22,12,'#333','left',true);
+lbl('72%',sb3x+sb3w-16,sb3y+22,12,'#333','right',true);
+hline(sb3x,sb3x+sb3w,sb3y+36,'#DDD',1);
+
+progressBar(sb3x+14,sb3y+52,sb3w-28,12,0.72,'#555');
+lbl('Add Skills & Certifications to reach 100%',sb3x+14,sb3y+76,10,'#888','left',false,true);
+roundRect(sb3x+14,sb3y+92,120,24,3,'#EEE','#888',1);
+lbl('Complete Profile',sb3x+14+60,sb3y+92+12,10,'#333','center',false);
+
+// ── 15. Submit bar ────────────────────────────────────────────────────────────
+ctx.fillStyle='#FFF';
+ctx.fillRect(10,970,1180,40);
+hline(10,1190,970,'#DDD',1);
+lbl('← Back to Job Listing',40,990,11,'#777','left',false);
+// Save as Draft button
+roundRect(820,978,110,28,4,'#FFF','#888',1);
+lbl('Save as Draft',875,992,11,'#555','center',false);
+// Submit button
+roundRect(940,978,180,28,4,'#333',null,0);
+lbl('Submit Application',1030,992,12,'#FFF','center',true);
+
+// ── 16. Footer ────────────────────────────────────────────────────────────────
+hline(10,1190,1005,'#DDD',1);
+lbl('RMS v1.0.0  ·  Candidate Application Form  ·  All fields marked * are required',600,1013,10,'#999','center',false);
+
+</script>
+</body>
+</html>

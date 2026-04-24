@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recruiter – Use Case Diagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+  }
+  #btn-print {
+    margin-bottom: 14px;
+    padding: 8px 22px;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    background: #fff;
+    color: #333;
+    border: 1.5px solid #333;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  #btn-print:hover { background: #f0f0f0; }
+  canvas {
+    border: 1px solid #ccc;
+    display: block;
+  }
+  @media print {
+    #btn-print { display: none; }
+    body { padding: 0; }
+    canvas { border: none; }
+  }
+</style>
+</head>
+<body>
+
+<button id="btn-print" onclick="window.print()">📸 Print / Save as Image</button>
+<canvas id="ucd" width="1100" height="800"></canvas>
+
+<script>
+const canvas = document.getElementById('ucd');
+const ctx = canvas.getContext('2d');
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+function setFont(size, bold, italic) {
+  let style = '';
+  if (bold && italic) style = 'bold italic ';
+  else if (bold) style = 'bold ';
+  else if (italic) style = 'italic ';
+  ctx.font = style + size + 'px Arial';
+}
+
+function drawOpenArrowhead(x, y, angle, size) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle);
+  ctx.beginPath();
+  ctx.moveTo(-size, -size / 2);
+  ctx.lineTo(0, 0);
+  ctx.lineTo(-size, size / 2);
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawDashedLine(x1, y1, x2, y2, label) {
+  ctx.save();
+  ctx.setLineDash([5, 4]);
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // Open arrowhead at target end
+  const angle = Math.atan2(y2 - y1, x2 - x1);
+  drawOpenArrowhead(x2, y2, angle, 9);
+
+  // Label centered on line
+  if (label) {
+    const mx = (x1 + x2) / 2;
+    const my = (y1 + y2) / 2;
+    setFont(10, false, true);
+    const tw = ctx.measureText(label).width;
+    const pad = 3;
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(mx - tw / 2 - pad, my - 8, tw + pad * 2, 14);
+    ctx.fillStyle = '#666';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, mx, my);
+  }
+}
+
+function drawSolidLine(x1, y1, x2, y2, color, width) {
+  ctx.save();
+  ctx.strokeStyle = color || '#000';
+  ctx.lineWidth = width || 1.5;
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawEllipse(cx, cy, rx, ry, lineWidth) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+  ctx.fillStyle = '#fff';
+  ctx.fill();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = lineWidth || 1.5;
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawUCLabel(cx, cy, text, fontSize, bold) {
+  setFont(fontSize || 13, bold !== false, false);
+  ctx.fillStyle = '#000';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  // Word-wrap if needed (simple two-line split on ' / ' or long names)
+  const words = text.split(' ');
+  if (words.length > 3 || ctx.measureText(text).width > 180) {
+    const mid = Math.ceil(words.length / 2);
+    const line1 = words.slice(0, mid).join(' ');
+    const line2 = words.slice(mid).join(' ');
+    ctx.fillText(line1, cx, cy - 7);
+    ctx.fillText(line2, cx, cy + 7);
+  } else {
+    ctx.fillText(text, cx, cy);
+  }
+}
+
+function drawStickFigure(cx, cy) {
+  const headR = 14;
+  const bodyLen = 30;
+  const armY = cy + headR + 10;
+  const armSpan = 20;
+  const legSpread = 16;
+  const legLen = 24;
+
+  ctx.save();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.8;
+
+  // Head
+  ctx.beginPath();
+  ctx.arc(cx, cy, headR, 0, Math.PI * 2);
+  ctx.fillStyle = '#fff';
+  ctx.fill();
+  ctx.stroke();
+
+  // Body
+  ctx.beginPath();
+  ctx.moveTo(cx, cy + headR);
+  ctx.lineTo(cx, cy + headR + bodyLen);
+  ctx.stroke();
+
+  // Arms
+  ctx.beginPath();
+  ctx.moveTo(cx - armSpan, armY);
+  ctx.lineTo(cx + armSpan, armY);
+  ctx.stroke();
+
+  // Left leg
+  ctx.beginPath();
+  ctx.moveTo(cx, cy + headR + bodyLen);
+  ctx.lineTo(cx - legSpread, cy + headR + bodyLen + legLen);
+  ctx.stroke();
+
+  // Right leg
+  ctx.beginPath();
+  ctx.moveTo(cx, cy + headR + bodyLen);
+  ctx.lineTo(cx + legSpread, cy + headR + bodyLen + legLen);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function drawActorLabel(cx, cy, text) {
+  const labelY = cy + 14 + 30 + 10; // below legs
+  setFont(13, true, false);
+  ctx.fillStyle = '#000';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.fillText(text, cx, labelY);
+}
+
+// ─── 1. White Background ────────────────────────────────────────────────────
+ctx.fillStyle = '#fff';
+ctx.fillRect(0, 0, 1100, 800);
+
+// ─── 2. Title & Line ────────────────────────────────────────────────────────
+setFont(20, true, false);
+ctx.fillStyle = '#000';
+ctx.textAlign = 'center';
+ctx.textBaseline = 'middle';
+ctx.fillText('Recruiter – Use Case Diagram', 550, 35);
+
+ctx.strokeStyle = '#999';
+ctx.lineWidth = 1;
+ctx.beginPath();
+ctx.moveTo(0, 50);
+ctx.lineTo(1100, 50);
+ctx.stroke();
+
+// ─── 3. System Boundary ─────────────────────────────────────────────────────
+ctx.save();
+ctx.beginPath();
+const bx = 180, by = 60, bw = 720, bh = 720;
+const r = 10;
+ctx.moveTo(bx + r, by);
+ctx.lineTo(bx + bw - r, by);
+ctx.quadraticCurveTo(bx + bw, by, bx + bw, by + r);
+ctx.lineTo(bx + bw, by + bh - r);
+ctx.quadraticCurveTo(bx + bw, by + bh, bx + bw - r, by + bh);
+ctx.lineTo(bx + r, by + bh);
+ctx.quadraticCurveTo(bx, by + bh, bx, by + bh - r);
+ctx.lineTo(bx, by + r);
+ctx.quadraticCurveTo(bx, by, bx + r, by);
+ctx.closePath();
+ctx.fillStyle = '#F9F9F9';
+ctx.fill();
+ctx.strokeStyle = '#000';
+ctx.lineWidth = 1.5;
+ctx.stroke();
+ctx.restore();
+
+// System boundary label
+setFont(13, true, false);
+ctx.fillStyle = '#000';
+ctx.textAlign = 'center';
+ctx.textBaseline = 'top';
+ctx.fillText('Recruitment Management System', 540, 68);
+
+// «system» rotated label on left edge
+ctx.save();
+ctx.translate(bx + 12, by + bh / 2);
+ctx.rotate(-Math.PI / 2);
+setFont(11, false, true);
+ctx.fillStyle = '#666';
+ctx.textAlign = 'center';
+ctx.textBaseline = 'middle';
+ctx.fillText('«system»', 0, 0);
+ctx.restore();
+
+// ─── 4. Relationship Lines (drawn BEFORE shapes) ────────────────────────────
+
+// Primary UC positions
+const primUC = [
+  { cx: 430, cy: 170 },
+  { cx: 430, cy: 310 },
+  { cx: 430, cy: 450 },
+  { cx: 430, cy: 590 },
+  { cx: 430, cy: 710 },
+];
+const primRx = 105, primRy = 32;
+
+// Extended UC positions
+const extUC = [
+  { cx: 760, cy: 170 },
+  { cx: 760, cy: 310 },
+  { cx: 760, cy: 450 },
+  { cx: 760, cy: 590 },
+  { cx: 760, cy: 710 },
+];
+const extRx = 95, extRy = 28;
+
+// Recruiter actor position
+const recruiterX = 80, recruiterY = 400;
+
+// Association lines: Recruiter → each primary UC left edge
+primUC.forEach(uc => {
+  drawSolidLine(recruiterX + 14, recruiterY, uc.cx - primRx, uc.cy, '#000', 1.5);
+});
+
+// «include» dashed arrows: primary right edge → extended left edge
+const includeLabels = ['«include»', '«include»', '«include»', '«include»', '«include»'];
+primUC.forEach((uc, i) => {
+  drawDashedLine(
+    uc.cx + primRx, uc.cy,
+    extUC[i].cx - extRx, extUC[i].cy,
+    includeLabels[i]
+  );
+});
+
+// Secondary actor positions
+const candidateX = 1020, candidateY = 260;
+const interviewerX = 1020, interviewerY = 460;
+const adminX = 1020, adminY = 640;
+
+// Candidate → Post to Job Platforms right edge (extUC[0])
+drawSolidLine(candidateX - 14, candidateY, extUC[0].cx + extRx, extUC[0].cy, '#666', 1);
+// Candidate → Parse CV / Resume right edge (extUC[1])
+drawSolidLine(candidateX - 14, candidateY, extUC[1].cx + extRx, extUC[1].cy, '#666', 1);
+
+// Interviewer → Send Interview Link right edge (extUC[2])
+drawSolidLine(interviewerX - 14, interviewerY, extUC[2].cx + extRx, extUC[2].cy, '#666', 1);
+// Interviewer → View Rating Summary right edge (extUC[3])
+drawSolidLine(interviewerX - 14, interviewerY, extUC[3].cx + extRx, extUC[3].cy, '#666', 1);
+
+// Admin → Generate Report (primary UC[4] right edge), routed around right side
+// Draw from admin to a waypoint then to the UC right edge
+const adminTargetX = primUC[4].cx + primRx;
+const adminTargetY = primUC[4].cy;
+// Route: admin → (900, 640) → (900, 710) → target
+ctx.save();
+ctx.strokeStyle = '#666';
+ctx.lineWidth = 1;
+ctx.beginPath();
+ctx.moveTo(adminX - 14, adminY);
+ctx.lineTo(900, adminY);
+ctx.lineTo(900, adminTargetY);
+ctx.lineTo(adminTargetX, adminTargetY);
+ctx.stroke();
+ctx.restore();
+
+// ─── 5. Use Case Ellipses ───────────────────────────────────────────────────
+
+// Primary UCs
+const primNames = [
+  'Create Job Posting',
+  'Shortlist Candidate',
+  'Schedule Interview',
+  'Collect Feedback',
+  'Generate Report',
+];
+primUC.forEach((uc, i) => {
+  drawEllipse(uc.cx, uc.cy, primRx, primRy, 1.5);
+  drawUCLabel(uc.cx, uc.cy, primNames[i], 13, true);
+});
+
+// Extended UCs
+const extNames = [
+  'Post to Job Platforms',
+  'Parse CV / Resume',
+  'Send Interview Link',
+  'View Rating Summary',
+  'Export to CSV / PDF',
+];
+extUC.forEach((uc, i) => {
+  drawEllipse(uc.cx, uc.cy, extRx, extRy, 1);
+  drawUCLabel(uc.cx, uc.cy, extNames[i], 12, false);
+});
+
+// ─── 6. Actor Stick Figures ─────────────────────────────────────────────────
+
+// Recruiter (left)
+drawStickFigure(recruiterX, recruiterY);
+drawActorLabel(recruiterX, recruiterY, 'Recruiter');
+
+// Candidate (right)
+drawStickFigure(candidateX, candidateY);
+drawActorLabel(candidateX, candidateY, 'Candidate');
+
+// Interviewer (right)
+drawStickFigure(interviewerX, interviewerY);
+drawActorLabel(interviewerX, interviewerY, 'Interviewer');
+
+// Admin (right)
+drawStickFigure(adminX, adminY);
+drawActorLabel(adminX, adminY, 'Admin');
+
+// ─── 7. Legend ──────────────────────────────────────────────────────────────
+const lx = 10, ly = 718, lw = 162, lh = 68;
+ctx.save();
+ctx.fillStyle = '#fff';
+ctx.strokeStyle = '#999';
+ctx.lineWidth = 1;
+ctx.fillRect(lx, ly, lw, lh);
+ctx.strokeRect(lx, ly, lw, lh);
+ctx.restore();
+
+setFont(11, true, false);
+ctx.fillStyle = '#000';
+ctx.textAlign = 'left';
+ctx.textBaseline = 'top';
+ctx.fillText('Legend', lx + 8, ly + 6);
+
+// Solid line sample
+ctx.save();
+ctx.strokeStyle = '#000';
+ctx.lineWidth = 1.5;
+ctx.beginPath();
+ctx.moveTo(lx + 8, ly + 26);
+ctx.lineTo(lx + 40, ly + 26);
+ctx.stroke();
+ctx.restore();
+setFont(10, false, false);
+ctx.fillStyle = '#333';
+ctx.fillText('Association', lx + 46, ly + 20);
+
+// Dashed arrow sample
+ctx.save();
+ctx.setLineDash([4, 3]);
+ctx.strokeStyle = '#000';
+ctx.lineWidth = 1.2;
+ctx.beginPath();
+ctx.moveTo(lx + 8, ly + 48);
+ctx.lineTo(lx + 36, ly + 48);
+ctx.stroke();
+ctx.setLineDash([]);
+ctx.restore();
+drawOpenArrowhead(lx + 36, ly + 48, 0, 7);
+setFont(10, false, false);
+ctx.fillStyle = '#333';
+ctx.textAlign = 'left';
+ctx.textBaseline = 'top';
+ctx.fillText('«include»', lx + 46, ly + 42);
+
+// ─── 8. Footer ──────────────────────────────────────────────────────────────
+ctx.strokeStyle = '#ccc';
+ctx.lineWidth = 1;
+ctx.beginPath();
+ctx.moveTo(0, 783);
+ctx.lineTo(1100, 783);
+ctx.stroke();
+
+setFont(10, false, false);
+ctx.fillStyle = '#999';
+ctx.textAlign = 'center';
+ctx.textBaseline = 'middle';
+ctx.fillText('RMS · Use-Case Diagram · Recruiter Actor', 550, 792);
+
+</script>
+</body>
+</html>

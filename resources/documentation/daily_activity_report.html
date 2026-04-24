@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RMS Daily Activity Summary Report – 23 April 2026</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #E8EAED;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    padding: 30px 20px 60px;
+    font-family: Arial, sans-serif;
+  }
+  .controls {
+    margin-bottom: 18px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .print-btn {
+    background: #2980B9;
+    color: #fff;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(41,128,185,0.35);
+    transition: background 0.2s;
+  }
+  .print-btn:hover { background: #1A6FA0; }
+  canvas {
+    display: block;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+    background: #F5F6FA;
+  }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .controls { display: none !important; }
+    canvas { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="controls">
+  <button class="print-btn" onclick="window.print()">📸 Print / Save as Image</button>
+</div>
+
+<canvas id="reportCanvas" width="1100" height="1200"></canvas>
+
+<script>
+const canvas = document.getElementById('reportCanvas');
+const ctx = canvas.getContext('2d');
+
+// ─── HELPERS ────────────────────────────────────────────────────────────────
+
+function roundRect(x, y, w, h, r, fill, stroke, lw) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw || 1; ctx.stroke(); }
+}
+
+function lbl(text, x, y, size, color, align, bold, italic) {
+  ctx.font = (italic ? 'italic ' : '') + (bold ? 'bold ' : '') + size + 'px Arial, sans-serif';
+  ctx.fillStyle = color;
+  ctx.textAlign = align || 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, x, y);
+}
+
+function hline(x1, x2, y, color, lw) {
+  ctx.beginPath();
+  ctx.moveTo(x1, y);
+  ctx.lineTo(x2, y);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lw || 1;
+  ctx.stroke();
+}
+
+function vline(x, y1, y2, color, lw) {
+  ctx.beginPath();
+  ctx.moveTo(x, y1);
+  ctx.lineTo(x, y2);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lw || 1;
+  ctx.stroke();
+}
+
+function badge(x, y, w, h, text, fill, stroke, textColor) {
+  roundRect(x, y, w, h, 3, fill, stroke, 1);
+  lbl(text, x + w / 2, y + h / 2, 9, textColor, 'center', true, false);
+}
+
+function sectionHeader(x, y, w, h, accentColor, bgColor, title, subtitle) {
+  ctx.fillStyle = bgColor;
+  ctx.fillRect(x + 1, y + 1, w - 2, h);
+  ctx.fillStyle = accentColor;
+  ctx.fillRect(x, y, 4, h);
+  lbl(title, x + 20, y + h / 2, 13, '#2C3E50', 'left', true, false);
+  if (subtitle) lbl(subtitle, x + 300, y + h / 2, 10, '#7F8C8D', 'left', false, false);
+}
+
+function tableRow(x, y, w, h, cells, colWidths, isAlt, colColors) {
+  ctx.fillStyle = isAlt ? '#F8F9FA' : '#FFFFFF';
+  ctx.fillRect(x, y, w, h);
+  let cx = x;
+  cells.forEach((cell, i) => {
+    const color = colColors && colColors[i] ? colColors[i] : '#2C3E50';
+    lbl(cell, cx + colWidths[i] / 2, y + h / 2, 10, color, 'center', false, false);
+    cx += colWidths[i];
+  });
+}
+
+function colHeaders(x, y, w, h, headers, colWidths) {
+  ctx.fillStyle = '#ECF0F1';
+  ctx.fillRect(x, y, w, h);
+  let cx = x;
+  headers.forEach((hdr, i) => {
+    lbl(hdr, cx + colWidths[i] / 2, y + h / 2, 10, '#2C3E50', 'center', true, false);
+    cx += colWidths[i];
+  });
+  hline(x, x + w, y + h, '#DDE1E7', 1);
+}
+
+// ─── 1. BACKGROUND ──────────────────────────────────────────────────────────
+ctx.fillStyle = '#F5F6FA';
+ctx.fillRect(0, 0, 1100, 1200);
+
+// ─── 2. REPORT HEADER BAR (y=0, h=80) ───────────────────────────────────────
+ctx.fillStyle = '#1A252F';
+ctx.fillRect(0, 0, 1100, 80);
+
+// Logo box
+roundRect(20, 20, 40, 40, 4, '#2980B9', null, 0);
+lbl('RMS', 40, 40, 14, '#FFFFFF', 'center', true, false);
+
+// Left text
+lbl('Recruitment Management System', 72, 30, 16, '#FFFFFF', 'left', true, false);
+lbl('Daily Activity Summary Report', 72, 50, 12, '#AED6F1', 'left', false, false);
+
+// Right text
+lbl('Report Date: Friday, 24 April 2026', 1080, 30, 11, '#AED6F1', 'right', false, false);
+lbl('Generated: 09:00 AM · Run by: admin', 1080, 48, 10, '#8892A4', 'right', false, false);
+lbl('Report Period: 23 April 2026 (00:00 – 23:59)', 1080, 64, 10, '#8892A4', 'right', false, false);
+
+// ─── 3. FIGURE CAPTION (y=80, h=30) ─────────────────────────────────────────
+ctx.fillStyle = '#F5F6FA';
+ctx.fillRect(0, 80, 1100, 30);
+hline(0, 1100, 80, '#DDE1E7', 1);
+hline(0, 1100, 110, '#DDE1E7', 1);
+lbl('Figure 5.2: Daily Activity Summary Report – 23 April 2026', 550, 95, 12, '#2C3E50', 'center', true, false);
+
+// ─── 4. KPI CARDS (y=110, h=90) ─────────────────────────────────────────────
+const kpiCards = [
+  { x: 20,  accent: '#2980B9', label: 'New Applications',    value: '8',  sub: '↑ 3 from yesterday',      subColor: '#27AE60' },
+  { x: 276, accent: '#27AE60', label: 'Interviews Scheduled', value: '5',  sub: '2 today · 3 tomorrow',    subColor: '#7F8C8D' },
+  { x: 532, accent: '#E67E22', label: 'Pending Feedback',     value: '7',  sub: 'Due by end of day',       subColor: '#E67E22' },
+  { x: 788, accent: '#8E44AD', label: 'Notifications Sent',   value: '23', sub: 'Email: 18 · SMS: 5',      subColor: '#7F8C8D' },
+];
+
+kpiCards.forEach(card => {
+  const cx = card.x, cy = 118, cw = 240, ch = 70;
+  roundRect(cx, cy, cw, ch, 6, '#FFFFFF', '#DDE1E7', 1);
+  // Left accent bar
+  ctx.fillStyle = card.accent;
+  ctx.fillRect(cx, cy, 4, ch);
+  // Clip rounded corners on accent bar
+  lbl(card.label, cx + 20, cy + 16, 10, '#7F8C8D', 'left', false, false);
+  lbl(card.value, cx + 20, cy + 44, 32, card.accent, 'left', true, false);
+  lbl(card.sub, cx + 20, cy + 60, 9, card.subColor, 'left', false, false);
+});
+
+// ─── 5. NEW APPLICATIONS SECTION (y=210, h=220) ──────────────────────────────
+const s2x = 20, s2y = 210, s2w = 1060, s2h = 220;
+roundRect(s2x, s2y, s2w, s2h, 6, '#FFFFFF', '#DDE1E7', 1);
+
+// Section header
+sectionHeader(s2x, s2y, s2w, 36, '#2980B9', '#EBF5FB',
+  '📋 New Applications',
+  '8 applications received on 23 April 2026');
+lbl('View All →', s2x + s2w - 16, s2y + 18, 10, '#2980B9', 'right', false, false);
+
+// Column headers
+const appCols = ['#', 'Candidate Name', 'Applied For', 'Source', 'CV Status', 'Time', 'Status'];
+const appWidths = [40, 200, 220, 120, 100, 80, 100];
+const appTotalW = appWidths.reduce((a, b) => a + b, 0); // 860 — pad to 1060
+// Adjust last col to fill
+const appWidthsAdj = [40, 200, 240, 130, 110, 90, 250];
+colHeaders(s2x, s2y + 36, s2w, 28, appCols, appWidthsAdj);
+
+// Data rows
+const appRows = [
+  ['1', 'Emily Johnson',   'Senior Frontend Developer', 'LinkedIn',     'Parsed ✓', '08:14 AM', 'New'],
+  ['2', 'David Kim',       'UX Designer',               'Indeed',       'Parsed ✓', '08:47 AM', 'New'],
+  ['3', 'Sarah Chen',      'Sales Manager',             'Referral',     'Parsed ✓', '09:22 AM', 'Reviewed'],
+  ['4', 'Michael Torres',  'DevOps Engineer',           'Company Site', 'Parsed ✓', '10:05 AM', 'New'],
+  ['5', 'Priya Nair',      'Senior Frontend Developer', 'LinkedIn',     'Parsed ✓', '11:30 AM', 'New'],
+  ['6', 'James Wilson',    'React Developer',           'Indeed',       'Pending',  '13:15 PM', 'New'],
+  ['7', 'Anna Kowalski',   'Product Manager',           'LinkedIn',     'Parsed ✓', '15:42 PM', 'Shortlisted'],
+  ['8', 'Tom Harris',      'DevOps Engineer',           'Referral',     'Parsed ✓', '17:08 PM', 'New'],
+];
+
+const badgeDefs = {
+  'New':        { fill: '#EBF5FB', stroke: '#2980B9', text: '#1A5276' },
+  'Reviewed':   { fill: '#FEF9E7', stroke: '#E67E22', text: '#784212' },
+  'Shortlisted':{ fill: '#EAFAF1', stroke: '#27AE60', text: '#1E8449' },
+};
+
+const cvColors = { 'Parsed ✓': '#27AE60', 'Pending': '#E67E22' };
+
+appRows.forEach((row, i) => {
+  const ry = s2y + 36 + 28 + i * 22;
+  const isAlt = i % 2 === 1;
+  ctx.fillStyle = isAlt ? '#F8F9FA' : '#FFFFFF';
+  ctx.fillRect(s2x, ry, s2w, 22);
+
+  // Draw cells manually for badge + color support
+  const cells = row.slice(0, 6);
+  const widths = appWidthsAdj;
+  let cx2 = s2x;
+
+  cells.forEach((cell, ci) => {
+    let color = '#2C3E50';
+    if (ci === 4) color = cvColors[cell] || '#2C3E50';
+    lbl(cell, cx2 + widths[ci] / 2, ry + 11, 10, color, 'center', false, false);
+    cx2 += widths[ci];
+  });
+
+  // Status badge
+  const statusText = row[6];
+  const bd = badgeDefs[statusText] || badgeDefs['New'];
+  const bw = 72, bh = 16;
+  const bx = cx2 + (widths[6] - bw) / 2;
+  const by = ry + 3;
+  badge(bx, by, bw, bh, statusText, bd.fill, bd.stroke, bd.text);
+
+  hline(s2x, s2x + s2w, ry + 22, '#DDE1E7', 0.5);
+});
+
+// ─── 6. SCHEDULED INTERVIEWS SECTION (y=445, h=200) ─────────────────────────
+const s3x = 20, s3y = 445, s3w = 1060, s3h = 200;
+roundRect(s3x, s3y, s3w, s3h, 6, '#FFFFFF', '#DDE1E7', 1);
+
+sectionHeader(s3x, s3y, s3w, 36, '#27AE60', '#EAFAF1',
+  '📅 Scheduled Interviews',
+  '5 interviews scheduled for 23–24 April 2026');
+
+const intCols = ['#', 'Candidate', 'Position', 'Interviewer', 'Date & Time', 'Round', 'Status'];
+const intWidths = [40, 180, 210, 190, 170, 90, 180];
+colHeaders(s3x, s3y + 36, s3w, 28, intCols, intWidths);
+
+const intRows = [
+  ['1', 'Alex Johnson',  'Sr. Software Engineer', 'Michael Thompson', '23 Apr · 10:00 AM', 'Round 1', 'Confirmed'],
+  ['2', 'Maria Chen',    'UX Designer',           'Sarah Kim',        '23 Apr · 02:00 PM', 'Round 2', 'Confirmed'],
+  ['3', 'David Kim',     'Sales Manager',         'James Park',       '23 Apr · 04:00 PM', 'Round 1', 'Pending'],
+  ['4', 'Emma Wilson',   'DevOps Engineer',       'Lisa Chen',        '24 Apr · 10:00 AM', 'Round 1', 'Scheduled'],
+  ['5', 'Ryan Davis',    'React Developer',       'Tom Wilson',       '24 Apr · 02:30 PM', 'Round 1', 'Scheduled'],
+];
+
+const intBadges = {
+  'Confirmed': { fill: '#EAFAF1', stroke: '#27AE60', text: '#1E8449' },
+  'Pending':   { fill: '#FEF9E7', stroke: '#E67E22', text: '#784212' },
+  'Scheduled': { fill: '#EBF5FB', stroke: '#2980B9', text: '#1A5276' },
+};
+
+intRows.forEach((row, i) => {
+  const ry = s3y + 36 + 28 + i * 26;
+  ctx.fillStyle = i % 2 === 1 ? '#F8F9FA' : '#FFFFFF';
+  ctx.fillRect(s3x, ry, s3w, 26);
+
+  let cx2 = s3x;
+  row.slice(0, 6).forEach((cell, ci) => {
+    lbl(cell, cx2 + intWidths[ci] / 2, ry + 13, 10, '#2C3E50', 'center', false, false);
+    cx2 += intWidths[ci];
+  });
+
+  const bd = intBadges[row[6]] || intBadges['Scheduled'];
+  const bw = 76, bh = 18;
+  badge(cx2 + (intWidths[6] - bw) / 2, ry + 4, bw, bh, row[6], bd.fill, bd.stroke, bd.text);
+  hline(s3x, s3x + s3w, ry + 26, '#DDE1E7', 0.5);
+});
+
+// ─── 7. PENDING FEEDBACK SECTION (y=658, h=180) ──────────────────────────────
+const s4x = 20, s4y = 658, s4w = 1060, s4h = 180;
+roundRect(s4x, s4y, s4w, s4h, 6, '#FFFFFF', '#DDE1E7', 1);
+
+sectionHeader(s4x, s4y, s4w, 36, '#E67E22', '#FEF9E7',
+  '⚠ Pending Feedback',
+  '7 feedback submissions overdue or due today');
+
+const fbCols = ['#', 'Candidate', 'Position', 'Interviewer', 'Interview Date', 'Days Overdue', 'Action'];
+const fbWidths = [40, 175, 200, 185, 155, 115, 190];
+colHeaders(s4x, s4y + 36, s4w, 28, fbCols, fbWidths);
+
+const fbRows = [
+  ['1', 'Sophie Brown',  'UX Designer',          'Sarah Kim',        '21 Apr · 10:00 AM', '2 days',   'Send Reminder', '#E74C3C'],
+  ['2', 'James Lee',     'Sr. Engineer',          'Michael Thompson', '22 Apr · 02:00 PM', '1 day',    'Send Reminder', '#E67E22'],
+  ['3', 'Anna White',    'Sales Manager',         'James Park',       '22 Apr · 04:00 PM', '1 day',    'Send Reminder', '#E67E22'],
+  ['4', 'Alex Johnson',  'Sr. Software Engineer', 'Michael Thompson', '23 Apr · 10:00 AM', 'Due today','Submit',        '#27AE60'],
+  ['5', 'Maria Chen',    'UX Designer',           'Sarah Kim',        '23 Apr · 02:00 PM', 'Due today','Submit',        '#27AE60'],
+];
+
+const actionBadges = {
+  'Send Reminder': { fill: '#FDEDEC', stroke: '#E74C3C', text: '#922B21' },
+  'Submit':        { fill: '#EAFAF1', stroke: '#27AE60', text: '#1E8449' },
+};
+
+fbRows.forEach((row, i) => {
+  const ry = s4y + 36 + 28 + i * 22;
+  ctx.fillStyle = i % 2 === 1 ? '#F8F9FA' : '#FFFFFF';
+  ctx.fillRect(s4x, ry, s4w, 22);
+
+  let cx2 = s4x;
+  row.slice(0, 5).forEach((cell, ci) => {
+    lbl(cell, cx2 + fbWidths[ci] / 2, ry + 11, 10, '#2C3E50', 'center', false, false);
+    cx2 += fbWidths[ci];
+  });
+
+  // Days overdue with color
+  const overdueColor = row[7];
+  lbl(row[5], cx2 + fbWidths[5] / 2, ry + 11, 10, overdueColor, 'center', true, false);
+  cx2 += fbWidths[5];
+
+  // Action badge
+  const ab = actionBadges[row[6]] || actionBadges['Submit'];
+  const bw = 90, bh = 16;
+  badge(cx2 + (fbWidths[6] - bw) / 2, ry + 3, bw, bh, row[6], ab.fill, ab.stroke, ab.text);
+
+  hline(s4x, s4x + s4w, ry + 22, '#DDE1E7', 0.5);
+});
+
+// "+ 2 more" note
+const lastFbY = s4y + 36 + 28 + fbRows.length * 22;
+lbl('+ 2 more pending feedback items', s4x + 20, lastFbY + 10, 10, '#7F8C8D', 'left', false, true);
+
+// ─── 8. OUTGOING NOTIFICATIONS SECTION (y=850, h=220) ────────────────────────
+const s5x = 20, s5y = 850, s5w = 1060, s5h = 220;
+roundRect(s5x, s5y, s5w, s5h, 6, '#FFFFFF', '#DDE1E7', 1);
+
+sectionHeader(s5x, s5y, s5w, 36, '#8E44AD', '#F5EEF8',
+  '🔔 Outgoing Notifications',
+  '23 notifications dispatched on 23 April 2026');
+
+// LEFT COLUMN — By Type
+const lcx = s5x + 20, lcy = s5y + 46;
+lbl('By Type', lcx, lcy + 10, 11, '#2C3E50', 'left', true, false);
+
+const notifTypes = [
+  { label: 'Interview Invitation',    count: '8', pct: 0.80, color: '#2980B9', channel: 'Email' },
+  { label: 'Application Confirmation',count: '8', pct: 0.80, color: '#27AE60', channel: 'Email' },
+  { label: 'Feedback Reminder',       count: '3', pct: 0.30, color: '#E67E22', channel: 'Email' },
+  { label: 'Status Update',           count: '3', pct: 0.30, color: '#8E44AD', channel: 'Email' },
+  { label: 'Interview Reminder',      count: '1', pct: 0.10, color: '#E74C3C', channel: 'SMS'   },
+];
+
+notifTypes.forEach((nt, i) => {
+  const ry = lcy + 28 + i * 28;
+  // Type label
+  lbl(nt.label, lcx, ry + 10, 10, '#2C3E50', 'left', false, false);
+  // Progress bar background
+  const barX = lcx + 185, barY = ry + 5, barW = 130, barH = 10;
+  roundRect(barX, barY, barW, barH, 3, '#ECF0F1', null, 0);
+  // Progress bar fill
+  roundRect(barX, barY, barW * nt.pct, barH, 3, nt.color, null, 0);
+  // Count badge
+  const cbx = barX + barW + 8;
+  roundRect(cbx, ry + 3, 22, 16, 3, nt.color, null, 0);
+  lbl(nt.count, cbx + 11, ry + 11, 9, '#FFFFFF', 'center', true, false);
+  // Channel badge
+  const chColor = nt.channel === 'SMS' ? '#E74C3C' : '#2980B9';
+  const chFill  = nt.channel === 'SMS' ? '#FDEDEC' : '#EBF5FB';
+  badge(cbx + 28, ry + 3, 36, 16, nt.channel, chFill, chColor, chColor);
+});
+
+// RIGHT COLUMN — Delivery Status
+const rcx = s5x + 560, rcy = s5y + 46;
+lbl('Delivery Status', rcx, rcy + 10, 11, '#2C3E50', 'left', true, false);
+
+lbl('Delivered: 21 (91.3%)', rcx, rcy + 38, 11, '#27AE60', 'left', true, false);
+lbl('Failed: 2 (8.7%)',      rcx, rcy + 58, 11, '#E74C3C', 'left', true, false);
+lbl('Pending: 0',            rcx, rcy + 78, 11, '#7F8C8D', 'left', false, false);
+
+// Stacked bar
+const sbX = rcx, sbY = rcy + 96, sbW = 420, sbH = 22;
+roundRect(sbX, sbY, sbW, sbH, 4, '#ECF0F1', null, 0);
+const greenW = sbW * 0.913;
+roundRect(sbX, sbY, greenW, sbH, 4, '#27AE60', null, 0);
+// Red portion (right side, no left radius)
+ctx.fillStyle = '#E74C3C';
+ctx.fillRect(sbX + greenW, sbY, sbW - greenW, sbH);
+// Right cap
+ctx.beginPath();
+ctx.moveTo(sbX + sbW - 4, sbY);
+ctx.lineTo(sbX + sbW, sbY);
+ctx.quadraticCurveTo(sbX + sbW, sbY, sbX + sbW, sbY + 4);
+ctx.lineTo(sbX + sbW, sbY + sbH - 4);
+ctx.quadraticCurveTo(sbX + sbW, sbY + sbH, sbX + sbW - 4, sbY + sbH);
+ctx.lineTo(sbX + greenW, sbY + sbH);
+ctx.lineTo(sbX + greenW, sbY);
+ctx.closePath();
+ctx.fill();
+
+// Labels on bar
+lbl('91.3%', sbX + greenW / 2, sbY + 11, 9, '#FFFFFF', 'center', true, false);
+lbl('8.7%',  sbX + greenW + (sbW - greenW) / 2, sbY + 11, 9, '#FFFFFF', 'center', true, false);
+
+// Failed notifications list
+lbl('✗ emily.johnson@email.com — SMTP timeout',   rcx, rcy + 136, 10, '#E74C3C', 'left', false, false);
+lbl('✗ david.kim@email.com — Invalid address',    rcx, rcy + 154, 10, '#E74C3C', 'left', false, false);
+
+// ─── 9. REPORT FOOTER (y=1080, h=60) ─────────────────────────────────────────
+ctx.fillStyle = '#F5F6FA';
+ctx.fillRect(0, 1080, 1100, 120);
+hline(0, 1100, 1080, '#DDE1E7', 1);
+
+lbl('RMS v1.0.0 · LankanTech Solutions · admin@rms.lankantech.com', 20,   1110, 10, '#7F8C8D', 'left',   false, false);
+lbl('CONFIDENTIAL — For internal use only',                          550,  1110, 10, '#E74C3C', 'center', true,  false);
+lbl('Page 1 of 1 · Generated 24 Apr 2026 09:00 AM',                 1080, 1110, 10, '#7F8C8D', 'right',  false, false);
+
+</script>
+</body>
+</html>

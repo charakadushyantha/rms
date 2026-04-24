@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sequence Diagram – Candidate Job Application Flow</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #fff; font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+  #controls { margin-bottom: 16px; }
+  #printBtn {
+    background: #1A252F; color: #fff; border: none; padding: 10px 24px;
+    font-size: 14px; font-family: Arial, sans-serif; cursor: pointer;
+    border-radius: 4px; letter-spacing: 0.3px;
+  }
+  #printBtn:hover { background: #2c3e50; }
+  canvas { display: block; border: 1px solid #ccc; }
+  @media print {
+    #controls { display: none; }
+    body { padding: 0; }
+    canvas { border: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="controls">
+  <button id="printBtn" onclick="window.print()">📸 Print / Save as Image</button>
+</div>
+
+<canvas id="diagram" width="1400" height="1000"></canvas>
+
+<script>
+const canvas = document.getElementById('diagram');
+const ctx = canvas.getContext('2d');
+
+// ─── Lifeline centers ───────────────────────────────────────────────
+const LF = {
+  candidate:   120,
+  cdashboard:  320,
+  candModel:   520,
+  cvparser:    720,
+  database:    920,
+  email:       1120
+};
+
+// ─── Helpers ────────────────────────────────────────────────────────
+
+function drawLifeline(cx, name1, name2) {
+  const bw = 140, bh = 50, bx = cx - 70, by = 80;
+  ctx.fillStyle = '#EEEEEE';
+  ctx.fillRect(bx, by, bw, bh);
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([]);
+  ctx.strokeRect(bx, by, bw, bh);
+  ctx.font = 'bold 12px Arial';
+  ctx.fillStyle = '#000';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText(name1, cx, by + 20);
+  ctx.font = '11px Arial';
+  ctx.fillStyle = '#333';
+  ctx.fillText(name2, cx, by + 38);
+  // dashed lifeline
+  ctx.beginPath();
+  ctx.setLineDash([4, 3]);
+  ctx.strokeStyle = '#888';
+  ctx.lineWidth = 1;
+  ctx.moveTo(cx, by + bh);
+  ctx.lineTo(cx, 960);
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function activationBar(cx, yStart, yEnd) {
+  ctx.fillStyle = '#CCCCCC';
+  ctx.fillRect(cx - 5, yStart, 10, yEnd - yStart);
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 0.5;
+  ctx.setLineDash([]);
+  ctx.strokeRect(cx - 5, yStart, 10, yEnd - yStart);
+}
+
+function msgArrow(x1, x2, y, label) {
+  ctx.beginPath();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([]);
+  ctx.moveTo(x1, y);
+  ctx.lineTo(x2 - 8, y);
+  ctx.stroke();
+  // filled arrowhead
+  ctx.beginPath();
+  ctx.moveTo(x2, y);
+  ctx.lineTo(x2 - 10, y - 5);
+  ctx.lineTo(x2 - 10, y + 5);
+  ctx.closePath();
+  ctx.fillStyle = '#000';
+  ctx.fill();
+  // label with white bg
+  ctx.font = '11px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  const mx = (x1 + x2) / 2;
+  const tw = ctx.measureText(label).width;
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(mx - tw / 2 - 2, y - 17, tw + 4, 13);
+  ctx.fillStyle = '#000';
+  ctx.fillText(label, mx, y - 6);
+}
+
+function returnArrow(x1, x2, y, label) {
+  // x1 = from (right side), x2 = to (left side)
+  ctx.beginPath();
+  ctx.strokeStyle = '#555';
+  ctx.lineWidth = 1.2;
+  ctx.setLineDash([5, 4]);
+  ctx.moveTo(x1, y);
+  ctx.lineTo(x2 + 8, y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  // open arrowhead pointing left
+  ctx.beginPath();
+  ctx.moveTo(x2, y);
+  ctx.lineTo(x2 + 10, y - 5);
+  ctx.lineTo(x2 + 10, y + 5);
+  ctx.strokeStyle = '#555';
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+  // label
+  ctx.font = 'italic 11px Arial';
+  ctx.fillStyle = '#555';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  const mx = (x1 + x2) / 2;
+  const tw = ctx.measureText(label).width;
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(mx - tw / 2 - 2, y - 17, tw + 4, 13);
+  ctx.fillStyle = '#555';
+  ctx.fillText(label, mx, y - 6);
+}
+
+function selfCall(cx, y, label) {
+  const lw = 44, lh = 22;
+  ctx.beginPath();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([]);
+  ctx.moveTo(cx, y);
+  ctx.lineTo(cx + lw, y);
+  ctx.lineTo(cx + lw, y + lh);
+  ctx.lineTo(cx, y + lh);
+  ctx.stroke();
+  // arrowhead pointing left
+  ctx.beginPath();
+  ctx.moveTo(cx, y + lh);
+  ctx.lineTo(cx + 10, y + lh - 5);
+  ctx.lineTo(cx + 10, y + lh + 5);
+  ctx.closePath();
+  ctx.fillStyle = '#000';
+  ctx.fill();
+  // label
+  ctx.font = '11px Arial';
+  ctx.fillStyle = '#000';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText(label, cx + lw + 5, y + lh / 2 + 4);
+}
+
+function altFragment(x, y, w, h, guardTop) {
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.2;
+  ctx.setLineDash([]);
+  ctx.strokeRect(x, y, w, h);
+  // pentagon
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(x + 32, y);
+  ctx.lineTo(x + 32, y + 16);
+  ctx.lineTo(x + 26, y + 22);
+  ctx.lineTo(x, y + 22);
+  ctx.closePath();
+  ctx.fillStyle = '#EEE';
+  ctx.fill();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.font = 'bold 11px Arial';
+  ctx.fillStyle = '#000';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText('alt', x + 7, y + 15);
+  // guard top
+  ctx.font = 'italic 11px Arial';
+  ctx.fillStyle = '#333';
+  ctx.fillText(guardTop, x + 38, y + 15);
+}
+
+function altDivider(x, y, w, guard) {
+  ctx.beginPath();
+  ctx.setLineDash([5, 4]);
+  ctx.strokeStyle = '#555';
+  ctx.lineWidth = 1;
+  ctx.moveTo(x, y);
+  ctx.lineTo(x + w, y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.font = 'italic 11px Arial';
+  ctx.fillStyle = '#333';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText(guard, x + 8, y + 14);
+}
+
+function noteBox(x, y, w, h, lines, connectX, connectY) {
+  const fold = 10;
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(x + w - fold, y);
+  ctx.lineTo(x + w, y + fold);
+  ctx.lineTo(x + w, y + h);
+  ctx.lineTo(x, y + h);
+  ctx.closePath();
+  ctx.fillStyle = '#F5F5F5';
+  ctx.fill();
+  ctx.strokeStyle = '#888';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([]);
+  ctx.stroke();
+  // fold corner
+  ctx.beginPath();
+  ctx.moveTo(x + w - fold, y);
+  ctx.lineTo(x + w - fold, y + fold);
+  ctx.lineTo(x + w, y + fold);
+  ctx.strokeStyle = '#888';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  // text
+  ctx.font = '10px Arial';
+  ctx.fillStyle = '#333';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  lines.forEach((l, i) => ctx.fillText(l, x + 6, y + 14 + i * 14));
+  // connector dashed line
+  ctx.beginPath();
+  ctx.setLineDash([3, 3]);
+  ctx.strokeStyle = '#888';
+  ctx.lineWidth = 1;
+  ctx.moveTo(x + w, y + h / 2);
+  ctx.lineTo(connectX, connectY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+// ════════════════════════════════════════════════════════════════════
+// DRAW
+// ════════════════════════════════════════════════════════════════════
+
+// 1. White background
+ctx.fillStyle = '#FFFFFF';
+ctx.fillRect(0, 0, 1400, 1000);
+
+// 2. Title bar
+ctx.fillStyle = '#1A252F';
+ctx.fillRect(0, 0, 1400, 70);
+ctx.font = 'bold 22px Arial';
+ctx.fillStyle = '#FFFFFF';
+ctx.textAlign = 'center';
+ctx.textBaseline = 'alphabetic';
+ctx.fillText('Sequence Diagram \u2013 Candidate Job Application Flow', 700, 30);
+ctx.font = '13px Arial';
+ctx.fillStyle = '#AED6F1';
+ctx.fillText('CV Upload \u00B7 Validation \u00B7 Persistence \u00B7 Notification \u00B7 Acknowledgement', 700, 54);
+
+// 3. Lifelines
+drawLifeline(LF.candidate,   'Candidate',      '(Browser)');
+drawLifeline(LF.cdashboard,  'C_dashboard',    '(Controller)');
+drawLifeline(LF.candModel,   'Candidate',      'Model');
+drawLifeline(LF.cvparser,    'CvParser',       '(Library)');
+drawLifeline(LF.database,    'Database',       '(MySQL)');
+drawLifeline(LF.email,       'Email',          'Service');
+
+// 4. Activation bars
+activationBar(LF.candidate,  160, 870);
+activationBar(LF.cdashboard, 160, 870);
+activationBar(LF.candModel,  400, 720);
+activationBar(LF.cvparser,   200, 330);
+activationBar(LF.database,   450, 510);
+activationBar(LF.database,   630, 680);
+activationBar(LF.email,      740, 830);
+
+// 5. ALT fragment (draw before messages so messages appear on top)
+altFragment(200, 385, 1000, 180, '[valid]');
+altDivider(200, 525, 1000, '[invalid \u2014 file type / size error]');
+
+// 6. Messages
+
+// Step 1 — y=160
+msgArrow(LF.candidate, LF.cdashboard, 160, 'POST /upload_cv(file, jobId)');
+
+// Step 2 — y=200
+msgArrow(LF.cdashboard, LF.cvparser, 200, 'parse(filePath)');
+
+// Step 3 — y=240 (self-call on CvParser)
+selfCall(LF.cvparser, 232, 'extractText()');
+
+// Step 4 — y=280 (self-call on CvParser)
+selfCall(LF.cvparser, 272, 'parseStructuredData()');
+
+// Step 5 — y=320 (return from CvParser to C_dashboard)
+returnArrow(LF.cvparser, LF.cdashboard, 320, 'return cvData{name,email,skills,education}');
+
+// Step 6 — y=360 (self-call on C_dashboard)
+selfCall(LF.cdashboard, 352, 'validateCvData(cvData)');
+
+// Step 7 — y=420 (inside alt [valid])
+msgArrow(LF.cdashboard, LF.candModel, 420, 'createFromCv(cvData)');
+
+// Step 8 — y=460
+msgArrow(LF.candModel, LF.database, 460, 'INSERT INTO candidate_details');
+
+// Step 9 — y=490
+returnArrow(LF.database, LF.candModel, 490, 'return candidateId');
+
+// Step 10 — y=510
+returnArrow(LF.candModel, LF.cdashboard, 510, 'return candidateId');
+
+// Step 11 — y=545 (inside alt [invalid])
+returnArrow(LF.cdashboard, LF.candidate, 545, 'return error{code:422, message}');
+
+// Step 12 — y=600
+msgArrow(LF.cdashboard, LF.candModel, 600, 'saveApplication(candidateId, jobId)');
+
+// Step 13 — y=640
+msgArrow(LF.candModel, LF.database, 640, 'INSERT INTO candidate_applications');
+
+// Step 14 — y=670
+returnArrow(LF.database, LF.candModel, 670, 'return applicationId');
+
+// Step 15 — y=700
+returnArrow(LF.candModel, LF.cdashboard, 700, 'return applicationId');
+
+// Step 16 — y=740
+msgArrow(LF.cdashboard, LF.email, 740, 'sendConfirmation(email, jobTitle)');
+
+// Step 17 — y=780 (self-call on Email_Service)
+selfCall(LF.email, 772, 'buildEmailTemplate()');
+
+// Step 18 — y=820
+returnArrow(LF.email, LF.cdashboard, 820, 'return emailSent: true');
+
+// Step 19 — y=860
+returnArrow(LF.cdashboard, LF.candidate, 860, "return {success:true, applicationId, message:'Application submitted'}");
+
+// 7. Note box
+noteBox(20, 885, 180, 40,
+  ['Candidate receives', 'confirmation email'],
+  LF.candidate, 900
+);
+
+// 8. Footer
+ctx.beginPath();
+ctx.strokeStyle = '#CCC';
+ctx.lineWidth = 1;
+ctx.setLineDash([]);
+ctx.moveTo(0, 970);
+ctx.lineTo(1400, 970);
+ctx.stroke();
+ctx.font = '10px Arial';
+ctx.fillStyle = '#999';
+ctx.textAlign = 'center';
+ctx.textBaseline = 'alphabetic';
+ctx.fillText('RMS \u00B7 Sequence Diagram \u00B7 Candidate Job Application Flow \u00B7 Thesis Documentation', 700, 982);
+
+</script>
+</body>
+</html>

@@ -1,0 +1,534 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RMS - High-Level System Architecture</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f0f4f8;
+    padding: 30px;
+    min-width: 1200px;
+  }
+
+  .page {
+    background: white;
+    width: 1140px;
+    margin: 0 auto;
+    padding: 40px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+    border-radius: 12px;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    text-align: center;
+    margin-bottom: 36px;
+    padding-bottom: 20px;
+    border-bottom: 3px solid #4f46e5;
+  }
+  .header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1e1b4b;
+    letter-spacing: 0.5px;
+  }
+  .header p {
+    font-size: 13px;
+    color: #6b7280;
+    margin-top: 6px;
+  }
+
+  /* ── TIER WRAPPER ── */
+  .architecture {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* ── TIER BLOCK ── */
+  .tier {
+    display: flex;
+    align-items: stretch;
+    margin-bottom: 0;
+  }
+
+  .tier-label {
+    width: 130px;
+    min-width: 130px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 8px;
+    border-radius: 10px 0 0 10px;
+    writing-mode: horizontal-tb;
+    text-align: center;
+    gap: 6px;
+  }
+  .tier-label .tier-icon { font-size: 22px; }
+  .tier-label .tier-name {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    line-height: 1.3;
+  }
+
+  .tier-content {
+    flex: 1;
+    padding: 16px 18px;
+    border-radius: 0 10px 10px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .tier-title {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  /* ── COMPONENT ROWS ── */
+  .comp-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .comp {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    min-width: 100px;
+    gap: 5px;
+    border: 1.5px solid transparent;
+    line-height: 1.3;
+  }
+  .comp .icon { font-size: 18px; }
+  .comp .label { font-size: 10.5px; }
+  .comp .sublabel { font-size: 9.5px; font-weight: 400; opacity: 0.8; }
+
+  /* ── ARROW CONNECTOR ── */
+  .arrow-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 32px;
+    position: relative;
+  }
+  .arrow-line {
+    width: 2px;
+    height: 100%;
+    background: #94a3b8;
+    position: relative;
+  }
+  .arrow-line::after {
+    content: '▼';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #94a3b8;
+    font-size: 14px;
+  }
+  .arrow-label {
+    position: absolute;
+    left: calc(50% + 10px);
+    font-size: 10px;
+    color: #94a3b8;
+    white-space: nowrap;
+    font-style: italic;
+  }
+
+  /* ── TIER COLORS ── */
+
+  /* PRESENTATION */
+  .t1-label { background: #4f46e5; color: white; }
+  .t1-content { background: #eef2ff; border: 2px solid #c7d2fe; }
+  .t1-title { color: #3730a3; }
+  .t1-comp { background: #4f46e5; color: white; border-color: #3730a3; }
+  .t1-comp-light { background: #e0e7ff; color: #3730a3; border-color: #a5b4fc; }
+
+  /* APPLICATION */
+  .t2-label { background: #0891b2; color: white; }
+  .t2-content { background: #ecfeff; border: 2px solid #a5f3fc; }
+  .t2-title { color: #0e7490; }
+  .t2-comp { background: #0891b2; color: white; border-color: #0e7490; }
+  .t2-comp-light { background: #cffafe; color: #0e7490; border-color: #67e8f9; }
+
+  /* DATA */
+  .t3-label { background: #059669; color: white; }
+  .t3-content { background: #ecfdf5; border: 2px solid #a7f3d0; }
+  .t3-title { color: #047857; }
+  .t3-comp { background: #059669; color: white; border-color: #047857; }
+  .t3-comp-light { background: #d1fae5; color: #047857; border-color: #6ee7b7; }
+
+  /* INTEGRATION */
+  .t4-label { background: #d97706; color: white; }
+  .t4-content { background: #fffbeb; border: 2px solid #fde68a; }
+  .t4-title { color: #b45309; }
+  .t4-comp { background: #d97706; color: white; border-color: #b45309; }
+  .t4-comp-light { background: #fef3c7; color: #b45309; border-color: #fcd34d; }
+
+  /* SECURITY */
+  .t5-label { background: #dc2626; color: white; }
+  .t5-content { background: #fff1f2; border: 2px solid #fecdd3; }
+  .t5-title { color: #b91c1c; }
+  .t5-comp { background: #dc2626; color: white; border-color: #b91c1c; }
+  .t5-comp-light { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
+
+  /* ── SECTION DIVIDER ── */
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 8px 0;
+  }
+  .section-divider span {
+    font-size: 10px;
+    color: #9ca3af;
+    white-space: nowrap;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .section-divider hr {
+    flex: 1;
+    border: none;
+    border-top: 1px dashed #d1d5db;
+  }
+
+  /* ── LEGEND ── */
+  .legend {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: 28px;
+    padding-top: 18px;
+    border-top: 2px solid #e5e7eb;
+    justify-content: center;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    color: #374151;
+  }
+  .legend-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 10.5px;
+    color: #9ca3af;
+  }
+
+  /* ── BIDIRECTIONAL ARROWS ── */
+  .bidir-arrow {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 28px;
+    gap: 6px;
+    color: #94a3b8;
+    font-size: 13px;
+  }
+  .bidir-arrow span { font-size: 10px; color: #94a3b8; font-style: italic; }
+
+  /* ── WIDE COMP ── */
+  .comp-wide {
+    flex: 1;
+    min-width: 140px;
+  }
+
+  /* ── SUBSECTION LABEL ── */
+  .sub-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #6b7280;
+    margin-bottom: 2px;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <h1>High-Level System Architecture — Recruitment Management System (RMS)</h1>
+    <p>Layered architecture depicting Presentation · Application · Data · External Integration · Cross-Cutting Security tiers</p>
+  </div>
+
+  <div class="architecture">
+
+    <!-- ══════════════════════════════════════════════════════════
+         TIER 1 — PRESENTATION
+    ═══════════════════════════════════════════════════════════ -->
+    <div class="tier">
+      <div class="tier-label t1-label">
+        <div class="tier-icon">🖥️</div>
+        <div class="tier-name">Presentation<br>Tier</div>
+      </div>
+      <div class="tier-content t1-content">
+        <div class="tier-title t1-title">User Interface Layer — HTML5 · CSS3 · JavaScript · AJAX · Font Awesome</div>
+
+        <div class="sub-label">Role-Based Dashboards</div>
+        <div class="comp-row">
+          <div class="comp t1-comp"><div class="icon">👑</div><div class="label">Admin Dashboard</div><div class="sublabel">/A_dashboard</div></div>
+          <div class="comp t1-comp"><div class="icon">🧑‍💼</div><div class="label">Recruiter Dashboard</div><div class="sublabel">/R_dashboard</div></div>
+          <div class="comp t1-comp"><div class="icon">🎤</div><div class="label">Interviewer Dashboard</div><div class="sublabel">/I_dashboard</div></div>
+          <div class="comp t1-comp"><div class="icon">👤</div><div class="label">Candidate Dashboard</div><div class="sublabel">/C_dashboard</div></div>
+        </div>
+
+        <div class="sub-label" style="margin-top:6px;">Feature Views</div>
+        <div class="comp-row">
+          <div class="comp t1-comp-light"><div class="icon">🤖</div><div class="label">AI Chatbot UI</div><div class="sublabel">Chat Widget</div></div>
+          <div class="comp t1-comp-light"><div class="icon">��</div><div class="label">Interview UI</div><div class="sublabel">Take / Manage</div></div>
+          <div class="comp t1-comp-light"><div class="icon">📋</div><div class="label">Job Posting UI</div></div>
+          <div class="comp t1-comp-light"><div class="icon">📊</div><div class="label">Reports &amp; Analytics</div></div>
+          <div class="comp t1-comp-light"><div class="icon">📅</div><div class="label">Calendar</div><div class="sublabel">FullCalendar</div></div>
+          <div class="comp t1-comp-light"><div class="icon">🔐</div><div class="label">Login / Signup</div><div class="sublabel">OAuth UI</div></div>
+          <div class="comp t1-comp-light"><div class="icon">📦</div><div class="label">Realtime Pipeline</div><div class="sublabel">Kanban Board</div></div>
+          <div class="comp t1-comp-light"><div class="icon">📣</div><div class="label">Marketing Hub</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ARROW 1→2 -->
+    <div class="arrow-row">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:0;">
+        <div style="font-size:11px;color:#64748b;font-style:italic;">HTTP Requests · AJAX · JSON</div>
+        <div style="font-size:20px;color:#94a3b8;line-height:1;">⇅</div>
+        <div style="font-size:11px;color:#64748b;font-style:italic;">HTML Responses · JSON API</div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         TIER 2 — APPLICATION
+    ═══════════════════════════════════════════════════════════ -->
+    <div class="tier">
+      <div class="tier-label t2-label">
+        <div class="tier-icon">⚙️</div>
+        <div class="tier-name">Application<br>Tier</div>
+      </div>
+      <div class="tier-content t2-content">
+        <div class="tier-title t2-title">Business Logic Layer — CodeIgniter 3.x MVC Framework · PHP 7.4+</div>
+
+        <div class="sub-label">Core Framework</div>
+        <div class="comp-row">
+          <div class="comp t2-comp comp-wide"><div class="icon">🔀</div><div class="label">Router</div><div class="sublabel">URL → Controller</div></div>
+          <div class="comp t2-comp comp-wide"><div class="icon">🛡️</div><div class="label">Auth Middleware</div><div class="sublabel">Session Check</div></div>
+          <div class="comp t2-comp comp-wide"><div class="icon">📤</div><div class="label">Output Class</div><div class="sublabel">Response Builder</div></div>
+          <div class="comp t2-comp comp-wide"><div class="icon">🪝</div><div class="label">Hooks</div><div class="sublabel">Pre/Post Filters</div></div>
+        </div>
+
+        <div class="sub-label" style="margin-top:6px;">Controllers (39)</div>
+        <div class="comp-row">
+          <div class="comp t2-comp-light"><div class="icon">🔑</div><div class="label">Login</div></div>
+          <div class="comp t2-comp-light"><div class="icon">🤖</div><div class="label">Bot</div></div>
+          <div class="comp t2-comp-light"><div class="icon">🎯</div><div class="label">Interview</div></div>
+          <div class="comp t2-comp-light"><div class="icon">💼</div><div class="label">Job Posting</div></div>
+          <div class="comp t2-comp-light"><div class="icon">👥</div><div class="label">Candidate CRM</div></div>
+          <div class="comp t2-comp-light"><div class="icon">📡</div><div class="label">Interview API</div></div>
+          <div class="comp t2-comp-light"><div class="icon">📊</div><div class="label">Custom Reports</div></div>
+          <div class="comp t2-comp-light"><div class="icon">📣</div><div class="label">Marketing</div></div>
+          <div class="comp t2-comp-light"><div class="icon">🔗</div><div class="label">Referral</div></div>
+          <div class="comp t2-comp-light"><div class="icon">⚙️</div><div class="label">Setup</div></div>
+          <div class="comp t2-comp-light"><div class="icon">📈</div><div class="label">ROI Tracking</div></div>
+          <div class="comp t2-comp-light"><div class="icon">🏆</div><div class="label">Awards</div></div>
+        </div>
+
+        <div class="sub-label" style="margin-top:6px;">Custom Libraries &amp; Helpers</div>
+        <div class="comp-row">
+          <div class="comp t2-comp"><div class="icon">🧠</div><div class="label">BotEngine</div><div class="sublabel">Intent→Response</div></div>
+          <div class="comp t2-comp"><div class="icon">��</div><div class="label">IntentRecognizer</div><div class="sublabel">NLP Matching</div></div>
+          <div class="comp t2-comp"><div class="icon">��</div><div class="label">CvParser</div><div class="sublabel">PDF/DOCX/OCR</div></div>
+          <div class="comp t2-comp"><div class="icon">🏷️</div><div class="label">EntityExtractor</div><div class="sublabel">Name/Email/Skills</div></div>
+          <div class="comp t2-comp"><div class="icon">🤖</div><div class="label">AIService</div><div class="sublabel">OpenAI Wrapper</div></div>
+          <div class="comp t2-comp"><div class="icon">📝</div><div class="label">AuditLogger</div><div class="sublabel">Activity Logs</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ARROW 2→3 -->
+    <div class="arrow-row">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:0;">
+        <div style="font-size:11px;color:#64748b;font-style:italic;">Active Record ORM · Parameterized Queries</div>
+        <div style="font-size:20px;color:#94a3b8;line-height:1;">⇅</div>
+        <div style="font-size:11px;color:#64748b;font-style:italic;">Result Sets · Row Arrays</div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         TIER 3 — DATA
+    ═══════════════════════════════════════════════════════════ -->
+    <div class="tier">
+      <div class="tier-label t3-label">
+        <div class="tier-icon">🗄️</div>
+        <div class="tier-name">Data<br>Tier</div>
+      </div>
+      <div class="tier-content t3-content">
+        <div class="tier-title t3-title">Data Persistence Layer — MySQL 5.7+ · CodeIgniter Active Record ORM</div>
+
+        <div class="sub-label">Models (35+)</div>
+        <div class="comp-row">
+          <div class="comp t3-comp-light"><div class="icon">👤</div><div class="label">Candidate Model</div></div>
+          <div class="comp t3-comp-light"><div class="icon">🎯</div><div class="label">Interview Model</div></div>
+          <div class="comp t3-comp-light"><div class="icon">🤖</div><div class="label">Bot Model</div></div>
+          <div class="comp t3-comp-light"><div class="icon">💬</div><div class="label">Chat History</div></div>
+          <div class="comp t3-comp-light"><div class="icon">💼</div><div class="label">Job Posting</div></div>
+          <div class="comp t3-comp-light"><div class="icon">📅</div><div class="label">Calendar Model</div></div>
+          <div class="comp t3-comp-light"><div class="icon">🔑</div><div class="label">Login Model</div></div>
+          <div class="comp t3-comp-light"><div class="icon">📊</div><div class="label">Reports Model</div></div>
+          <div class="comp t3-comp-light"><div class="icon">🔗</div><div class="label">Referral Model</div></div>
+          <div class="comp t3-comp-light"><div class="icon">📈</div><div class="label">ROI Model</div></div>
+        </div>
+
+        <div class="sub-label" style="margin-top:6px;">Database Tables (50+)</div>
+        <div class="comp-row">
+          <div class="comp t3-comp"><div class="icon">👥</div><div class="label">users</div><div class="sublabel">roles · status · tokens</div></div>
+          <div class="comp t3-comp"><div class="icon">🧑</div><div class="label">candidate_details</div><div class="sublabel">profiles · pipeline</div></div>
+          <div class="comp t3-comp"><div class="icon">📅</div><div class="label">calendar_events</div><div class="sublabel">scheduling</div></div>
+          <div class="comp t3-comp"><div class="icon">��</div><div class="label">interviews</div><div class="sublabel">tokens · status</div></div>
+          <div class="comp t3-comp"><div class="icon">📝</div><div class="label">interview_flows</div><div class="sublabel">templates · questions</div></div>
+          <div class="comp t3-comp"><div class="icon">💬</div><div class="label">chat_messages</div><div class="sublabel">sessions · history</div></div>
+          <div class="comp t3-comp"><div class="icon">📚</div><div class="label">knowledge_base</div><div class="sublabel">FAQ · intents</div></div>
+          <div class="comp t3-comp"><div class="icon">🔐</div><div class="label">ci_sessions</div><div class="sublabel">DB session store</div></div>
+          <div class="comp t3-comp"><div class="icon">💼</div><div class="label">job_postings</div><div class="sublabel">categories · platforms</div></div>
+          <div class="comp t3-comp"><div class="icon">📣</div><div class="label">marketing_campaigns</div><div class="sublabel">email · social · ads</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ARROW 2→4 (side) shown as horizontal note -->
+    <div class="arrow-row">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:0;">
+        <div style="font-size:11px;color:#64748b;font-style:italic;">HTTPS API Calls · OAuth 2.0 · SMTP · cURL</div>
+        <div style="font-size:20px;color:#94a3b8;line-height:1;">⇅</div>
+        <div style="font-size:11px;color:#64748b;font-style:italic;">JSON Responses · Tokens · Email Delivery</div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         TIER 4 — EXTERNAL INTEGRATION
+    ═══════════════════════════════════════════════════════════ -->
+    <div class="tier">
+      <div class="tier-label t4-label">
+        <div class="tier-icon">🔌</div>
+        <div class="tier-name">External<br>Integration<br>Tier</div>
+      </div>
+      <div class="tier-content t4-content">
+        <div class="tier-title t4-title">Third-Party Services &amp; External APIs</div>
+
+        <div class="comp-row">
+          <div class="comp t4-comp">
+            <div class="icon">🤖</div>
+            <div class="label">OpenAI API</div>
+            <div class="sublabel">GPT-3.5-turbo<br>Chat Completions</div>
+          </div>
+          <div class="comp t4-comp">
+            <div class="icon">🔵</div>
+            <div class="label">Google OAuth 2.0</div>
+            <div class="sublabel">Social Login<br>User Profile</div>
+          </div>
+          <div class="comp t4-comp">
+            <div class="icon">📧</div>
+            <div class="label">Gmail SMTP</div>
+            <div class="sublabel">Password Reset<br>Notifications</div>
+          </div>
+          <div class="comp t4-comp">
+            <div class="icon">💼</div>
+            <div class="label">LinkedIn API</div>
+            <div class="sublabel">Job Posting<br>Integration</div>
+          </div>
+          <div class="comp t4-comp">
+            <div class="icon">🔍</div>
+            <div class="label">Indeed API</div>
+            <div class="sublabel">Job Posting<br>Integration</div>
+          </div>
+          <div class="comp t4-comp-light">
+            <div class="icon">🔤</div>
+            <div class="label">Tesseract OCR</div>
+            <div class="sublabel">Image CV<br>Text Extraction</div>
+          </div>
+          <div class="comp t4-comp-light">
+            <div class="icon">📅</div>
+            <div class="label">FullCalendar JS</div>
+            <div class="sublabel">Interview<br>Scheduling UI</div>
+          </div>
+          <div class="comp t4-comp-light">
+            <div class="icon">��</div>
+            <div class="label">Google Jobs</div>
+            <div class="sublabel">Job Board<br>Distribution</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ARROW → SECURITY -->
+    <div class="arrow-row">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:0;">
+        <div style="font-size:11px;color:#64748b;font-style:italic;">Applied across all tiers</div>
+        <div style="font-size:20px;color:#94a3b8;line-height:1;">⇣</div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         TIER 5 — CROSS-CUTTING SECURITY
+    ═══════════════════════════════════════════════════════════ -->
+    <div class="tier">
+      <div class="tier-label t5-label">
+        <div class="tier-icon">🛡️</div>
+        <div class="tier-name">Cross-Cutting<br>Security</div>
+      </div>
+      <div class="tier-content t5-content">
+        <div class="tier-title t5-title">Security &amp; Cross-Cutting Concerns — Applied Across All Tiers</div>
+        <div class="comp-row">
+          <div class="comp t5-comp-light"><div class="icon">🔐</div><div class="label">Session Auth</div><div class="sublabel">DB-stored · 2hr expiry</div></div>
+          <div class="comp t5-comp-light"><div class="icon">👥</div><div class="label">RBAC</div><div class="sublabel">4 Roles · Per-route</div></div>
+          <div class="comp t5-comp-light"><div class="icon">💉</div><div class="label">SQL Injection</div><div class="sublabel">ORM Parameterized</div></div>
+          <div class="comp t5-comp-light"><div class="icon">🚫</div><div class="label">XSS Protection</div><div class="sublabel">Input Sanitization</div></div>
+          <div class="comp t5-comp-light"><div class="icon">🔑</div><div class="label">Password Reset</div><div class="sublabel">DB Token · 1hr expiry</div></div>
+          <div class="comp t5-comp-light"><div class="icon">🎫</div><div class="label">Interview Tokens</div><div class="sublabel">64-byte hex · 7 days</div></div>
+          <div class="comp t5-comp-light"><div class="icon">📋</div><div class="label">Audit Logger</div><div class="sublabel">All CRUD actions</div></div>
+          <div class="comp t5-comp-light"><div class="icon">📁</div><div class="label">File Upload Guard</div><div class="sublabel">Type · Size · Encrypt</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end architecture -->
+
+  <!-- LEGEND -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#4f46e5;"></div> Presentation Tier</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#0891b2;"></div> Application Tier</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#059669;"></div> Data Tier</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#d97706;"></div> External Integration Tier</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#dc2626;"></div> Cross-Cutting Security</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#e0e7ff;border:1.5px solid #a5b4fc;"></div> Sub-component</div>
+  </div>
+
+  <div class="footer">
+    RMS — Recruitment Management System &nbsp;|&nbsp; CodeIgniter 3.x · PHP 7.4+ · MySQL 5.7+ &nbsp;|&nbsp; Architecture Diagram v1.0
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,278 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RMS – Component Diagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #f0f4f8; font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+  .btn-print {
+    margin: 16px 0;
+    padding: 10px 28px;
+    background: #2980B9;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    cursor: pointer;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+    transition: background 0.2s;
+  }
+  .btn-print:hover { background: #1a5f8a; }
+  canvas { display: block; background: #fff; box-shadow: 0 4px 24px rgba(0,0,0,0.13); }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .btn-print { display: none; }
+    canvas { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+<button class="btn-print" onclick="window.print()">📸 Print / Save as Image</button>
+<canvas id="diagram" width="1400" height="1000"></canvas>
+<script>
+const canvas = document.getElementById('diagram');
+const ctx = canvas.getContext('2d');
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function roundRect(x, y, w, h, r, fill, stroke, lw) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw || 2; ctx.stroke(); }
+}
+
+// UML component notch (top-right corner)
+function drawComponentNotch(x, y, w) {
+  const nx = x + w - 28, ny = y + 8, nw = 20, nh = 14, gap = 5;
+  ctx.strokeStyle = '#2980B9'; ctx.lineWidth = 1.5;
+  // outer rect
+  ctx.strokeRect(nx, ny, nw, nh);
+  // two small side tabs
+  ctx.strokeRect(nx - gap - 6, ny + 2, 6, 4);
+  ctx.strokeRect(nx - gap - 6, ny + 8, 6, 4);
+}
+
+function drawComponent(x, y, w, h, stereotype, name, desc) {
+  // shadow
+  ctx.shadowColor = 'rgba(0,0,0,0.10)';
+  ctx.shadowBlur = 8;
+  ctx.shadowOffsetX = 2; ctx.shadowOffsetY = 3;
+  roundRect(x, y, w, h, 8, '#E8F4FD', '#2980B9', 2);
+  ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+
+  // header band
+  roundRect(x, y, w, 28, 8, '#2980B9', null, 0);
+  // fix bottom corners of header
+  ctx.fillStyle = '#2980B9';
+  ctx.fillRect(x, y + 18, w, 10);
+
+  // stereotype
+  ctx.fillStyle = '#fff';
+  ctx.font = 'italic 11px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('«component»', x + w / 2, y + 18);
+
+  // component notch icon
+  drawComponentNotch(x, y, w);
+
+  // name
+  ctx.fillStyle = '#1A252F';
+  ctx.font = 'bold 13px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText(name, x + w / 2, y + 50);
+
+  // divider
+  ctx.strokeStyle = '#AED6F1';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(x + 10, y + 58); ctx.lineTo(x + w - 10, y + 58); ctx.stroke();
+
+  // description
+  ctx.fillStyle = '#555';
+  ctx.font = '11px Arial';
+  const words = desc.split(',');
+  words.forEach((w2, i) => {
+    ctx.fillText(w2.trim(), x + w / 2, y + 74 + i * 15);
+  });
+}
+
+// Arrow drawing (dashed, open arrowhead)
+function dashedArrow(x1, y1, x2, y2, label) {
+  ctx.save();
+  ctx.setLineDash([6, 4]);
+  ctx.strokeStyle = '#555';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // open arrowhead
+  const angle = Math.atan2(y2 - y1, x2 - x1);
+  const aLen = 10;
+  ctx.strokeStyle = '#555';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - aLen * Math.cos(angle - 0.4), y2 - aLen * Math.sin(angle - 0.4));
+  ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - aLen * Math.cos(angle + 0.4), y2 - aLen * Math.sin(angle + 0.4));
+  ctx.stroke();
+
+  // label
+  if (label) {
+    const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+    ctx.fillStyle = '#fff';
+    const tw = ctx.measureText(label).width;
+    ctx.fillRect(mx - tw / 2 - 3, my - 9, tw + 6, 13);
+    ctx.fillStyle = '#333';
+    ctx.font = '10px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(label, mx, my);
+  }
+  ctx.restore();
+}
+
+// ── Layout ───────────────────────────────────────────────────────────────────
+const CW = 200, CH = 110;
+const PAD = 30;
+
+// Component positions [x, y]
+const pos = {
+  auth:      [600, 130],
+  admin:     [280, 310],
+  recruiter: [920, 310],
+  candidate: [280, 490],
+  interviewer:[920, 490],
+  chatbot:   [530, 490],
+  interview: [750, 490],
+  jobpost:   [200, 700],
+  marketing: [600, 700],
+  reports:   [1000, 700],
+};
+
+// ── Background ───────────────────────────────────────────────────────────────
+ctx.fillStyle = '#FFFFFF';
+ctx.fillRect(0, 0, 1400, 1000);
+
+// ── Title Bar ────────────────────────────────────────────────────────────────
+ctx.fillStyle = '#1A252F';
+ctx.fillRect(0, 0, 1400, 80);
+ctx.fillStyle = '#FFFFFF';
+ctx.font = 'bold 26px Arial';
+ctx.textAlign = 'center';
+ctx.fillText('RMS – Component Diagram', 700, 38);
+ctx.font = '14px Arial';
+ctx.fillStyle = '#AED6F1';
+ctx.fillText('Ten Principal Functional Modules and Their Dependencies', 700, 62);
+
+// ── Grid guide lines (subtle) ─────────────────────────────────────────────
+ctx.strokeStyle = '#EBF5FB';
+ctx.lineWidth = 1;
+for (let gx = 100; gx < 1400; gx += 100) {
+  ctx.beginPath(); ctx.moveTo(gx, 90); ctx.lineTo(gx, 980); ctx.stroke();
+}
+for (let gy = 100; gy < 1000; gy += 100) {
+  ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(1400, gy); ctx.stroke();
+}
+
+// ── Dependency Arrows (draw before components so they go under) ──────────────
+function cx(key) { return pos[key][0] + CW / 2; }
+function cy(key) { return pos[key][1] + CH / 2; }
+function top(key) { return [cx(key), pos[key][1]]; }
+function bot(key) { return [cx(key), pos[key][1] + CH]; }
+function lft(key) { return [pos[key][0], cy(key)]; }
+function rgt(key) { return [pos[key][0] + CW, cy(key)]; }
+
+// Auth → Admin
+dashedArrow(pos.auth[0] + 60, pos.auth[1] + CH, pos.admin[0] + 140, pos.admin[1], 'authenticates');
+// Auth → Recruiter
+dashedArrow(pos.auth[0] + 140, pos.auth[1] + CH, pos.recruiter[0] + 60, pos.recruiter[1], 'authenticates');
+// Auth → Candidate
+dashedArrow(pos.auth[0] + 30, pos.auth[1] + CH, pos.candidate[0] + 170, pos.candidate[1], 'authenticates');
+// Auth → Interviewer
+dashedArrow(pos.auth[0] + 170, pos.auth[1] + CH, pos.interviewer[0] + 30, pos.interviewer[1], 'authenticates');
+
+// Recruiter → Chatbot
+dashedArrow(pos.recruiter[0] + 30, pos.recruiter[1] + CH, pos.chatbot[0] + 170, pos.chatbot[1], 'uses');
+// Recruiter → Interview Mgmt
+dashedArrow(pos.recruiter[0] + 80, pos.recruiter[1] + CH, pos.interview[0] + 120, pos.interview[1], 'schedules');
+// Recruiter → Job Posting
+dashedArrow(pos.recruiter[0], cy('recruiter'), pos.jobpost[0] + CW, cy('jobpost'), 'posts jobs');
+
+// Admin → Reports
+dashedArrow(pos.admin[0] + CW, cy('admin'), pos.reports[0], cy('reports'), 'generates');
+// Admin → Marketing
+dashedArrow(pos.admin[0] + 100, pos.admin[1] + CH, pos.marketing[0] + 100, pos.marketing[1], 'manages');
+
+// Chatbot → Candidate
+dashedArrow(pos.chatbot[0], cy('chatbot'), pos.candidate[0] + CW, cy('candidate'), 'creates profile');
+// Interview Mgmt → Candidate
+dashedArrow(pos.interview[0] + 30, pos.interview[1] + CH, pos.candidate[0] + 170, pos.candidate[1] + CH - 20, 'sends link');
+
+// Job Posting → Marketing
+dashedArrow(pos.jobpost[0] + CW, cy('jobpost'), pos.marketing[0], cy('marketing'), 'promotes');
+// Reports → Marketing
+dashedArrow(pos.reports[0], cy('reports'), pos.marketing[0] + CW, cy('marketing'), 'tracks');
+
+// Interviewer → Interview Mgmt
+dashedArrow(pos.interviewer[0], cy('interviewer'), pos.interview[0] + CW, cy('interview'), 'conducts');
+
+// ── Components ───────────────────────────────────────────────────────────────
+drawComponent(...pos.auth,      CW, CH, '«component»', 'Authentication Module',  'Login, OAuth, Session Mgmt');
+drawComponent(...pos.admin,     CW, CH, '«component»', 'Admin Dashboard',         'System Control & Reporting');
+drawComponent(...pos.recruiter, CW, CH, '«component»', 'Recruiter Dashboard',     'Candidate Pipeline Mgmt');
+drawComponent(...pos.candidate, CW, CH, '«component»', 'Candidate Portal',        'Applications & Documents');
+drawComponent(...pos.interviewer,CW,CH, '«component»', 'Interviewer Portal',      'Schedule & Feedback');
+drawComponent(...pos.chatbot,   CW, CH, '«component»', 'AI Chatbot Engine',       'NLP, CV Parsing, Job Matching');
+drawComponent(...pos.interview, CW, CH, '«component»', 'Interview Management',    'Flows, Links, Responses');
+drawComponent(...pos.jobpost,   CW, CH, '«component»', 'Job Posting Module',      'Multi-platform Job Distribution');
+drawComponent(...pos.marketing, CW, CH, '«component»', 'Marketing & Campaigns',   'Email, Social, Paid Ads');
+drawComponent(...pos.reports,   CW, CH, '«component»', 'Reports & Analytics',     'Custom Reports, ROI, Export');
+
+// ── Legend ───────────────────────────────────────────────────────────────────
+const lx = 50, ly = 870;
+ctx.fillStyle = '#F8FBFF';
+roundRect(lx, ly, 320, 90, 6, '#F8FBFF', '#AED6F1', 1.5);
+ctx.fillStyle = '#1A252F';
+ctx.font = 'bold 12px Arial';
+ctx.textAlign = 'left';
+ctx.fillText('Legend', lx + 12, ly + 20);
+
+// component box sample
+roundRect(lx + 12, ly + 30, 50, 24, 3, '#E8F4FD', '#2980B9', 1.5);
+ctx.fillStyle = '#1A252F'; ctx.font = '10px Arial';
+ctx.fillText('«component»', lx + 70, ly + 46);
+
+// dashed arrow sample
+ctx.save(); ctx.setLineDash([5,4]); ctx.strokeStyle='#555'; ctx.lineWidth=1.5;
+ctx.beginPath(); ctx.moveTo(lx+12, ly+68); ctx.lineTo(lx+62, ly+68); ctx.stroke();
+ctx.setLineDash([]);
+ctx.strokeStyle='#555'; ctx.lineWidth=1.5;
+ctx.beginPath(); ctx.moveTo(lx+62,ly+68); ctx.lineTo(lx+54,ly+63); ctx.moveTo(lx+62,ly+68); ctx.lineTo(lx+54,ly+73); ctx.stroke();
+ctx.restore();
+ctx.fillStyle='#333'; ctx.font='10px Arial';
+ctx.fillText('dependency / uses', lx+70, ly+72);
+
+// ── Footer ───────────────────────────────────────────────────────────────────
+ctx.fillStyle = '#1A252F';
+ctx.fillRect(0, 960, 1400, 40);
+ctx.fillStyle = '#AED6F1';
+ctx.font = '11px Arial';
+ctx.textAlign = 'center';
+ctx.fillText('Recruitment Management System (RMS) · UML Component Diagram · Thesis Documentation', 700, 984);
+</script>
+</body>
+</html>

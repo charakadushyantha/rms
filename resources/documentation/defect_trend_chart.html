@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Figure 5.1: Defect Trend Chart – RMS Project</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #f0f2f5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    padding: 24px 0 40px 0;
+    font-family: Arial, sans-serif;
+  }
+  #canvasWrapper {
+    box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+    border-radius: 4px;
+    overflow: hidden;
+    background: #fff;
+  }
+  canvas { display: block; }
+  #printBtn {
+    margin-top: 18px;
+    padding: 10px 28px;
+    background: #1A252F;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: background 0.2s;
+  }
+  #printBtn:hover { background: #2C3E50; }
+  @media print {
+    body { background: #fff; padding: 0; }
+    #printBtn { display: none; }
+    #canvasWrapper { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+<div id="canvasWrapper">
+  <canvas id="chart" width="1100" height="820"></canvas>
+</div>
+<button id="printBtn" onclick="window.print()">📸 Print / Save as Image</button>
+
+<script>
+(function(){
+  const canvas = document.getElementById('chart');
+  const ctx = canvas.getContext('2d');
+
+  // ── Helpers ──────────────────────────────────────────────────────────────
+  function roundRect(x,y,w,h,r,fill,stroke,lw){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+    ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+    ctx.lineTo(x+w,y+h-r);
+    ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+    ctx.lineTo(x+r,y+h);
+    ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+    ctx.lineTo(x,y+r);
+    ctx.quadraticCurveTo(x,y,x+r,y);
+    ctx.closePath();
+    if(fill){ctx.fillStyle=fill; ctx.fill();}
+    if(stroke){ctx.strokeStyle=stroke; ctx.lineWidth=lw||1; ctx.stroke();}
+  }
+
+  function lbl(text,x,y,size,color,align,bold,italic){
+    let style='';
+    if(bold&&italic) style='bold italic ';
+    else if(bold) style='bold ';
+    else if(italic) style='italic ';
+    ctx.font=style+size+'px Arial';
+    ctx.fillStyle=color;
+    ctx.textAlign=align||'left';
+    ctx.textBaseline='middle';
+    ctx.fillText(text,x,y);
+  }
+
+  function hline(x1,x2,y,color,lw,dash){
+    ctx.save(); ctx.beginPath();
+    ctx.strokeStyle=color; ctx.lineWidth=lw||1;
+    if(dash) ctx.setLineDash(dash);
+    ctx.moveTo(x1,y); ctx.lineTo(x2,y); ctx.stroke();
+    ctx.setLineDash([]); ctx.restore();
+  }
+
+  function vline(x,y1,y2,color,lw,dash){
+    ctx.save(); ctx.beginPath();
+    ctx.strokeStyle=color; ctx.lineWidth=lw||1;
+    if(dash) ctx.setLineDash(dash);
+    ctx.moveTo(x,y1); ctx.lineTo(x,y2); ctx.stroke();
+    ctx.setLineDash([]); ctx.restore();
+  }
+
+  // ── Chart coordinate helpers ──────────────────────────────────────────────
+  const chartX=70, chartY=90, chartW=1000, chartH=390;
+  const yMin=0, yMax=25;
+  const weeks=14;
+
+  function xPx(week){ // 1-based
+    return chartX + (week-1)/(weeks-1)*chartW;
+  }
+  function yPx(val){
+    return chartY + chartH - (val/yMax)*chartH;
+  }
+
+  // ── Data ─────────────────────────────────────────────────────────────────
+  const injected  = [3,5,4,6,8,12,10,9,7,6,4,3,2,1];
+  const discovered= [3,7,9,13,18,22,20,18,16,14,10,7,4,2];
+  const closed    = [0,1,2,2,3,8,12,11,9,8,8,6,5,4];
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 1. WHITE BACKGROUND
+  // ═══════════════════════════════════════════════════════════════════════════
+  ctx.fillStyle='#FFFFFF';
+  ctx.fillRect(0,0,1100,820);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 2. TITLE BAR
+  // ═══════════════════════════════════════════════════════════════════════════
+  ctx.fillStyle='#1A252F';
+  ctx.fillRect(0,0,1100,60);
+  lbl('Figure 5.1: Defect Trend Chart – RMS Project',550,22,18,'#FFFFFF','center',true,false);
+  lbl('Weekly Defect Injection · Discovery · Closure Rates · Implementation & Testing Phases',550,44,12,'#AED6F1','center',false,false);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 3. MAIN CHART AREA BACKGROUND
+  // ═══════════════════════════════════════════════════════════════════════════
+  ctx.fillStyle='#FFFFFF';
+  ctx.fillRect(0,60,1100,460);
+
+  // ── Phase background bands (clipped to chart area) ────────────────────────
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(chartX, chartY, chartW, chartH);
+  ctx.clip();
+
+  // Design Phase: weeks 1-4
+  const x1=xPx(1), x4=xPx(4);
+  ctx.fillStyle='#F0F8FF';
+  ctx.fillRect(x1, chartY, x4-x1, chartH);
+
+  // Implementation Phase: weeks 5-10
+  const x5=xPx(5), x10=xPx(10);
+  ctx.fillStyle='#FFF8F0';
+  ctx.fillRect(x5, chartY, x10-x5, chartH);
+
+  // Testing Phase: weeks 11-14
+  const x11=xPx(11), x14=xPx(14);
+  ctx.fillStyle='#F0FFF4';
+  ctx.fillRect(x11, chartY, x14-x11, chartH);
+
+  ctx.restore();
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 4. GRID LINES (horizontal dashed)
+  // ═══════════════════════════════════════════════════════════════════════════
+  const yTicks=[0,5,10,15,20,25];
+  yTicks.forEach(v=>{
+    const py=yPx(v);
+    hline(chartX, chartX+chartW, py, '#ECF0F1', 1, [4,3]);
+  });
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 5. PHASE DIVIDERS (vertical dashed at week 4.5 and 10.5)
+  // ═══════════════════════════════════════════════════════════════════════════
+  const xDiv1 = chartX + (4.5-1)/(weeks-1)*chartW;
+  const xDiv2 = chartX + (10.5-1)/(weeks-1)*chartW;
+  vline(xDiv1, chartY, chartY+chartH, '#BDC3C7', 1.5, [4,3]);
+  vline(xDiv2, chartY, chartY+chartH, '#BDC3C7', 1.5, [4,3]);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 6. PHASE LABELS (top of chart area)
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Design: center of weeks 1-4
+  const designCx = (xPx(1)+xPx(4))/2;
+  lbl('Design', designCx, chartY+12, 10, '#7F8C8D', 'center', false, true);
+
+  // Implementation: center of weeks 5-10
+  const implCx = (xPx(5)+xPx(10))/2;
+  lbl('Implementation', implCx, chartY+12, 10, '#7F8C8D', 'center', false, true);
+
+  // Testing: center of weeks 11-14
+  const testCx = (xPx(11)+xPx(14))/2;
+  lbl('Testing', testCx, chartY+12, 10, '#7F8C8D', 'center', false, true);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 7. FILLED AREA UNDER DISCOVERED LINE
+  // ═══════════════════════════════════════════════════════════════════════════
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(xPx(1), yPx(discovered[0]));
+  for(let i=1;i<14;i++){
+    ctx.lineTo(xPx(i+1), yPx(discovered[i]));
+  }
+  ctx.lineTo(xPx(14), yPx(0));
+  ctx.lineTo(xPx(1), yPx(0));
+  ctx.closePath();
+  ctx.fillStyle='rgba(231,76,60,0.08)';
+  ctx.fill();
+  ctx.restore();
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 8. DRAW LINES
+  // ═══════════════════════════════════════════════════════════════════════════
+  function drawLine(data, color, lw){
+    ctx.save();
+    ctx.beginPath();
+    ctx.strokeStyle=color;
+    ctx.lineWidth=lw;
+    ctx.lineJoin='round';
+    ctx.lineCap='round';
+    ctx.moveTo(xPx(1), yPx(data[0]));
+    for(let i=1;i<14;i++){
+      ctx.lineTo(xPx(i+1), yPx(data[i]));
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // Closed (green)
+  drawLine(closed, '#27AE60', 2.5);
+  // Injected (red)
+  drawLine(injected, '#E74C3C', 2.5);
+  // Discovered (amber, slightly thicker)
+  drawLine(discovered, '#F39C12', 3);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 9. DATA POINT DOTS
+  // ═══════════════════════════════════════════════════════════════════════════
+  function drawDots(data, color){
+    data.forEach((v,i)=>{
+      ctx.beginPath();
+      ctx.arc(xPx(i+1), yPx(v), 4, 0, Math.PI*2);
+      ctx.fillStyle=color;
+      ctx.fill();
+      ctx.strokeStyle='#fff';
+      ctx.lineWidth=1.5;
+      ctx.stroke();
+    });
+  }
+  drawDots(closed, '#27AE60');
+  drawDots(injected, '#E74C3C');
+  drawDots(discovered, '#F39C12');
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 10. ANNOTATIONS
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Peak injection at W6: injected[5]=12
+  lbl('Peak: 12', xPx(6), yPx(12)-14, 9, '#E74C3C', 'center', true, false);
+
+  // Peak open at W6 (discovered[5]=22) — label above
+  lbl('Peak open: 22', xPx(6), yPx(22)-14, 9, '#F39C12', 'center', true, false);
+
+  // W14 final discovered: 2
+  lbl('Open: 2', xPx(14)+8, yPx(2), 9, '#F39C12', 'left', true, false);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 11. LEGEND BOX (top-right inside chart)
+  // ═══════════════════════════════════════════════════════════════════════════
+  const lgX=750, lgY=100, lgW=200, lgH=80;
+  roundRect(lgX, lgY, lgW, lgH, 4, '#FAFAFA', '#DDDDDD', 1);
+
+  // Legend items
+  const lgItems=[
+    {color:'#E74C3C', text:'● Injected (weekly new)'},
+    {color:'#F39C12', text:'● Open / Discovered (cumul.)'},
+    {color:'#27AE60', text:'● Closed (weekly)'},
+  ];
+  lgItems.forEach((item,i)=>{
+    lbl(item.text, lgX+12, lgY+16+i*22, 11, item.color, 'left', false, false);
+  });
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 12. Y AXIS LABELS + X AXIS LABELS
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Y axis labels
+  yTicks.forEach(v=>{
+    lbl(String(v), chartX-10, yPx(v), 11, '#7F8C8D', 'right', false, false);
+  });
+
+  // Y axis title
+  ctx.save();
+  ctx.translate(16, chartY+chartH/2);
+  ctx.rotate(-Math.PI/2);
+  ctx.font='bold 11px Arial';
+  ctx.fillStyle='#7F8C8D';
+  ctx.textAlign='center';
+  ctx.textBaseline='middle';
+  ctx.fillText('Defect Count', 0, 0);
+  ctx.restore();
+
+  // X axis labels
+  const weekLabels=['W1','W2','W3','W4','W5','W6','W7','W8','W9','W10','W11','W12','W13','W14'];
+  weekLabels.forEach((wl,i)=>{
+    lbl(wl, xPx(i+1), chartY+chartH+18, 11, '#7F8C8D', 'center', false, false);
+  });
+
+  // X axis title
+  lbl('Project Week', chartX+chartW/2, chartY+chartH+38, 11, '#7F8C8D', 'center', false, false);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 13. CHART BORDER
+  // ═══════════════════════════════════════════════════════════════════════════
+  ctx.strokeStyle='#BDC3C7';
+  ctx.lineWidth=1;
+  ctx.strokeRect(chartX, chartY, chartW, chartH);
+
+  // Axis lines (solid)
+  hline(chartX, chartX+chartW, chartY+chartH, '#2C3E50', 1.5);
+  vline(chartX, chartY, chartY+chartH, '#2C3E50', 1.5);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 14. SEVERITY SUMMARY TABLE
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Section background
+  ctx.fillStyle='#FAFAFA';
+  ctx.fillRect(0,520,1100,240);
+  hline(0,1100,520,'#DDDDDD',1);
+
+  // Table title
+  lbl('Table 5.1: Defect Severity Summary', 30, 545, 13, '#1A252F', 'left', true, false);
+
+  // Table geometry
+  const tX=30, tY=565, tW=1040, tH=170;
+  const colX=[30,150,310,510,630];
+  const colW=[120,160,200,120,440];
+  const hdrH=32;
+  const rowH=34;
+
+  // Header row
+  ctx.fillStyle='#1A252F';
+  ctx.fillRect(tX, tY, tW, hdrH);
+
+  const headers=['Severity','Injected in Design','Injected in Implementation','Total Open','Comment'];
+  headers.forEach((h,i)=>{
+    lbl(h, colX[i]+colW[i]/2, tY+hdrH/2, 11, '#FFFFFF', 'center', true, false);
+  });
+
+  // Data rows
+  const rows=[
+    {
+      sev:'Critical', sevColor:'#E74C3C',
+      d1:'0', d2:'2 (both fixed)',
+      open:'0', openColor:'#27AE60',
+      comment:'No blocking defects remain.'
+    },
+    {
+      sev:'High', sevColor:'#E67E22',
+      d1:'1 (fixed)', d2:'7 (fixed)',
+      open:'0', openColor:'#27AE60',
+      comment:'All high-severity defects closed.'
+    },
+    {
+      sev:'Medium', sevColor:'#F39C12',
+      d1:'3 (2 fixed)', d2:'22 (19 fixed)',
+      open:'4', openColor:'#F39C12',
+      comment:'Scheduled for next sprint.'
+    },
+    {
+      sev:'Low', sevColor:'#3498DB',
+      d1:'2 (fixed)', d2:'65 (50 fixed)',
+      open:'10', openColor:'#3498DB',
+      comment:'Mostly cosmetic or documentation.'
+    },
+  ];
+
+  const rowColors=['#FFFFFF','#F8F9FA','#FFFFFF','#F8F9FA'];
+
+  rows.forEach((row,i)=>{
+    const ry = tY + hdrH + i*rowH;
+    ctx.fillStyle=rowColors[i];
+    ctx.fillRect(tX, ry, tW, rowH);
+
+    const cy = ry + rowH/2;
+
+    // Severity (bold, colored)
+    lbl(row.sev, colX[0]+colW[0]/2, cy, 11, row.sevColor, 'center', true, false);
+    // Injected Design
+    lbl(row.d1, colX[1]+colW[1]/2, cy, 11, '#2C3E50', 'center', false, false);
+    // Injected Impl
+    lbl(row.d2, colX[2]+colW[2]/2, cy, 11, '#2C3E50', 'center', false, false);
+    // Total Open (bold, colored)
+    lbl(row.open, colX[3]+colW[3]/2, cy, 11, row.openColor, 'center', true, false);
+    // Comment
+    lbl(row.comment, colX[4]+8, cy, 11, '#2C3E50', 'left', false, false);
+  });
+
+  // Totals row
+  const totY = tY + hdrH + rows.length*rowH;
+  ctx.fillStyle='#ECF0F1';
+  ctx.fillRect(tX, totY, tW, rowH);
+  const totCy = totY + rowH/2;
+  lbl('TOTAL',          colX[0]+colW[0]/2, totCy, 11, '#2C3E50', 'center', true, false);
+  lbl('6',              colX[1]+colW[1]/2, totCy, 11, '#2C3E50', 'center', true, false);
+  lbl('96',             colX[2]+colW[2]/2, totCy, 11, '#2C3E50', 'center', true, false);
+  lbl('14',             colX[3]+colW[3]/2, totCy, 11, '#E74C3C', 'center', true, false);
+  lbl('14 defects remain open (non-blocking)', colX[4]+8, totCy, 11, '#2C3E50', 'left', true, false);
+
+  // Horizontal row dividers
+  const totalRows = rows.length + 1; // data rows + totals
+  for(let i=0;i<=totalRows;i++){
+    const ly = tY + hdrH + i*rowH;
+    hline(tX, tX+tW, ly, '#DDDDDD', 1);
+  }
+  // Top border of header
+  hline(tX, tX+tW, tY, '#DDDDDD', 1);
+
+  // Vertical column dividers
+  colX.forEach((cx,i)=>{
+    if(i>0) vline(cx, tY, tY+hdrH+totalRows*rowH, '#DDDDDD', 1);
+  });
+  // Right border
+  vline(tX+tW, tY, tY+hdrH+totalRows*rowH, '#DDDDDD', 1);
+  // Left border
+  vline(tX, tY, tY+hdrH+totalRows*rowH, '#DDDDDD', 1);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 15. FOOTER NOTE
+  // ═══════════════════════════════════════════════════════════════════════════
+  lbl(
+    '* Open defects are non-critical and non-blocking. All Critical and High severity defects have been resolved prior to submission.',
+    30, 750, 10, '#7F8C8D', 'left', false, true
+  );
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 16. FOOTER BAR
+  // ═══════════════════════════════════════════════════════════════════════════
+  ctx.fillStyle='#1A252F';
+  ctx.fillRect(0,790,1100,30);
+  lbl('RMS Project · Defect Trend Analysis · Figure 5.1 · Thesis Documentation', 550, 805, 10, '#AED6F1', 'center', false, false);
+
+})();
+</script>
+</body>
+</html>

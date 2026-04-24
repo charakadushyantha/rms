@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RMS – Deployment Diagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #f0f4f8; font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+  .btn-print {
+    margin: 16px 0;
+    padding: 10px 28px;
+    background: #2980B9;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    cursor: pointer;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+    transition: background 0.2s;
+  }
+  .btn-print:hover { background: #1a5f8a; }
+  canvas { display: block; background: #fff; box-shadow: 0 4px 24px rgba(0,0,0,0.13); }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .btn-print { display: none; }
+    canvas { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+<button class="btn-print" onclick="window.print()">📸 Print / Save as Image</button>
+<canvas id="diagram" width="1400" height="950"></canvas>
+<script>
+const canvas = document.getElementById('diagram');
+const ctx = canvas.getContext('2d');
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function roundRect(x, y, w, h, r, fill, stroke, lw) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw || 2; ctx.stroke(); }
+}
+
+// 3D UML Node box
+function drawNode(x, y, w, h, stereotype, name, subLabel, fillColor, borderColor) {
+  const depth = 18; // 3D depth
+
+  // Shadow
+  ctx.shadowColor = 'rgba(0,0,0,0.12)';
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetX = 3; ctx.shadowOffsetY = 4;
+
+  // Main face
+  roundRect(x, y, w, h, 6, fillColor, borderColor, 2);
+  ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+
+  // Top parallelogram (3D top face)
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(x + depth, y - depth);
+  ctx.lineTo(x + w + depth, y - depth);
+  ctx.lineTo(x + w, y);
+  ctx.closePath();
+  ctx.fillStyle = shadeColor(fillColor, -12);
+  ctx.fill();
+  ctx.strokeStyle = borderColor; ctx.lineWidth = 2; ctx.stroke();
+
+  // Right parallelogram (3D right face)
+  ctx.beginPath();
+  ctx.moveTo(x + w, y);
+  ctx.lineTo(x + w + depth, y - depth);
+  ctx.lineTo(x + w + depth, y + h - depth);
+  ctx.lineTo(x + w, y + h);
+  ctx.closePath();
+  ctx.fillStyle = shadeColor(fillColor, -20);
+  ctx.fill();
+  ctx.strokeStyle = borderColor; ctx.lineWidth = 2; ctx.stroke();
+
+  // Header band on main face
+  ctx.fillStyle = borderColor;
+  ctx.beginPath();
+  ctx.moveTo(x + 6, y);
+  ctx.lineTo(x + w - 6, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + 6);
+  ctx.lineTo(x + w, y + 34);
+  ctx.lineTo(x, y + 34);
+  ctx.lineTo(x, y + 6);
+  ctx.quadraticCurveTo(x, y, x + 6, y);
+  ctx.closePath();
+  ctx.fill();
+
+  // Stereotype
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  ctx.font = 'italic 11px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText(stereotype, x + w / 2, y + 16);
+
+  // Name
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 13px Arial';
+  ctx.fillText(name, x + w / 2, y + 30);
+
+  // Sub-label
+  if (subLabel) {
+    ctx.fillStyle = '#555';
+    ctx.font = '11px Arial';
+    ctx.fillText(subLabel, x + w / 2, y + 50);
+  }
+}
+
+function shadeColor(hex, pct) {
+  const num = parseInt(hex.replace('#',''), 16);
+  const r = Math.min(255, Math.max(0, (num >> 16) + pct));
+  const g = Math.min(255, Math.max(0, ((num >> 8) & 0xff) + pct));
+  const b = Math.min(255, Math.max(0, (num & 0xff) + pct));
+  return '#' + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1);
+}
+
+// Artifact box inside a node
+function drawArtifact(x, y, w, h, label, sublabel) {
+  roundRect(x, y, w, h, 4, '#fff', '#999', 1.2);
+  // dog-ear
+  const de = 10;
+  ctx.fillStyle = '#ddd';
+  ctx.beginPath();
+  ctx.moveTo(x + w - de, y);
+  ctx.lineTo(x + w, y + de);
+  ctx.lineTo(x + w - de, y + de);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#999'; ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(x + w - de, y); ctx.lineTo(x + w - de, y + de); ctx.lineTo(x + w, y + de);
+  ctx.stroke();
+
+  // artifact icon (small page lines)
+  ctx.fillStyle = '#888';
+  ctx.font = '9px Arial';
+  ctx.textAlign = 'left';
+  ctx.fillText('≡', x + 6, y + 14);
+
+  ctx.fillStyle = '#1A252F';
+  ctx.font = 'italic 9px Arial';
+  ctx.textAlign = 'left';
+  ctx.fillText('«artifact»', x + 18, y + 12);
+
+  ctx.fillStyle = '#1A252F';
+  ctx.font = 'bold 11px Arial';
+  ctx.fillText(label, x + 8, y + 26);
+
+  if (sublabel) {
+    ctx.fillStyle = '#666';
+    ctx.font = '10px Arial';
+    ctx.fillText(sublabel, x + 8, y + 38);
+  }
+}
+
+// Communication line with label
+function commLine(x1, y1, x2, y2, label, bidirectional) {
+  ctx.save();
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+
+  const angle = Math.atan2(y2 - y1, x2 - x1);
+  const aLen = 12;
+
+  // arrowhead at end
+  ctx.beginPath();
+  ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - aLen * Math.cos(angle - 0.35), y2 - aLen * Math.sin(angle - 0.35));
+  ctx.lineTo(x2 - aLen * Math.cos(angle + 0.35), y2 - aLen * Math.sin(angle + 0.35));
+  ctx.closePath();
+  ctx.fillStyle = '#333'; ctx.fill();
+
+  if (bidirectional) {
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x1 + aLen * Math.cos(angle - 0.35), y1 + aLen * Math.sin(angle - 0.35));
+    ctx.lineTo(x1 + aLen * Math.cos(angle + 0.35), y1 + aLen * Math.sin(angle + 0.35));
+    ctx.closePath();
+    ctx.fillStyle = '#333'; ctx.fill();
+  }
+
+  if (label) {
+    const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+    ctx.font = 'bold 11px Arial';
+    const tw = ctx.measureText(label).width;
+    ctx.fillStyle = '#fff';
+    roundRect(mx - tw/2 - 6, my - 11, tw + 12, 16, 3, '#fff', '#ccc', 1);
+    ctx.fillStyle = '#1A252F';
+    ctx.textAlign = 'center';
+    ctx.fillText(label, mx, my + 1);
+  }
+  ctx.restore();
+}
+
+// ── Background ───────────────────────────────────────────────────────────────
+ctx.fillStyle = '#FFFFFF';
+ctx.fillRect(0, 0, 1400, 950);
+
+// ── Title Bar ────────────────────────────────────────────────────────────────
+ctx.fillStyle = '#1A252F';
+ctx.fillRect(0, 0, 1400, 80);
+ctx.fillStyle = '#FFFFFF';
+ctx.font = 'bold 26px Arial';
+ctx.textAlign = 'center';
+ctx.fillText('RMS – Deployment Diagram', 700, 38);
+ctx.font = '14px Arial';
+ctx.fillStyle = '#AED6F1';
+ctx.fillText('UML Deployment Diagram – Target Infrastructure', 700, 62);
+
+// ── Subtle grid ───────────────────────────────────────────────────────────────
+ctx.strokeStyle = '#F5F8FA';
+ctx.lineWidth = 1;
+for (let gx = 50; gx < 1400; gx += 50) {
+  ctx.beginPath(); ctx.moveTo(gx, 90); ctx.lineTo(gx, 940); ctx.stroke();
+}
+for (let gy = 90; gy < 950; gy += 50) {
+  ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(1400, gy); ctx.stroke();
+}
+
+// ── Node dimensions ───────────────────────────────────────────────────────────
+const depth = 18;
+
+// NODE 1: Client Tier  x=50, y=110, w=220, h=480
+const n1x=50, n1y=120, n1w=220, n1h=480;
+drawNode(n1x, n1y, n1w, n1h, '«node»', 'Client Tier', '', '#E8F8F5', '#27AE60');
+drawArtifact(n1x+18, n1y+65, n1w-36, 50, 'Web Browser', 'Chrome / Firefox / Safari');
+drawArtifact(n1x+18, n1y+130, n1w-36, 50, 'Mobile Browser', 'Responsive PWA');
+
+// NODE 2: Web Server  x=380, y=110, w=380, h=560
+const n2x=380, n2y=120, n2w=380, n2h=560;
+drawNode(n2x, n2y, n2w, n2h, '«node»', 'Shared Hosting Server', 'Apache 2.4 + PHP 7.4', '#EBF5FB', '#2980B9');
+drawArtifact(n2x+18, n2y+65,  n2w-36, 50, 'CodeIgniter 3 Framework', 'MVC PHP Framework');
+drawArtifact(n2x+18, n2y+130, n2w-36, 50, 'RMS Application (MVC)', 'Controllers / Models / Views');
+drawArtifact(n2x+18, n2y+195, n2w-36, 50, '.htaccess', 'URL Rewriting Rules');
+drawArtifact(n2x+18, n2y+260, n2w-36, 50, '/uploads', 'File Storage (CVs, Images)');
+
+// NODE 3: Database Server  x=820, y=110, w=260, h=380
+const n3x=820, n3y=120, n3w=260, n3h=380;
+drawNode(n3x, n3y, n3w, n3h, '«node»', 'MySQL Server 5.7', '', '#FEF9E7', '#F39C12');
+drawArtifact(n3x+18, n3y+65,  n3w-36, 50, 'cmsadver_rmsdb', 'Primary Database Schema');
+drawArtifact(n3x+18, n3y+130, n3w-36, 50, 'ci_sessions', 'Session Storage Table');
+
+// NODE 4: External Services  x=1140, y=110, w=220, h=560
+const n4x=1140, n4y=120, n4w=220, n4h=560;
+drawNode(n4x, n4y, n4w, n4h, '«node»', 'External Services', 'Service Endpoints', '#F5EEF8', '#8E44AD');
+drawArtifact(n4x+18, n4y+65,  n4w-36, 50, 'Google OAuth 2.0', 'Authentication API');
+drawArtifact(n4x+18, n4y+130, n4w-36, 50, 'OpenAI GPT-3.5', 'AI / NLP API');
+drawArtifact(n4x+18, n4y+195, n4w-36, 50, 'Gmail SMTP', 'Email Delivery');
+drawArtifact(n4x+18, n4y+260, n4w-36, 50, 'LinkedIn Jobs API', 'Job Distribution');
+drawArtifact(n4x+18, n4y+325, n4w-36, 50, 'Indeed Jobs API', 'Job Distribution');
+
+// ── Communication Paths ───────────────────────────────────────────────────────
+// Client ↔ Web Server
+commLine(n1x + n1w + depth, n1y + n1h/2 - depth/2,
+         n2x, n2y + n2h/2,
+         'HTTPS :443 / HTTP :80', true);
+
+// Web Server ↔ Database
+commLine(n2x + n2w + depth, n2y + n2h/2 - depth/2,
+         n3x, n3y + n3h/2,
+         'MySQLi TCP :3306', true);
+
+// Web Server ↔ External Services
+commLine(n3x + n3w + depth, n3y + n3h/2 - depth/2,
+         n4x, n4y + n4h/2,
+         'HTTPS REST / SMTP TLS :587', true);
+
+// ── Deployment Environment Note ───────────────────────────────────────────────
+const noteY = 740;
+ctx.fillStyle = '#FFFDE7';
+roundRect(50, noteY, 1300, 70, 8, '#FFFDE7', '#F39C12', 1.5);
+
+// folded corner
+ctx.fillStyle = '#F9E79F';
+ctx.beginPath();
+ctx.moveTo(1350 - 20, noteY);
+ctx.lineTo(1350, noteY + 20);
+ctx.lineTo(1350 - 20, noteY + 20);
+ctx.closePath();
+ctx.fill();
+ctx.strokeStyle = '#F39C12'; ctx.lineWidth = 1;
+ctx.beginPath();
+ctx.moveTo(1350 - 20, noteY); ctx.lineTo(1350 - 20, noteY + 20); ctx.lineTo(1350, noteY + 20);
+ctx.stroke();
+
+ctx.fillStyle = '#7D6608';
+ctx.font = 'bold 12px Arial';
+ctx.textAlign = 'left';
+ctx.fillText('Deployment Environment', 70, noteY + 22);
+ctx.fillStyle = '#555';
+ctx.font = '12px Arial';
+ctx.fillText('Production: rms.lankantech.com  (cPanel Shared Hosting)', 70, noteY + 42);
+ctx.fillText('Development: localhost/rms  (XAMPP – Apache + MySQL + PHP)', 70, noteY + 58);
+
+// ── Legend ────────────────────────────────────────────────────────────────────
+const lx = 50, ly = 840;
+roundRect(lx, ly, 500, 70, 6, '#F8FBFF', '#AED6F1', 1.5);
+ctx.fillStyle = '#1A252F'; ctx.font = 'bold 12px Arial'; ctx.textAlign = 'left';
+ctx.fillText('Legend', lx + 12, ly + 18);
+
+// node sample
+ctx.fillStyle = '#EBF5FB'; ctx.strokeStyle = '#2980B9'; ctx.lineWidth = 1.5;
+ctx.fillRect(lx + 12, ly + 28, 40, 22); ctx.strokeRect(lx + 12, ly + 28, 40, 22);
+ctx.fillStyle = '#1A252F'; ctx.font = '10px Arial';
+ctx.fillText('«node» (3D box)', lx + 58, ly + 42);
+
+// artifact sample
+roundRect(lx + 180, ly + 28, 40, 22, 2, '#fff', '#999', 1);
+ctx.fillStyle = '#1A252F'; ctx.font = '10px Arial';
+ctx.fillText('«artifact»', lx + 226, ly + 42);
+
+// comm line sample
+ctx.strokeStyle = '#333'; ctx.lineWidth = 2;
+ctx.beginPath(); ctx.moveTo(lx + 320, ly + 39); ctx.lineTo(lx + 380, ly + 39); ctx.stroke();
+ctx.fillStyle = '#333';
+ctx.beginPath(); ctx.moveTo(lx+380,ly+39); ctx.lineTo(lx+372,ly+34); ctx.lineTo(lx+372,ly+44); ctx.closePath(); ctx.fill();
+ctx.beginPath(); ctx.moveTo(lx+320,ly+39); ctx.lineTo(lx+328,ly+34); ctx.lineTo(lx+328,ly+44); ctx.closePath(); ctx.fill();
+ctx.fillStyle = '#333'; ctx.font = '10px Arial';
+ctx.fillText('communication path', lx + 388, ly + 42);
+
+// ── Footer ────────────────────────────────────────────────────────────────────
+ctx.fillStyle = '#1A252F';
+ctx.fillRect(0, 910, 1400, 40);
+ctx.fillStyle = '#AED6F1';
+ctx.font = '11px Arial';
+ctx.textAlign = 'center';
+ctx.fillText('Recruitment Management System (RMS) · UML Deployment Diagram · Thesis Documentation', 700, 934);
+</script>
+</body>
+</html>

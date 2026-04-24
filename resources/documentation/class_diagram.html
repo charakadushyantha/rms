@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RMS – UML Class Diagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #f0f0f0; display: flex; flex-direction: column; align-items: center; padding: 20px; font-family: Arial, sans-serif; }
+  #canvasWrapper { background: #fff; box-shadow: 0 2px 12px rgba(0,0,0,0.18); }
+  #printBtn {
+    margin: 14px 0 6px 0;
+    padding: 10px 28px;
+    background: #1A252F;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 15px;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+  }
+  #printBtn:hover { background: #2c3e50; }
+  @media print {
+    body { background: #fff; padding: 0; }
+    #printBtn { display: none; }
+    #canvasWrapper { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+<button id="printBtn" onclick="window.print()">📸 Print / Save as Image</button>
+<div id="canvasWrapper">
+  <canvas id="uml" width="1500" height="1100"></canvas>
+</div>
+<script>
+const canvas = document.getElementById('uml');
+const ctx = canvas.getContext('2d');
+
+// ─── helpers ────────────────────────────────────────────────────────────────
+
+function drawClass(x, y, w, name, stereotype, attributes, operations) {
+  const nameH = stereotype ? 46 : 30;
+  const attrH = Math.max(attributes.length * 18 + 16, 30);
+  const opH   = operations.length > 0 ? operations.length * 18 + 16 : 0;
+  const totalH = nameH + attrH + opH;
+
+  // name compartment
+  ctx.fillStyle = '#EEEEEE';
+  ctx.fillRect(x, y, w, nameH);
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(x, y, w, nameH);
+
+  if (stereotype) {
+    ctx.font = 'italic 10px Arial';
+    ctx.fillStyle = '#333';
+    ctx.textAlign = 'center';
+    ctx.fillText(stereotype, x + w / 2, y + 14);
+  }
+  ctx.font = 'bold 13px Arial';
+  ctx.fillStyle = '#000';
+  ctx.textAlign = 'center';
+  ctx.fillText(name, x + w / 2, stereotype ? y + 32 : y + 19);
+
+  // attributes compartment
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(x, y + nameH, w, attrH);
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x, y + nameH, w, attrH);
+  ctx.font = '11px Arial';
+  ctx.fillStyle = '#000';
+  ctx.textAlign = 'left';
+  attributes.forEach((attr, i) => {
+    ctx.fillText(attr, x + 8, y + nameH + 14 + i * 18);
+  });
+
+  // operations compartment
+  if (operations.length > 0) {
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(x, y + nameH + attrH, w, opH);
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x, y + nameH + attrH, w, opH);
+    ctx.font = '11px Arial';
+    ctx.fillStyle = '#000';
+    ctx.textAlign = 'left';
+    operations.forEach((op, i) => {
+      ctx.fillText(op, x + 8, y + nameH + attrH + 14 + i * 18);
+    });
+  }
+
+  return {
+    x, y, w, h: totalH,
+    cx: x + w / 2, cy: y + totalH / 2,
+    top: y, bottom: y + totalH,
+    left: x, right: x + w,
+    midLeft:  [x,     y + totalH / 2],
+    midRight: [x + w, y + totalH / 2],
+    topCenter:    [x + w / 2, y],
+    bottomCenter: [x + w / 2, y + totalH]
+  };
+}
+
+function hollowTriangle(x, y, size) {
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(x - size, y + size * 1.5);
+  ctx.lineTo(x + size, y + size * 1.5);
+  ctx.closePath();
+  ctx.fillStyle = '#fff';
+  ctx.fill();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+}
+
+function hollowDiamond(x, y, angle) {
+  const s = 10;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle);
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(-s, -s / 2);
+  ctx.lineTo(-s * 2, 0);
+  ctx.lineTo(-s, s / 2);
+  ctx.closePath();
+  ctx.fillStyle = '#fff';
+  ctx.fill();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.restore();
+}
+
+function filledDiamond(x, y, angle) {
+  const s = 10;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle);
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(-s, -s / 2);
+  ctx.lineTo(-s * 2, 0);
+  ctx.lineTo(-s, s / 2);
+  ctx.closePath();
+  ctx.fillStyle = '#000';
+  ctx.fill();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.restore();
+}
+
+function openArrow(x, y, angle) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle);
+  ctx.beginPath();
+  ctx.moveTo(-10, -5);
+  ctx.lineTo(0, 0);
+  ctx.lineTo(-10, 5);
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.restore();
+}
+
+function multLabel(x, y, text) {
+  ctx.font = '10px Arial';
+  ctx.fillStyle = '#000';
+  ctx.textAlign = 'center';
+  ctx.fillText(text, x, y);
+}
+
+function assocLabel(x, y, text) {
+  ctx.font = 'italic 11px Arial';
+  ctx.textAlign = 'center';
+  const tw = ctx.measureText(text).width;
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(x - tw / 2 - 2, y - 11, tw + 4, 14);
+  ctx.fillStyle = '#333';
+  ctx.fillText(text, x, y);
+}
+
+function line(x1, y1, x2, y2, dashed) {
+  ctx.beginPath();
+  if (dashed) ctx.setLineDash([5, 4]);
+  else ctx.setLineDash([]);
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function polyline(pts, dashed) {
+  if (pts.length < 2) return;
+  ctx.beginPath();
+  if (dashed) ctx.setLineDash([5, 4]);
+  else ctx.setLineDash([]);
+  ctx.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+// ─── background ─────────────────────────────────────────────────────────────
+ctx.fillStyle = '#fff';
+ctx.fillRect(0, 0, 1500, 1100);
+
+// ─── title bar ──────────────────────────────────────────────────────────────
+ctx.fillStyle = '#1A252F';
+ctx.fillRect(0, 0, 1500, 70);
+ctx.font = 'bold 24px Arial';
+ctx.fillStyle = '#fff';
+ctx.textAlign = 'center';
+ctx.fillText('RMS – Class Diagram', 750, 32);
+ctx.font = '13px Arial';
+ctx.fillStyle = '#AED6F1';
+ctx.fillText('Domain Model · Principal Classes · Attributes · Operations · Associations', 750, 54);
+
+// ─── draw all classes ────────────────────────────────────────────────────────
+
+const C = {}; // bounding boxes
+
+// CLASS 1: User (abstract)
+C.User = drawClass(30, 80, 180, 'User', '{abstract}',
+  ['- userId : int', '- username : String', '- email : String',
+   '- password : String', '- role : Role', '- status : String'],
+  ['+ login() : Boolean', '+ logout() : void', '+ resetPassword() : void']
+);
+
+// CLASS 2: Recruiter
+C.Recruiter = drawClass(30, 420, 180, 'Recruiter', null,
+  ['- recruiterId : int', '- department : String'],
+  ['+ addCandidate() : void', '+ scheduleInterview() : void', '+ generateReport() : void']
+);
+
+// CLASS 3: Admin
+C.Admin = drawClass(250, 420, 180, 'Admin', null,
+  ['- adminId : int'],
+  ['+ manageUsers() : void', '+ configureSystem() : void']
+);
+
+// CLASS 4: Interviewer
+C.Interviewer = drawClass(470, 420, 180, 'Interviewer', null,
+  ['- interviewerId : int', '- expertise : String'],
+  ['+ submitFeedback() : void', '+ viewSchedule() : void']
+);
+
+// CLASS 5: Candidate
+C.Candidate = drawClass(690, 420, 180, 'Candidate', null,
+  ['- candidateId : int', '- phone : String', '- gender : String',
+   '- jobTitle : String', '- source : String', '- status : String'],
+  ['+ applyForJob() : void', '+ uploadCV() : void', '+ trackApplication() : void']
+);
+
+// CLASS 6: JobPosting
+C.JobPosting = drawClass(930, 80, 200, 'JobPosting', null,
+  ['- jobId : int', '- title : String', '- description : String',
+   '- location : String', '- employmentType : String',
+   '- salaryMin : double', '- salaryMax : double',
+   '- status : String', '- expiresAt : Date'],
+  ['+ publish() : void', '+ close() : void', '+ getApplicants() : List']
+);
+
+// CLASS 7: Interview
+C.Interview = drawClass(930, 500, 200, 'Interview', null,
+  ['- interviewId : int', '- token : String', '- status : String',
+   '- scheduledAt : DateTime', '- completedAt : DateTime',
+   '- score : int', '- expiresAt : DateTime'],
+  ['+ generateLink() : String', '+ start() : void',
+   '+ complete() : void', '+ calculateScore() : int']
+);
+
+// CLASS 8: InterviewFlow
+C.InterviewFlow = drawClass(1180, 80, 200, 'InterviewFlow', null,
+  ['- flowId : int', '- jobTitle : String', '- interviewType : String',
+   '- durationMinutes : int', '- passingScore : int', '- status : String'],
+  ['+ addQuestion() : void', '+ activate() : void', '+ deactivate() : void']
+);
+
+// CLASS 9: InterviewResponse
+C.InterviewResponse = drawClass(1180, 500, 200, 'InterviewResponse', null,
+  ['- responseId : int', '- questionId : int', '- responseText : String',
+   '- durationSeconds : int', '- score : int'],
+  ['+ save() : void', '+ evaluate() : int']
+);
+
+// CLASS 10: CalendarEvent
+C.CalendarEvent = drawClass(30, 780, 200, 'CalendarEvent', null,
+  ['- eventId : int', '- candidateName : String',
+   '- startDate : DateTime', '- endDate : DateTime',
+   '- interviewRound : int'],
+  ['+ schedule() : void', '+ cancel() : void', '+ reschedule() : void']
+);
+
+// CLASS 11: ChatSession
+C.ChatSession = drawClass(280, 780, 200, 'ChatSession', null,
+  ['- sessionId : String', '- userId : int',
+   '- userType : String', '- createdAt : DateTime'],
+  ['+ startSession() : void', '+ endSession() : void', '+ getHistory() : List']
+);
+
+// CLASS 12: ChatMessage
+C.ChatMessage = drawClass(530, 780, 200, 'ChatMessage', null,
+  ['- messageId : int', '- role : String', '- message : String',
+   '- intent : String', '- confidence : double', '- createdAt : DateTime'],
+  ['+ send() : void', '+ save() : void']
+);
+
+// CLASS 13: KnowledgeBase
+C.KnowledgeBase = drawClass(780, 780, 200, 'KnowledgeBase', null,
+  ['- entryId : int', '- question : String', '- answer : String',
+   '- category : String', '- relevanceScore : int'],
+  ['+ search() : String', '+ update() : void']
+);
+
+// CLASS 14: Role (enumeration) — no operations compartment
+// Draw manually: name compartment + values compartment only
+(function() {
+  const x = 690, y = 80, w = 160;
+  const nameH = 46;
+  const vals = ['ADMIN', 'RECRUITER', 'INTERVIEWER', 'CANDIDATE'];
+  const valH = vals.length * 18 + 16;
+  const totalH = nameH + valH;
+
+  ctx.fillStyle = '#EEEEEE';
+  ctx.fillRect(x, y, w, nameH);
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(x, y, w, nameH);
+  ctx.font = 'italic 10px Arial';
+  ctx.fillStyle = '#333';
+  ctx.textAlign = 'center';
+  ctx.fillText('«enumeration»', x + w / 2, y + 14);
+  ctx.font = 'bold 13px Arial';
+  ctx.fillStyle = '#000';
+  ctx.fillText('Role', x + w / 2, y + 32);
+
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(x, y + nameH, w, valH);
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x, y + nameH, w, valH);
+  ctx.font = '11px Arial';
+  ctx.fillStyle = '#000';
+  ctx.textAlign = 'left';
+  vals.forEach((v, i) => ctx.fillText(v, x + 8, y + nameH + 14 + i * 18));
+
+  C.Role = {
+    x, y, w, h: totalH,
+    cx: x + w / 2, cy: y + totalH / 2,
+    top: y, bottom: y + totalH,
+    left: x, right: x + w,
+    midLeft:  [x,     y + totalH / 2],
+    midRight: [x + w, y + totalH / 2],
+    topCenter:    [x + w / 2, y],
+    bottomCenter: [x + w / 2, y + totalH]
+  };
+})();
+
+// ─── ASSOCIATIONS ────────────────────────────────────────────────────────────
+
+// ── 1. INHERITANCE: User → Recruiter, Admin, Interviewer, Candidate ──────────
+// Shared horizontal bus at y=408
+const busY = 408;
+const userBotX = C.User.bottomCenter[0]; // 120
+const userBotY = C.User.bottomCenter[1];
+
+// vertical from User bottom down to bus
+line(userBotX, userBotY, userBotX, busY);
+
+// subclass top-center x values
+const subclasses = [C.Recruiter, C.Admin, C.Interviewer, C.Candidate];
+const subXs = subclasses.map(c => c.topCenter[0]);
+const busLeft  = Math.min(...subXs);
+const busRight = Math.max(...subXs);
+
+// horizontal bus line
+line(busLeft, busY, busRight, busY);
+
+// vertical from bus down to each subclass top + hollow triangle at bus junction
+subclasses.forEach(c => {
+  const tx = c.topCenter[0];
+  const ty = c.topCenter[1];
+  // vertical line from bus to subclass top
+  line(tx, busY, tx, ty);
+  // hollow triangle pointing up at bus level
+  hollowTriangle(tx, busY, 7);
+});
+
+// ── 2. Recruiter "creates" JobPosting ────────────────────────────────────────
+// Route: Recruiter right → horizontal at y=250 → JobPosting left
+{
+  const rx = C.Recruiter.right, ry = C.Recruiter.midRight[1];
+  const jx = C.JobPosting.left, jy = C.JobPosting.midLeft[1];
+  const midY = 250;
+  polyline([[rx, ry], [rx + 20, ry], [rx + 20, midY], [jx, midY]]);
+  openArrow(jx, midY, Math.PI); // pointing left (into JobPosting)
+  assocLabel((rx + 20 + jx) / 2, midY - 8, 'creates');
+  multLabel(rx + 30, ry - 6, '1');
+  multLabel(jx - 14, midY - 6, '0..*');
+}
+
+// ── 3. Recruiter "manages" CalendarEvent ─────────────────────────────────────
+{
+  const rx = C.Recruiter.bottomCenter[0], ry = C.Recruiter.bottom;
+  const cx = C.CalendarEvent.topCenter[0], cy = C.CalendarEvent.top;
+  polyline([[rx, ry], [rx, ry + 18], [cx, ry + 18], [cx, cy]]);
+  openArrow(cx, cy, -Math.PI / 2);
+  assocLabel((rx + cx) / 2, ry + 10, 'manages');
+  multLabel(rx + 12, ry + 8, '1');
+  multLabel(cx + 14, cy - 8, '0..*');
+}
+
+// ── 4. Candidate "scheduled for" CalendarEvent (aggregation) ─────────────────
+{
+  const candBotX = C.Candidate.bottomCenter[0];
+  const candBotY = C.Candidate.bottom;
+  const calTopX  = C.CalendarEvent.topCenter[0];
+  const calTopY  = C.CalendarEvent.top;
+  // route: Candidate bottom → down to y=760 → left to CalendarEvent top x → up
+  const routeY = 760;
+  polyline([[candBotX, candBotY], [candBotX, routeY], [calTopX, routeY], [calTopX, calTopY]]);
+  // hollow diamond at Candidate bottom (pointing down)
+  hollowDiamond(candBotX, candBotY, Math.PI / 2);
+  openArrow(calTopX, calTopY, -Math.PI / 2);
+  assocLabel((candBotX + calTopX) / 2, routeY - 8, 'scheduled for');
+  multLabel(candBotX + 14, candBotY + 14, '1');
+  multLabel(calTopX + 14, calTopY - 8, '0..*');
+}
+
+// ── 5. JobPosting "generates" Interview (aggregation) ────────────────────────
+{
+  const jbx = C.JobPosting.bottomCenter[0], jby = C.JobPosting.bottom;
+  const ivx = C.Interview.topCenter[0],     ivy = C.Interview.top;
+  line(jbx, jby, ivx, ivy);
+  hollowDiamond(jbx, jby, Math.PI / 2);
+  openArrow(ivx, ivy, -Math.PI / 2);
+  assocLabel((jbx + ivx) / 2 + 30, (jby + ivy) / 2, 'generates');
+  multLabel(jbx + 14, jby + 14, '1');
+  multLabel(ivx + 14, ivy - 8, '0..*');
+}
+
+// ── 6. InterviewFlow "defines" Interview ─────────────────────────────────────
+{
+  const ifx = C.InterviewFlow.bottomCenter[0], ify = C.InterviewFlow.bottom;
+  const ivr = C.Interview.midRight[0],         ivy = C.Interview.midRight[1];
+  // route: InterviewFlow bottom → down to Interview right y → left to Interview right
+  polyline([[ifx, ify], [ifx, ivy], [ivr, ivy]]);
+  openArrow(ivr, ivy, 0); // pointing right (into Interview from right)
+  assocLabel(ifx + (ivr - ifx) / 2, ivy - 8, 'defines');
+  multLabel(ifx + 14, ify + 14, '1');
+  multLabel(ivr - 20, ivy - 8, '0..*');
+}
+
+// ── 7. Interview "contains" InterviewResponse (composition) ──────────────────
+{
+  const ivr = C.Interview.midRight[0],         ivy = C.Interview.midRight[1];
+  const irl = C.InterviewResponse.midLeft[0],  iry = C.InterviewResponse.midLeft[1];
+  // route: Interview right → horizontal → InterviewResponse left
+  const midY2 = (ivy + iry) / 2;
+  polyline([[ivr, ivy], [ivr + 20, ivy], [ivr + 20, iry], [irl, iry]]);
+  filledDiamond(ivr, ivy, 0);
+  openArrow(irl, iry, Math.PI);
+  assocLabel((ivr + 20 + irl) / 2, iry - 8, 'contains');
+  multLabel(ivr + 30, ivy - 6, '1');
+  multLabel(irl - 18, iry - 6, '1..*');
+}
+
+// ── 8. Candidate "takes" Interview ───────────────────────────────────────────
+{
+  const candBotX = C.Candidate.bottomCenter[0];
+  const candBotY = C.Candidate.bottom;
+  const ivTopX   = C.Interview.topCenter[0];
+  const ivTopY   = C.Interview.top;
+  // route: Candidate bottom → down to y=755 → right to Interview top x → up
+  const routeY = 755;
+  polyline([[candBotX, candBotY], [candBotX, routeY], [ivTopX, routeY], [ivTopX, ivTopY]]);
+  openArrow(ivTopX, ivTopY, -Math.PI / 2);
+  assocLabel((candBotX + ivTopX) / 2, routeY - 8, 'takes');
+  multLabel(candBotX - 14, candBotY + 14, '1');
+  multLabel(ivTopX - 14, ivTopY - 8, '0..*');
+}
+
+// ── 9. ChatSession "contains" ChatMessage (composition) ──────────────────────
+{
+  const csr = C.ChatSession.midRight[0], csy = C.ChatSession.midRight[1];
+  const cml = C.ChatMessage.midLeft[0],  cmy = C.ChatMessage.midLeft[1];
+  line(csr, csy, cml, cmy);
+  filledDiamond(csr, csy, 0);
+  openArrow(cml, cmy, Math.PI);
+  assocLabel((csr + cml) / 2, csy - 8, 'contains');
+  multLabel(csr + 18, csy - 6, '1');
+  multLabel(cml - 18, cmy - 6, '0..*');
+}
+
+// ── 10. User "initiates" ChatSession ─────────────────────────────────────────
+{
+  const ubl = C.User.left + 20, uby = C.User.bottom;
+  const cst = C.ChatSession.topCenter[0], csty = C.ChatSession.top;
+  // route: User bottom-left area → down to y=760 → right to ChatSession top
+  const routeY = 765;
+  polyline([[ubl, uby], [ubl, routeY], [cst, routeY], [cst, csty]]);
+  openArrow(cst, csty, -Math.PI / 2);
+  assocLabel((ubl + cst) / 2, routeY - 8, 'initiates');
+  multLabel(ubl + 14, uby + 14, '1');
+  multLabel(cst + 14, csty - 8, '0..*');
+}
+
+// ── 11. User "«uses»" Role (dependency, dashed) ──────────────────────────────
+{
+  const ur = C.User.midRight[0], uy = C.User.midRight[1];
+  const rl = C.Role.midLeft[0],  ry2 = C.Role.midLeft[1];
+  // route: User right → horizontal to Role left (both at similar y)
+  const midY = (uy + ry2) / 2;
+  polyline([[ur, uy], [ur + 20, uy], [ur + 20, midY], [rl, midY]], true);
+  openArrow(rl, midY, Math.PI);
+  assocLabel((ur + 20 + rl) / 2, midY - 8, '«uses»');
+  multLabel(ur + 30, uy - 6, '');
+}
+
+// ── 12. InterviewFlow "«uses»" KnowledgeBase (dependency, dashed) ────────────
+{
+  const ifbx = C.InterviewFlow.bottomCenter[0], ifby = C.InterviewFlow.bottom;
+  const kbt  = C.KnowledgeBase.topCenter[0],    kbty = C.KnowledgeBase.top;
+  // route: InterviewFlow bottom → down → left to KnowledgeBase top
+  const routeY = 760;
+  polyline([[ifbx, ifby], [ifbx, routeY], [kbt, routeY], [kbt, kbty]], true);
+  openArrow(kbt, kbty, -Math.PI / 2);
+  assocLabel((ifbx + kbt) / 2, routeY - 8, '«uses»');
+}
+
+// ─── footer ──────────────────────────────────────────────────────────────────
+ctx.strokeStyle = '#ccc';
+ctx.lineWidth = 1;
+ctx.beginPath();
+ctx.moveTo(0, 1085);
+ctx.lineTo(1500, 1085);
+ctx.stroke();
+ctx.font = '10px Arial';
+ctx.fillStyle = '#999';
+ctx.textAlign = 'center';
+ctx.fillText('RMS · UML Class Diagram · Domain Model · Thesis Documentation', 750, 1096);
+</script>
+</body>
+</html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Figure 3.20: Security Architecture Diagram</title>
+<style>
+  body { margin: 0; padding: 20px; background: #fff; display: flex; flex-direction: column; align-items: center; font-family: Arial, sans-serif; }
+  canvas { border: 1px solid #ddd; display: block; }
+  button {
+    margin-top: 14px;
+    padding: 9px 22px;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    background: #fff;
+    border: 1.5px solid #888;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #333;
+  }
+  button:hover { background: #f5f5f5; }
+</style>
+</head>
+<body>
+<canvas id="c" width="900" height="900"></canvas>
+<button onclick="saveImage()">📸 Print / Save as Image</button>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+const cx = 450, cy = 480;
+
+/* ── helpers ── */
+function roundRect(x,y,w,h,r,fill,stroke,lw){
+  r=r||0;
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+  if(fill){ctx.fillStyle=fill;ctx.fill();}
+  if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw||1;ctx.stroke();}
+}
+
+function lbl(text,x,y,size,color,align,bold,italic){
+  let style='';
+  if(bold&&italic)style='bold italic ';
+  else if(bold)style='bold ';
+  else if(italic)style='italic ';
+  ctx.font=style+size+'px Arial';
+  ctx.fillStyle=color||'#000';
+  ctx.textAlign=align||'left';
+  ctx.textBaseline='middle';
+  ctx.fillText(text,x,y);
+}
+
+function hline(x1,x2,y,color,lw){
+  ctx.beginPath();ctx.strokeStyle=color||'#CCC';ctx.lineWidth=lw||1;
+  ctx.moveTo(x1,y);ctx.lineTo(x2,y);ctx.stroke();
+}
+
+function circle(cx,cy,r,fill,stroke,lw){
+  ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);
+  if(fill){ctx.fillStyle=fill;ctx.fill();}
+  if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw||1;ctx.stroke();}
+}
+
+function arrowDown(x,y1,y2){
+  ctx.save();
+  ctx.beginPath();ctx.strokeStyle='#555';ctx.lineWidth=1.5;ctx.setLineDash([]);
+  ctx.moveTo(x,y1);ctx.lineTo(x,y2);ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x,y2);ctx.lineTo(x-6,y2-10);ctx.lineTo(x+6,y2-10);
+  ctx.closePath();ctx.fillStyle='#555';ctx.fill();
+  ctx.restore();
+}
+
+/* ── draw ── */
+function draw(){
+
+  // 1. White background
+  ctx.fillStyle='#fff';
+  ctx.fillRect(0,0,900,900);
+
+  // 2. Title + subtitle + line
+  lbl('Figure 3.20: Security Architecture Diagram', 450, 30, 16, '#000', 'center', true, false);
+  lbl('Defence-in-Depth Model – RMS', 450, 50, 12, '#555', 'center', false, true);
+  hline(0, 900, 62, '#CCC', 1);
+
+  // 3. Concentric circles — outermost to innermost
+  circle(cx, cy, 370, '#F5F5F5', '#888', 1.5);
+  circle(cx, cy, 310, '#EBEBEB', '#888', 1.5);
+  circle(cx, cy, 250, '#E0E0E0', '#888', 1.5);
+  circle(cx, cy, 190, '#D5D5D5', '#888', 1.5);
+  circle(cx, cy, 130, '#CACACA', '#777', 1.5);
+  circle(cx, cy,  75, '#BDBDBD', '#666', 1.5);
+  circle(cx, cy,  38, '#333',    '#000', 2);
+
+  // 4. Ring band labels
+  // Band 7: mid = (370+310)/2 = 340
+  lbl('Rate Limiting & DDoS Protection', cx, cy-340, 12, '#333', 'center', true);
+  lbl('Max 100 req/min · Brute-force lockout', cx, cy-340+14, 10, '#666', 'center');
+
+  // Band 6: mid = (310+250)/2 = 280
+  lbl('Transport Security', cx, cy-280, 12, '#333', 'center', true);
+  lbl('HTTPS / TLS 1.3 · HSTS Headers', cx, cy-280+14, 10, '#666', 'center');
+
+  // Band 5: mid = (250+190)/2 = 220
+  lbl('Authentication', cx, cy-220, 12, '#333', 'center', true);
+  lbl('Session-based · Google OAuth 2.0', cx, cy-220+14, 10, '#666', 'center');
+
+  // Band 4: mid = (190+130)/2 = 160
+  lbl('Authorisation & RBAC', cx, cy-160, 12, '#333', 'center', true);
+  lbl('4 Roles · Controller-level checks', cx, cy-160+14, 10, '#666', 'center');
+
+  // Band 3: mid = (130+75)/2 = 102.5 ≈ 102
+  lbl('Input Validation', cx, cy-102, 12, '#333', 'center', true);
+  lbl('Parameterised queries · XSS filter', cx, cy-102+14, 10, '#666', 'center');
+
+  // Band 2: mid = (75+38)/2 = 56.5 ≈ 56
+  lbl('Audit Logging', cx, cy-56, 11, '#333', 'center', true);
+  lbl('CRUD logs · IP tracking', cx, cy-56+14, 10, '#666', 'center');
+
+  // 5. Core labels (white text)
+  lbl('Data',  cx, cy-8,  11, '#FFF', 'center', true);
+  lbl('Store', cx, cy+8,  11, '#FFF', 'center', true);
+
+  // 6. External actor boxes + arrows
+  // Arrow tip y = cy - 370 = 110; start from box bottom y=112
+  // Box 1: Client Browser — center x=160
+  roundRect(100, 80, 120, 32, 4, '#FFF', '#888', 1.5);
+  lbl('Client Browser', 160, 96, 11, '#333', 'center', true);
+  // Arrow: from (160, 112) to circle edge
+  // Circle edge at angle: find y on circle at x=160
+  // dx = 160-450 = -290, r=370 → dy = sqrt(370²-290²) = sqrt(136900-84100) = sqrt(52800) ≈ 229.8
+  // top edge y = cy - 229.8 ≈ 250
+  arrowDown(160, 112, cy - Math.sqrt(370*370 - (160-cx)*(160-cx)));
+
+  // Box 2: Google OAuth — center x=450
+  roundRect(390, 80, 120, 32, 4, '#FFF', '#888', 1.5);
+  lbl('Google OAuth', 450, 96, 11, '#333', 'center', true);
+  arrowDown(450, 112, cy - 370 + 5); // straight down to top of circle
+
+  // Box 3: Admin / Recruiter — center x=745
+  roundRect(680, 80, 130, 32, 4, '#FFF', '#888', 1.5);
+  lbl('Admin / Recruiter', 745, 96, 11, '#333', 'center', true);
+  // dx = 745-450 = 295, top edge y = cy - sqrt(370²-295²)
+  arrowDown(745, 112, cy - Math.sqrt(370*370 - (745-cx)*(745-cx)));
+
+  // 7. Legend row at y=870
+  const legendItems = [
+    { fill:'#F5F5F5', stroke:'#888', sw:1,   label:'Outer layer' },
+    { fill:'#CACACA', stroke:'#777', sw:1,   label:'Inner layer' },
+    { fill:'#333',    stroke:null,   sw:1,   label:'Data Store'  },
+    { fill:null,      stroke:null,   sw:1,   label:'External actor', arrow:true }
+  ];
+  const startX = 90;
+  const gap = 180;
+  legendItems.forEach((item, i) => {
+    const lx = startX + i * gap;
+    const ly = 870;
+    if(item.arrow){
+      // draw small arrow sample
+      ctx.save();
+      ctx.beginPath();ctx.strokeStyle='#555';ctx.lineWidth=1.5;
+      ctx.moveTo(lx, ly-6);ctx.lineTo(lx, ly+4);ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(lx, ly+4);ctx.lineTo(lx-4, ly-4);ctx.lineTo(lx+4, ly-4);
+      ctx.closePath();ctx.fillStyle='#555';ctx.fill();
+      ctx.restore();
+    } else {
+      circle(lx, ly, 8, item.fill, item.stroke, item.sw);
+    }
+    lbl(item.label, lx+14, ly, 10, '#555', 'left');
+  });
+
+  // 8. Footer
+  hline(0, 900, 882, '#CCC', 1);
+  lbl('RMS · Security Architecture · Defence-in-Depth · Thesis Documentation', 450, 893, 10, '#999', 'center');
+}
+
+draw();
+
+/* ── save ── */
+function saveImage(){
+  const link = document.createElement('a');
+  link.download = 'security_architecture_diagram.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+</script>
+</body>
+</html>

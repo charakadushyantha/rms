@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ER Diagram – Core RMS Schema</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #fff; display: flex; flex-direction: column; align-items: center; font-family: Arial, sans-serif; }
+  #canvasWrap { margin: 20px auto; }
+  canvas { display: block; border: 1px solid #ccc; }
+  #printBtn {
+    margin: 10px auto 20px;
+    display: block;
+    padding: 10px 28px;
+    background: #1A252F;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: Arial, sans-serif;
+    letter-spacing: 0.3px;
+  }
+  #printBtn:hover { background: #2c3e50; }
+  @media print {
+    #printBtn { display: none !important; }
+    body { margin: 0; }
+    #canvasWrap { margin: 0; }
+    canvas { border: none; }
+  }
+</style>
+</head>
+<body>
+<div id="canvasWrap">
+  <canvas id="erCanvas" width="1400" height="1050"></canvas>
+</div>
+<button id="printBtn" onclick="window.print()">📸 Print / Save as Image</button>
+
+<script>
+const canvas = document.getElementById('erCanvas');
+const ctx = canvas.getContext('2d');
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+function crowFoot(x, y, dir) {
+  const s = 12;
+  ctx.save();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([]);
+  if (dir === 'right') {
+    ctx.beginPath(); ctx.moveTo(x, y - s); ctx.lineTo(x + s, y); ctx.lineTo(x, y + s); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + s, y); ctx.stroke();
+  } else if (dir === 'left') {
+    ctx.beginPath(); ctx.moveTo(x, y - s); ctx.lineTo(x - s, y); ctx.lineTo(x, y + s); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - s, y); ctx.stroke();
+  } else if (dir === 'down') {
+    ctx.beginPath(); ctx.moveTo(x - s, y); ctx.lineTo(x, y + s); ctx.lineTo(x + s, y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + s); ctx.stroke();
+  } else if (dir === 'up') {
+    ctx.beginPath(); ctx.moveTo(x - s, y); ctx.lineTo(x, y - s); ctx.lineTo(x + s, y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y - s); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function oneBar(x, y, dir) {
+  const s = 10;
+  ctx.save();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([]);
+  if (dir === 'right') {
+    ctx.beginPath(); ctx.moveTo(x + s, y - s); ctx.lineTo(x + s, y + s); ctx.stroke();
+  } else if (dir === 'left') {
+    ctx.beginPath(); ctx.moveTo(x - s, y - s); ctx.lineTo(x - s, y + s); ctx.stroke();
+  } else if (dir === 'down') {
+    ctx.beginPath(); ctx.moveTo(x - s, y + s); ctx.lineTo(x + s, y + s); ctx.stroke();
+  } else if (dir === 'up') {
+    ctx.beginPath(); ctx.moveTo(x - s, y - s); ctx.lineTo(x + s, y - s); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function doubleBar(x, y, dir) {
+  const s = 10, gap = 5;
+  ctx.save();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([]);
+  if (dir === 'right') {
+    ctx.beginPath(); ctx.moveTo(x + s, y - s); ctx.lineTo(x + s, y + s); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x + s + gap, y - s); ctx.lineTo(x + s + gap, y + s); ctx.stroke();
+  } else if (dir === 'left') {
+    ctx.beginPath(); ctx.moveTo(x - s, y - s); ctx.lineTo(x - s, y + s); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x - s - gap, y - s); ctx.lineTo(x - s - gap, y + s); ctx.stroke();
+  } else if (dir === 'down') {
+    ctx.beginPath(); ctx.moveTo(x - s, y + s); ctx.lineTo(x + s, y + s); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x - s, y + s + gap); ctx.lineTo(x + s, y + s + gap); ctx.stroke();
+  } else if (dir === 'up') {
+    ctx.beginPath(); ctx.moveTo(x - s, y - s); ctx.lineTo(x + s, y - s); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x - s, y - s - gap); ctx.lineTo(x + s, y - s - gap); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function zeroCircle(x, y, dir) {
+  const offset = 20;
+  ctx.save();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.2;
+  ctx.setLineDash([]);
+  let cx2 = x, cy2 = y;
+  if (dir === 'right') { cx2 = x + offset; cy2 = y; }
+  else if (dir === 'left') { cx2 = x - offset; cy2 = y; }
+  else if (dir === 'down') { cx2 = x; cy2 = y + offset; }
+  else if (dir === 'up') { cx2 = x; cy2 = y - offset; }
+  ctx.beginPath(); ctx.arc(cx2, cy2, 5, 0, Math.PI * 2); ctx.stroke();
+  ctx.restore();
+}
+
+function relLine(pts) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.2;
+  ctx.setLineDash([]);
+  ctx.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function relLabel(x, y, text) {
+  ctx.save();
+  ctx.font = 'italic 11px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const tw = ctx.measureText(text).width;
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(x - tw / 2 - 4, y - 9, tw + 8, 18);
+  ctx.fillStyle = '#333';
+  ctx.fillText(text, x, y);
+  ctx.restore();
+}
+
+function drawEntity(x, y, w, name, attributes) {
+  const headerH = 30;
+  const bodyH = attributes.length * 18 + 12;
+  const totalH = headerH + bodyH;
+
+  // Header
+  ctx.fillStyle = '#1A252F';
+  ctx.fillRect(x, y, w, headerH);
+  ctx.font = 'bold 13px Arial';
+  ctx.fillStyle = '#fff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(name, x + w / 2, y + headerH / 2);
+
+  // Body
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(x, y + headerH, w, bodyH);
+
+  // Border
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(x, y, w, totalH);
+
+  // Divider
+  ctx.beginPath();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1;
+  ctx.moveTo(x, y + headerH);
+  ctx.lineTo(x + w, y + headerH);
+  ctx.stroke();
+
+  // Attributes
+  ctx.font = '11px Arial';
+  ctx.fillStyle = '#000';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  attributes.forEach((attr, i) => {
+    const isPK = i === 0;
+    const attrY = y + headerH + 14 + i * 18;
+    const attrX = x + 10;
+    ctx.fillText(attr, attrX, attrY);
+    if (isPK) {
+      const tw = ctx.measureText(attr).width;
+      ctx.beginPath();
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 1;
+      ctx.moveTo(attrX, attrY + 2);
+      ctx.lineTo(attrX + tw, attrY + 2);
+      ctx.stroke();
+    }
+  });
+
+  return {
+    x, y, w, h: totalH,
+    cx: x + w / 2, cy: y + totalH / 2,
+    top: y, bottom: y + totalH,
+    left: x, right: x + w,
+    midLeft: [x, y + totalH / 2],
+    midRight: [x + w, y + totalH / 2],
+    topCenter: [x + w / 2, y],
+    bottomCenter: [x + w / 2, y + totalH]
+  };
+}
+
+// ─── Draw ────────────────────────────────────────────────────────────────────
+
+// 1. White background
+ctx.fillStyle = '#fff';
+ctx.fillRect(0, 0, 1400, 1050);
+
+// 2. Title bar
+ctx.fillStyle = '#1A252F';
+ctx.fillRect(0, 0, 1400, 65);
+
+ctx.font = 'bold 22px Arial';
+ctx.fillStyle = '#fff';
+ctx.textAlign = 'center';
+ctx.textBaseline = 'middle';
+ctx.fillText('Entity-Relationship Diagram – Core RMS Schema', 700, 28);
+
+ctx.font = '13px Arial';
+ctx.fillStyle = '#AED6F1';
+ctx.fillText('Core Recruitment Entities · Attributes · Cardinalities', 700, 52);
+
+// 3. Compute entity bounding boxes (draw entities later, relationships first)
+// We need to pre-compute positions without drawing
+function entityBounds(x, y, w, attrCount) {
+  const headerH = 30;
+  const bodyH = attrCount * 18 + 12;
+  const totalH = headerH + bodyH;
+  return {
+    x, y, w, h: totalH,
+    cx: x + w / 2, cy: y + totalH / 2,
+    top: y, bottom: y + totalH,
+    left: x, right: x + w,
+    midLeft: [x, y + totalH / 2],
+    midRight: [x + w, y + totalH / 2],
+    topCenter: [x + w / 2, y],
+    bottomCenter: [x + w / 2, y + totalH]
+  };
+}
+
+const E = {
+  User:        entityBounds(30,   120, 200, 7),
+  Job:         entityBounds(580,  120, 220, 9),
+  Candidate:   entityBounds(30,   480, 220, 9),
+  Application: entityBounds(580,  480, 220, 6),
+  Interview:   entityBounds(1130, 120, 220, 8),
+  Feedback:    entityBounds(1130, 480, 220, 8),
+  Document:    entityBounds(30,   800, 220, 6)
+};
+
+// ─── 4. Relationship lines (drawn BEFORE entities) ───────────────────────────
+
+// Rel 1: User → Job (posts, 1 to 0..*)
+relLine([[E.User.right, E.User.cy], [E.Job.left, E.Job.cy]]);
+doubleBar(E.User.right, E.User.cy, 'right');
+crowFoot(E.Job.left, E.Job.cy, 'left');
+zeroCircle(E.Job.left, E.Job.cy, 'left');
+relLabel((E.User.right + E.Job.left) / 2, E.User.cy - 14, 'posts');
+
+// Rel 2: User → Candidate (manages, 1 to 0..*)
+relLine([
+  [E.User.bottomCenter[0], E.User.bottom],
+  [E.User.bottomCenter[0], E.Candidate.top - 10],
+  [E.Candidate.topCenter[0], E.Candidate.top - 10],
+  [E.Candidate.topCenter[0], E.Candidate.top]
+]);
+doubleBar(E.User.bottomCenter[0], E.User.bottom, 'down');
+crowFoot(E.Candidate.topCenter[0], E.Candidate.top, 'up');
+zeroCircle(E.Candidate.topCenter[0], E.Candidate.top, 'up');
+relLabel(E.User.bottomCenter[0] + 50, (E.User.bottom + E.Candidate.top) / 2, 'manages');
+
+// Rel 3: Candidate → Application (submits, 1 to 0..*)
+relLine([[E.Candidate.right, E.Candidate.cy], [E.Application.left, E.Application.cy]]);
+doubleBar(E.Candidate.right, E.Candidate.cy, 'right');
+crowFoot(E.Application.left, E.Application.cy, 'left');
+zeroCircle(E.Application.left, E.Application.cy, 'left');
+relLabel((E.Candidate.right + E.Application.left) / 2, E.Candidate.cy - 14, 'submits');
+
+// Rel 4: Job → Application (receives, 1 to 0..*)
+relLine([
+  [E.Job.bottomCenter[0], E.Job.bottom],
+  [E.Job.bottomCenter[0], E.Application.top - 10],
+  [E.Application.topCenter[0], E.Application.top - 10],
+  [E.Application.topCenter[0], E.Application.top]
+]);
+doubleBar(E.Job.bottomCenter[0], E.Job.bottom, 'down');
+crowFoot(E.Application.topCenter[0], E.Application.top, 'up');
+zeroCircle(E.Application.topCenter[0], E.Application.top, 'up');
+relLabel(E.Job.bottomCenter[0] + 50, (E.Job.bottom + E.Application.top) / 2, 'receives');
+
+// Rel 5: Application → Interview (has, 1 to 0..*)
+relLine([[E.Application.right, E.Application.cy], [E.Interview.left, E.Interview.cy]]);
+doubleBar(E.Application.right, E.Application.cy, 'right');
+crowFoot(E.Interview.left, E.Interview.cy, 'left');
+zeroCircle(E.Interview.left, E.Interview.cy, 'left');
+relLabel((E.Application.right + E.Interview.left) / 2, E.Application.cy - 14, 'has');
+
+// Rel 6: Interview → Feedback (receives, 1 to 1..*)
+relLine([
+  [E.Interview.bottomCenter[0], E.Interview.bottom],
+  [E.Interview.bottomCenter[0], E.Feedback.top - 10],
+  [E.Feedback.topCenter[0], E.Feedback.top - 10],
+  [E.Feedback.topCenter[0], E.Feedback.top]
+]);
+doubleBar(E.Interview.bottomCenter[0], E.Interview.bottom, 'down');
+crowFoot(E.Feedback.topCenter[0], E.Feedback.top, 'up');
+oneBar(E.Feedback.topCenter[0], E.Feedback.top, 'up');
+relLabel(E.Interview.bottomCenter[0] + 50, (E.Interview.bottom + E.Feedback.top) / 2, 'receives');
+
+// Rel 7: Candidate → Document (has, 1 to 0..*)
+relLine([
+  [E.Candidate.bottomCenter[0], E.Candidate.bottom],
+  [E.Candidate.bottomCenter[0], E.Document.top - 10],
+  [E.Document.topCenter[0], E.Document.top - 10],
+  [E.Document.topCenter[0], E.Document.top]
+]);
+doubleBar(E.Candidate.bottomCenter[0], E.Candidate.bottom, 'down');
+crowFoot(E.Document.topCenter[0], E.Document.top, 'up');
+zeroCircle(E.Document.topCenter[0], E.Document.top, 'up');
+relLabel(E.Candidate.bottomCenter[0] + 50, (E.Candidate.bottom + E.Document.top) / 2, 'has');
+
+// Rel 8: User → Feedback (gives, 1 to 0..*)
+// Route: User right edge → across top → down to Feedback top
+const routeY = 95;
+relLine([
+  [E.User.right, E.User.top + 15],
+  [1060, E.User.top + 15],
+  [1060, E.Feedback.top - 10],
+  [E.Feedback.topCenter[0] + 20, E.Feedback.top - 10],
+  [E.Feedback.topCenter[0] + 20, E.Feedback.top]
+]);
+doubleBar(E.User.right, E.User.top + 15, 'right');
+crowFoot(E.Feedback.topCenter[0] + 20, E.Feedback.top, 'up');
+zeroCircle(E.Feedback.topCenter[0] + 20, E.Feedback.top, 'up');
+relLabel(600, routeY + 5, 'gives');
+
+// ─── 5. Draw all entities (on top of lines) ──────────────────────────────────
+
+drawEntity(30, 120, 200, 'User', [
+  'userID',
+  'username',
+  'email',
+  'passwordHash',
+  'role',
+  'status',
+  'createdAt'
+]);
+
+drawEntity(580, 120, 220, 'Job', [
+  'jobID',
+  'title',
+  'description',
+  'location',
+  'employmentType',
+  'salaryMin / salaryMax',
+  'status',
+  'expiresAt',
+  'postedBy (FK)'
+]);
+
+drawEntity(30, 480, 220, 'Candidate', [
+  'candidateID',
+  'name',
+  'email',
+  'phone',
+  'gender',
+  'jobTitle',
+  'source',
+  'status',
+  'interviewStatus'
+]);
+
+drawEntity(580, 480, 220, 'Application', [
+  'applicationID',
+  'candidateID (FK)',
+  'jobID (FK)',
+  'appliedAt',
+  'status',
+  'cvFilePath'
+]);
+
+drawEntity(1130, 120, 220, 'Interview', [
+  'interviewID',
+  'applicationID (FK)',
+  'token',
+  'scheduledAt',
+  'completedAt',
+  'status',
+  'score',
+  'expiresAt'
+]);
+
+drawEntity(1130, 480, 220, 'Feedback', [
+  'feedbackID',
+  'interviewID (FK)',
+  'interviewerID (FK)',
+  'technicalScore',
+  'communicationScore',
+  'overallRating',
+  'recommendation',
+  'submittedAt'
+]);
+
+drawEntity(30, 800, 220, 'Document', [
+  'documentID',
+  'candidateID (FK)',
+  'documentType',
+  'fileName',
+  'filePath',
+  'uploadedAt'
+]);
+
+// ─── 6. Legend ───────────────────────────────────────────────────────────────
+
+const lx = 850, ly = 800;
+const lw = 310, lh = 170;
+
+ctx.fillStyle = '#F5F5F5';
+ctx.fillRect(lx, ly, lw, lh);
+ctx.strokeStyle = '#000';
+ctx.lineWidth = 1;
+ctx.strokeRect(lx, ly, lw, lh);
+
+ctx.font = 'bold 11px Arial';
+ctx.fillStyle = '#000';
+ctx.textAlign = 'left';
+ctx.textBaseline = 'middle';
+ctx.fillText('NOTATION LEGEND', lx + 10, ly + 14);
+
+// Divider
+ctx.beginPath();
+ctx.moveTo(lx, ly + 24);
+ctx.lineTo(lx + lw, ly + 24);
+ctx.strokeStyle = '#CCC';
+ctx.lineWidth = 1;
+ctx.stroke();
+
+ctx.font = '10px Arial';
+ctx.fillStyle = '#333';
+
+// Legend items
+const items = [
+  { y: ly + 42,  label: 'Crow\'s foot  =  "many" end' },
+  { y: ly + 68,  label: 'Double bar  =  "exactly one" end' },
+  { y: ly + 94,  label: 'Single bar  =  "one" end' },
+  { y: ly + 120, label: 'Circle  =  "zero or" modifier' },
+  { y: ly + 146, label: 'PK attribute  =  underlined text' }
+];
+
+// Draw crow's foot sample
+const cf_x = lx + 30, cf_y = ly + 42;
+ctx.save();
+ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5;
+ctx.beginPath(); ctx.moveTo(cf_x - 20, cf_y); ctx.lineTo(cf_x, cf_y); ctx.stroke();
+crowFoot(cf_x, cf_y, 'right');
+ctx.restore();
+ctx.fillText(items[0].label, lx + 60, items[0].y);
+
+// Draw double bar sample
+const db_x = lx + 30, db_y = ly + 68;
+ctx.save();
+ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5;
+ctx.beginPath(); ctx.moveTo(db_x - 20, db_y); ctx.lineTo(db_x, db_y); ctx.stroke();
+doubleBar(db_x, db_y, 'right');
+ctx.restore();
+ctx.fillText(items[1].label, lx + 60, items[1].y);
+
+// Draw single bar sample
+const sb_x = lx + 30, sb_y = ly + 94;
+ctx.save();
+ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5;
+ctx.beginPath(); ctx.moveTo(sb_x - 20, sb_y); ctx.lineTo(sb_x, sb_y); ctx.stroke();
+oneBar(sb_x, sb_y, 'right');
+ctx.restore();
+ctx.fillText(items[2].label, lx + 60, items[2].y);
+
+// Draw circle sample
+const zc_x = lx + 30, zc_y = ly + 120;
+ctx.save();
+ctx.strokeStyle = '#000'; ctx.lineWidth = 1.2;
+ctx.beginPath(); ctx.moveTo(zc_x - 20, zc_y); ctx.lineTo(zc_x, zc_y); ctx.stroke();
+zeroCircle(zc_x, zc_y, 'right');
+ctx.restore();
+ctx.fillText(items[3].label, lx + 60, items[3].y);
+
+// PK underline sample
+ctx.font = '10px Arial';
+ctx.fillStyle = '#000';
+ctx.textAlign = 'left';
+ctx.textBaseline = 'alphabetic';
+const pkText = 'sampleID';
+const pkX = lx + 15, pkY = ly + 150;
+ctx.fillText(pkText, pkX, pkY);
+const pkW = ctx.measureText(pkText).width;
+ctx.beginPath();
+ctx.strokeStyle = '#000'; ctx.lineWidth = 1;
+ctx.moveTo(pkX, pkY + 2); ctx.lineTo(pkX + pkW, pkY + 2); ctx.stroke();
+ctx.font = '10px Arial';
+ctx.fillStyle = '#333';
+ctx.textAlign = 'left';
+ctx.textBaseline = 'middle';
+ctx.fillText(items[4].label, lx + 60, items[4].y);
+
+// ─── 7. Footer ───────────────────────────────────────────────────────────────
+
+ctx.beginPath();
+ctx.strokeStyle = '#CCC';
+ctx.lineWidth = 1;
+ctx.moveTo(20, 1030);
+ctx.lineTo(1380, 1030);
+ctx.stroke();
+
+ctx.font = '10px Arial';
+ctx.fillStyle = '#999';
+ctx.textAlign = 'center';
+ctx.textBaseline = 'middle';
+ctx.fillText('RMS · Entity-Relationship Diagram · Core Schema · Thesis Documentation', 700, 1043);
+
+</script>
+</body>
+</html>

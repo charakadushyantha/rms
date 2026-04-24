@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Figure 3.23: MIS Report Generation Architecture</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #fff;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+  #canvasWrap {
+    border: 1px solid #DDD;
+    display: inline-block;
+    background: #fff;
+  }
+  canvas { display: block; }
+  #btnPrint {
+    margin-top: 14px;
+    padding: 8px 22px;
+    background: #fff;
+    border: 1.5px solid #555;
+    border-radius: 4px;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    color: #333;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+  }
+  #btnPrint:hover { background: #F0F0F0; }
+  @media print {
+    #btnPrint { display: none; }
+    body { padding: 0; }
+    #canvasWrap { border: none; }
+  }
+</style>
+</head>
+<body>
+<div id="canvasWrap">
+  <canvas id="c" width="1100" height="780"></canvas>
+</div>
+<button id="btnPrint" onclick="window.print()">📸 Print / Save as Image</button>
+
+<script>
+(function(){
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+
+  /* ── helpers ─────────────────────────────────────────────── */
+  function roundRect(x,y,w,h,r,fill,stroke,lw){
+    r=r||0;
+    ctx.beginPath();
+    ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+    ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+    ctx.lineTo(x+w,y+h-r);
+    ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+    ctx.lineTo(x+r,y+h);
+    ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+    ctx.lineTo(x,y+r);
+    ctx.quadraticCurveTo(x,y,x+r,y);
+    ctx.closePath();
+    if(fill){ctx.fillStyle=fill; ctx.fill();}
+    if(stroke){ctx.strokeStyle=stroke; ctx.lineWidth=lw||1; ctx.stroke();}
+  }
+
+  function lbl(text,x,y,size,color,align,bold,italic){
+    let style='';
+    if(bold&&italic) style='bold italic ';
+    else if(bold)    style='bold ';
+    else if(italic)  style='italic ';
+    ctx.font=style+size+'px Arial';
+    ctx.fillStyle=color||'#000';
+    ctx.textAlign=align||'left';
+    ctx.textBaseline='middle';
+    ctx.fillText(text,x,y);
+  }
+
+  function hline(x1,x2,y,color,lw){
+    ctx.beginPath(); ctx.strokeStyle=color||'#CCC'; ctx.lineWidth=lw||1;
+    ctx.moveTo(x1,y); ctx.lineTo(x2,y); ctx.stroke();
+  }
+
+  function arrowDown(x,y1,y2){
+    ctx.save();
+    ctx.beginPath(); ctx.strokeStyle='#555'; ctx.lineWidth=1.5; ctx.setLineDash([]);
+    ctx.moveTo(x,y1); ctx.lineTo(x,y2-8); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x,y2); ctx.lineTo(x-7,y2-12); ctx.lineTo(x+7,y2-12);
+    ctx.closePath(); ctx.fillStyle='#555'; ctx.fill();
+    ctx.restore();
+  }
+
+  function dbBox(x,y,w,h,name,sub){
+    // bottom ellipse shadow
+    ctx.beginPath();
+    ctx.ellipse(x+w/2, y+h, w/2-1, 6, 0, 0, Math.PI);
+    ctx.strokeStyle='#888'; ctx.lineWidth=1; ctx.stroke();
+    // body rect
+    ctx.fillStyle='#FFF';
+    ctx.fillRect(x, y+8, w, h-8);
+    // left & right sides
+    ctx.beginPath(); ctx.strokeStyle='#888'; ctx.lineWidth=1;
+    ctx.moveTo(x, y+8); ctx.lineTo(x, y+h); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x+w, y+8); ctx.lineTo(x+w, y+h); ctx.stroke();
+    // bottom line
+    ctx.beginPath();
+    ctx.moveTo(x, y+h); ctx.lineTo(x+w, y+h); ctx.stroke();
+    // top ellipse
+    ctx.beginPath();
+    ctx.ellipse(x+w/2, y+8, w/2-1, 6, 0, 0, Math.PI*2);
+    ctx.fillStyle='#EEE'; ctx.fill();
+    ctx.strokeStyle='#888'; ctx.lineWidth=1; ctx.stroke();
+    // labels
+    lbl(name, x+w/2, y+8+18, 10, '#333', 'center', true);
+    if(sub) lbl(sub, x+w/2, y+8+32, 9, '#777', 'center');
+  }
+
+  function processBox(x,y,w,h,name,sub){
+    roundRect(x,y,w,h,4,'#FFF','#888',1);
+    lbl(name, x+w/2, y+h/2-(sub?7:0), 11, '#333', 'center', true);
+    if(sub) lbl(sub, x+w/2, y+h/2+9, 9, '#777', 'center');
+  }
+
+  function rotText(text,x,y,size,color,bold){
+    ctx.save();
+    ctx.translate(x,y); ctx.rotate(-Math.PI/2);
+    ctx.font=(bold?'bold ':'')+size+'px Arial';
+    ctx.fillStyle=color||'#555';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(text,0,0);
+    ctx.restore();
+  }
+
+  /* ── 1. White background ──────────────────────────────────── */
+  ctx.fillStyle='#FFF';
+  ctx.fillRect(0,0,1100,780);
+
+  /* ── 2. Title + subtitle + line ──────────────────────────── */
+  lbl('Figure 3.23: MIS Report Generation Architecture', 550, 28, 16, '#000', 'center', true);
+  lbl('Transactional Tables → Aggregation → Rendering → Export → Delivery', 550, 48, 11, '#555', 'center', false, true);
+  hline(40, 1060, 60, '#CCC', 1);
+
+  /* ── 3–5. STAGE BANDS ────────────────────────────────────── */
+
+  // STAGE 1 — y=80, h=110
+  roundRect(40, 80, 1020, 110, 6, '#F8F8F8', '#888', 1);
+  lbl('Stage 1', 50, 94, 10, '#888', 'left', true);
+  lbl('Transactional Data Sources', 120, 102, 13, '#111', 'left', true);
+
+  // DB boxes: w=130, h=56, y=80+45=125
+  // x positions: 80, 238, 396, 554, 712, 870
+  const dbY = 80+45;
+  const dbW = 130, dbH = 56;
+  const dbItems = [
+    ['candidate_details','Candidates'],
+    ['calendar_events','Interviews'],
+    ['users','Recruiters'],
+    ['job_postings','Jobs'],
+    ['interview_responses','Responses'],
+    ['audit_logs','Audit']
+  ];
+  const dbXs = [80, 238, 396, 554, 712, 870];
+  dbItems.forEach(function(item,i){
+    dbBox(dbXs[i], dbY, dbW, dbH, item[0], item[1]);
+  });
+
+  /* ── ARROW 1 ─────────────────────────────────────────────── */
+  arrowDown(550, 190, 210);
+  lbl('SQL Queries / Active Record', 550, 200, 10, '#777', 'center', false, true);
+
+  // STAGE 2 — y=210, h=110
+  roundRect(40, 210, 1020, 110, 6, '#F5F5F5', '#888', 1);
+  lbl('Stage 2', 50, 224, 10, '#888', 'left', true);
+  lbl('Summary Aggregation', 120, 232, 13, '#111', 'left', true);
+
+  // Process boxes: w=210, h=50, y=210+45=255
+  // x positions: 80, 323, 566, 809
+  const p2Y = 210+45;
+  const p2W = 210, p2H = 50;
+  const p2Items = [
+    ['Custom_reports_model','get_report_data()'],
+    ['Roi_tracking_model','get_roi_overview()'],
+    ['Candidate_model','get_statistics()'],
+    ['Realtime_model','get_dashboard_metrics()']
+  ];
+  const p2Xs = [80, 323, 566, 809];
+  p2Items.forEach(function(item,i){
+    processBox(p2Xs[i], p2Y, p2W, p2H, item[0], item[1]);
+  });
+
+  /* ── ARROW 2 ─────────────────────────────────────────────── */
+  arrowDown(550, 320, 340);
+  lbl('Structured PHP Arrays', 550, 330, 10, '#777', 'center', false, true);
+
+  // STAGE 3 — y=340, h=110
+  roundRect(40, 340, 1020, 110, 6, '#F0F0F0', '#888', 1);
+  lbl('Stage 3', 50, 354, 10, '#888', 'left', true);
+  lbl('Report Rendering', 120, 362, 13, '#111', 'left', true);
+
+  // Process boxes: w=210, h=50, y=340+45=385
+  const p3Y = 340+45;
+  const p3Items = [
+    ['A_dashboard View','Admin MIS reports'],
+    ['Custom_reports View','Report builder UI'],
+    ['Realtime Dashboard','Live pipeline view'],
+    ['Roi_tracking View','ROI charts & tables']
+  ];
+  p3Items.forEach(function(item,i){
+    processBox(p2Xs[i], p3Y, p2W, p2H, item[0], item[1]);
+  });
+
+  /* ── ARROW 3 ─────────────────────────────────────────────── */
+  arrowDown(550, 450, 470);
+  lbl('HTML / JSON Response', 550, 460, 10, '#777', 'center', false, true);
+
+  // STAGE 4 — y=470, h=100
+  roundRect(40, 470, 1020, 100, 6, '#EBEBEB', '#888', 1);
+  lbl('Stage 4', 50, 484, 10, '#888', 'left', true);
+  lbl('Export & Format', 120, 492, 13, '#111', 'left', true);
+
+  // Export boxes: w=240, h=46, y=470+42=512
+  // x positions: 80, 430, 780
+  const p4Y = 470+42;
+  const p4W = 240, p4H = 46;
+  const p4Xs = [80, 430, 780];
+  const p4Items = [
+    ['CSV Export','fputcsv() · PHP output buffer'],
+    ['PDF Export','HTML print view · @media print'],
+    ['JSON API','json_encode() · REST endpoint']
+  ];
+  p4Items.forEach(function(item,i){
+    processBox(p4Xs[i], p4Y, p4W, p4H, item[0], item[1]);
+  });
+
+  /* ── ARROW 4 ─────────────────────────────────────────────── */
+  arrowDown(550, 570, 590);
+  lbl('Formatted Output', 550, 580, 10, '#777', 'center', false, true);
+
+  // STAGE 5 — y=590, h=100
+  roundRect(40, 590, 1020, 100, 6, '#E5E5E5', '#888', 1);
+  lbl('Stage 5', 50, 604, 10, '#888', 'left', true);
+  lbl('Delivery to Authenticated User', 120, 612, 13, '#111', 'left', true);
+
+  // Delivery boxes: w=240, h=46, y=590+42=632
+  const p5Y = 590+42;
+  const p5Items = [
+    ['Browser Render','Admin / Recruiter dashboard'],
+    ['File Download','Content-Disposition: attachment'],
+    ['API Response','Authenticated REST consumer']
+  ];
+  p5Items.forEach(function(item,i){
+    processBox(p4Xs[i], p5Y, p4W, p4H, item[0], item[1]);
+  });
+
+  /* ── 7. AUTH GUARD dashed box ────────────────────────────── */
+  ctx.save();
+  ctx.beginPath();
+  ctx.setLineDash([5,4]);
+  ctx.strokeStyle='#AAA';
+  ctx.lineWidth=1.5;
+  ctx.strokeRect(1000, 340, 60, 350);
+  ctx.restore();
+  rotText('Session Auth Required', 1030, 515, 10, '#555', true);
+
+  /* ── 8. Side annotations ─────────────────────────────────── */
+  // Note 1 — Stage 2
+  ctx.font='9px Arial';
+  ctx.fillStyle='#777';
+  ctx.textAlign='center';
+  ctx.textBaseline='middle';
+  // multi-line helper
+  function multiLine(lines, x, startY, size, color){
+    ctx.font=size+'px Arial';
+    ctx.fillStyle=color;
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    lines.forEach(function(line,i){
+      ctx.fillText(line, x, startY + i*12);
+    });
+  }
+  multiLine(['CodeIgniter','Active Record','(parameterised)'], 22, 255, 9, '#777');
+  // small bracket line from x=40 to x=44 at stage 2 mid
+  ctx.beginPath(); ctx.strokeStyle='#CCC'; ctx.lineWidth=1; ctx.setLineDash([]);
+  ctx.moveTo(40,265); ctx.lineTo(36,265); ctx.stroke();
+
+  // Note 2 — Stage 4
+  multiLine(['PHP header()','Content-Type'], 22, 505, 9, '#777');
+  ctx.beginPath(); ctx.strokeStyle='#CCC'; ctx.lineWidth=1;
+  ctx.moveTo(40,510); ctx.lineTo(36,510); ctx.stroke();
+
+  // Note 3 — Stage 5
+  multiLine(['Role-based','access check'], 22, 630, 9, '#777');
+  ctx.beginPath(); ctx.strokeStyle='#CCC'; ctx.lineWidth=1;
+  ctx.moveTo(40,635); ctx.lineTo(36,635); ctx.stroke();
+
+  /* ── 9. Legend ───────────────────────────────────────────── */
+  roundRect(40, 710, 1020, 44, 4, '#F8F8F8', '#DDD', 1);
+  lbl('Legend:', 52, 732, 11, '#333', 'left', true);
+
+  const legendItems = [
+    {fill:'#F8F8F8', label:'Data Source'},
+    {fill:'#F5F5F5', label:'Aggregation'},
+    {fill:'#F0F0F0', label:'Rendering'},
+    {fill:'#EBEBEB', label:'Export'},
+    {fill:'#E5E5E5', label:'Delivery'}
+  ];
+  // space them evenly after "Legend:" label
+  const legendStartX = 130;
+  const legendSpacing = 170;
+  legendItems.forEach(function(item,i){
+    const lx = legendStartX + i * legendSpacing;
+    const ly = 722;
+    roundRect(lx, ly, 18, 18, 2, item.fill, '#888', 1);
+    lbl(item.label, lx+24, ly+9, 10, '#555', 'left');
+  });
+
+  /* ── 10. Footer ──────────────────────────────────────────── */
+  hline(40, 1060, 762, '#CCC', 1);
+  lbl('RMS · MIS Report Generation Architecture · Report Pipeline · Thesis Documentation', 550, 772, 10, '#999', 'center');
+
+})();
+</script>
+</body>
+</html>

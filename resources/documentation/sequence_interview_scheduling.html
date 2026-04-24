@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sequence Diagram – Interview Scheduling Flow</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #fff; display: flex; flex-direction: column; align-items: center; padding: 20px; font-family: Arial, sans-serif; }
+  canvas { border: 1px solid #CCC; display: block; }
+  #printBtn {
+    margin: 14px 0 10px 0;
+    padding: 9px 22px;
+    background: #1A252F;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+  }
+  #printBtn:hover { background: #2c3e50; }
+  @media print {
+    #printBtn { display: none; }
+    body { padding: 0; }
+    canvas { border: none; }
+  }
+</style>
+</head>
+<body>
+<button id="printBtn" onclick="window.print()">📸 Print / Save as Image</button>
+<canvas id="diagram" width="1400" height="1000"></canvas>
+<script>
+const canvas = document.getElementById('diagram');
+const ctx = canvas.getContext('2d');
+
+// ── Helper Functions ──────────────────────────────────────────────────────────
+
+function drawLifeline(cx, name1, name2) {
+  const bw=140, bh=50, bx=cx-70, by=80;
+  ctx.fillStyle='#EEEEEE'; ctx.fillRect(bx,by,bw,bh);
+  ctx.strokeStyle='#000'; ctx.lineWidth=1.5; ctx.setLineDash([]);
+  ctx.strokeRect(bx,by,bw,bh);
+  ctx.font='bold 12px Arial'; ctx.fillStyle='#000'; ctx.textAlign='center'; ctx.textBaseline='alphabetic';
+  ctx.fillText(name1,cx,by+20);
+  ctx.font='11px Arial'; ctx.fillStyle='#333';
+  ctx.fillText(name2,cx,by+38);
+  ctx.beginPath(); ctx.setLineDash([4,3]); ctx.strokeStyle='#888'; ctx.lineWidth=1;
+  ctx.moveTo(cx,by+bh); ctx.lineTo(cx,960); ctx.stroke(); ctx.setLineDash([]);
+}
+
+function activationBar(cx,yStart,yEnd) {
+  ctx.fillStyle='#CCC'; ctx.fillRect(cx-5,yStart,10,yEnd-yStart);
+  ctx.strokeStyle='#000'; ctx.lineWidth=0.5; ctx.setLineDash([]);
+  ctx.strokeRect(cx-5,yStart,10,yEnd-yStart);
+}
+
+function msgArrow(x1,x2,y,label) {
+  ctx.beginPath(); ctx.strokeStyle='#000'; ctx.lineWidth=1.5; ctx.setLineDash([]);
+  ctx.moveTo(x1,y); ctx.lineTo(x2-8,y); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x2,y); ctx.lineTo(x2-10,y-5); ctx.lineTo(x2-10,y+5);
+  ctx.closePath(); ctx.fillStyle='#000'; ctx.fill();
+  ctx.font='11px Arial'; ctx.textAlign='center'; ctx.textBaseline='alphabetic';
+  const mx=(x1+x2)/2; const tw=ctx.measureText(label).width;
+  ctx.fillStyle='#fff'; ctx.fillRect(mx-tw/2-2,y-17,tw+4,13);
+  ctx.fillStyle='#000'; ctx.fillText(label,mx,y-6);
+}
+
+function returnArrow(x1,x2,y,label) {
+  ctx.beginPath(); ctx.strokeStyle='#555'; ctx.lineWidth=1.2; ctx.setLineDash([5,4]);
+  ctx.moveTo(x1,y); ctx.lineTo(x2+8,y); ctx.stroke(); ctx.setLineDash([]);
+  ctx.beginPath(); ctx.moveTo(x2,y); ctx.lineTo(x2+10,y-5); ctx.lineTo(x2+10,y+5);
+  ctx.strokeStyle='#555'; ctx.lineWidth=1.2; ctx.stroke();
+  ctx.font='italic 11px Arial'; ctx.textAlign='center'; ctx.textBaseline='alphabetic';
+  const mx=(x1+x2)/2; const tw=ctx.measureText(label).width;
+  ctx.fillStyle='#fff'; ctx.fillRect(mx-tw/2-2,y-17,tw+4,13);
+  ctx.fillStyle='#555'; ctx.fillText(label,mx,y-6);
+}
+
+function selfCall(cx,y,label) {
+  const lw=44,lh=22;
+  ctx.beginPath(); ctx.strokeStyle='#000'; ctx.lineWidth=1.5; ctx.setLineDash([]);
+  ctx.moveTo(cx,y); ctx.lineTo(cx+lw,y); ctx.lineTo(cx+lw,y+lh); ctx.lineTo(cx,y+lh); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx,y+lh); ctx.lineTo(cx+10,y+lh-5); ctx.lineTo(cx+10,y+lh+5);
+  ctx.closePath(); ctx.fillStyle='#000'; ctx.fill();
+  ctx.font='11px Arial'; ctx.fillStyle='#000'; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+  ctx.fillText(label,cx+lw+5,y+lh/2+4);
+}
+
+function fragment(x,y,w,h,keyword,guard) {
+  ctx.strokeStyle='#000'; ctx.lineWidth=1.2; ctx.setLineDash([]); ctx.strokeRect(x,y,w,h);
+  ctx.beginPath();
+  ctx.moveTo(x,y); ctx.lineTo(x+36,y); ctx.lineTo(x+36,y+16); ctx.lineTo(x+30,y+22); ctx.lineTo(x,y+22); ctx.closePath();
+  ctx.fillStyle='#EEE'; ctx.fill(); ctx.strokeStyle='#000'; ctx.lineWidth=1; ctx.stroke();
+  ctx.font='bold 11px Arial'; ctx.fillStyle='#000'; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+  ctx.fillText(keyword,x+7,y+15);
+  ctx.font='italic 11px Arial'; ctx.fillStyle='#333';
+  ctx.fillText(guard,x+42,y+15);
+}
+
+function fragDivider(x,y,w,guard) {
+  ctx.beginPath(); ctx.setLineDash([5,4]); ctx.strokeStyle='#555'; ctx.lineWidth=1;
+  ctx.moveTo(x,y); ctx.lineTo(x+w,y); ctx.stroke(); ctx.setLineDash([]);
+  ctx.font='italic 11px Arial'; ctx.fillStyle='#333'; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+  ctx.fillText(guard,x+8,y+14);
+}
+
+function noteBox(x,y,w,h,lines,connectX,connectY) {
+  const fold=10;
+  ctx.beginPath();
+  ctx.moveTo(x,y); ctx.lineTo(x+w-fold,y); ctx.lineTo(x+w,y+fold);
+  ctx.lineTo(x+w,y+h); ctx.lineTo(x,y+h); ctx.closePath();
+  ctx.fillStyle='#F5F5F5'; ctx.fill(); ctx.strokeStyle='#888'; ctx.lineWidth=1; ctx.setLineDash([]); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x+w-fold,y); ctx.lineTo(x+w-fold,y+fold); ctx.lineTo(x+w,y+fold);
+  ctx.strokeStyle='#888'; ctx.lineWidth=1; ctx.stroke();
+  ctx.font='10px Arial'; ctx.fillStyle='#333'; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+  lines.forEach((l,i)=>ctx.fillText(l,x+6,y+14+i*14));
+  ctx.beginPath(); ctx.setLineDash([3,3]); ctx.strokeStyle='#888'; ctx.lineWidth=1;
+  ctx.moveTo(x+w,y+h/2); ctx.lineTo(connectX,connectY); ctx.stroke(); ctx.setLineDash([]);
+}
+
+// ── Draw ──────────────────────────────────────────────────────────────────────
+
+// 1. White background
+ctx.fillStyle='#fff';
+ctx.fillRect(0,0,1400,1000);
+
+// 2. Title bar
+ctx.fillStyle='#1A252F';
+ctx.fillRect(0,0,1400,70);
+ctx.font='bold 22px Arial'; ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='alphabetic';
+ctx.fillText('Sequence Diagram \u2013 Interview Scheduling Flow',700,30);
+ctx.font='13px Arial'; ctx.fillStyle='#AED6F1';
+ctx.fillText('Recruiter \u00B7 Interview Controller \u00B7 Calendar Model \u00B7 Notification Service \u00B7 Candidate',700,54);
+
+// 3. Lifelines
+drawLifeline(140,  'Recruiter',           '(Browser)');
+drawLifeline(350,  'Interview',           'Controller');
+drawLifeline(560,  'Calendar',            'Model');
+drawLifeline(770,  'Notification',        'Service');
+drawLifeline(980,  'Candidate',           '(Browser/Email)');
+
+// 4. Activation bars
+activationBar(140, 160, 880);
+activationBar(350, 160, 880);
+activationBar(560, 220, 560);
+activationBar(770, 620, 820);
+activationBar(980, 760, 880);
+
+// 5. OPT fragment (y=350 to y=435)
+fragment(220, 350, 900, 85, 'opt', '[slot available]');
+
+// 6. ALT fragment (y=520 to y=735)
+fragment(220, 520, 900, 215, 'alt', '[emailNotification = true]');
+fragDivider(220, 680, 900, '[emailNotification = false]');
+
+// 7. Messages
+
+// Step 1 — y=160
+msgArrow(145, 345, 160, 'POST /schedule_interview(candidateId, date, time, interviewers)');
+
+// Step 2 — y=210
+selfCall(350, 210, 'validateScheduleData()');
+
+// Step 3 — y=255
+msgArrow(355, 555, 255, 'checkAvailability(interviewers, date, time)');
+
+// Step 4 — y=295
+selfCall(560, 295, 'queryConflicts()');
+
+// Step 5 — y=335
+returnArrow(555, 355, 335, 'return availabilityStatus: true');
+
+// Step 6 — y=380 (inside OPT)
+msgArrow(355, 555, 380, 'createEvent(candidateId, interviewers, date, time, round)');
+
+// Step 7 — y=420 (inside OPT)
+returnArrow(555, 355, 420, 'return eventId');
+
+// Step 8 — y=460
+msgArrow(355, 555, 460, "updateCandidateStatus(candidateId, 'Scheduled')");
+
+// Step 9 — y=500
+returnArrow(555, 355, 500, 'return updated: true');
+
+// Step 10 — y=555 (inside ALT top)
+msgArrow(355, 765, 555, 'sendInterviewInvitation(candidateEmail, eventDetails)');
+
+// Step 11 — y=595
+selfCall(770, 595, 'buildEmailTemplate()');
+
+// Step 12 — y=635
+msgArrow(775, 975, 635, 'EMAIL: Interview Scheduled \u2013 date, time, interviewer');
+
+// Step 13 — y=665
+returnArrow(765, 355, 665, 'return notificationSent: true');
+
+// Step 14 — y=700 (inside ALT bottom)
+msgArrow(355, 765, 700, 'logNotificationSkipped(candidateId)');
+
+// Step 15 — y=720
+returnArrow(765, 355, 720, 'return logged: true');
+
+// Step 16 — y=760
+msgArrow(355, 555, 760, 'getEventDetails(eventId)');
+
+// Step 17 — y=800
+returnArrow(555, 355, 800, 'return {eventId, date, time, interviewers, round}');
+
+// Step 18 — y=840
+returnArrow(345, 145, 840, "return {success:true, eventId, message:'Interview scheduled'}");
+
+// Step 19 — y=880
+selfCall(140, 880, 'displayConfirmation()');
+
+// 8. Note boxes
+
+// Note 2 — Calendar Model at y=380
+noteBox(20, 365, 190, 40,
+  ['Event stored in', 'calendar_events table'],
+  560, 385);
+
+// Note 1 — Candidate at y=635
+noteBox(1060, 620, 200, 40,
+  ['Candidate receives', 'email invitation'],
+  980, 640);
+
+// 9. Footer
+ctx.beginPath(); ctx.strokeStyle='#CCC'; ctx.lineWidth=1; ctx.setLineDash([]);
+ctx.moveTo(0,970); ctx.lineTo(1400,970); ctx.stroke();
+ctx.font='10px Arial'; ctx.fillStyle='#999'; ctx.textAlign='center'; ctx.textBaseline='alphabetic';
+ctx.fillText('RMS \u00B7 Sequence Diagram \u00B7 Interview Scheduling Flow \u00B7 Thesis Documentation', 700, 982);
+
+</script>
+</body>
+</html>

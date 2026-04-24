@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>State Diagram – Application Lifecycle</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #f5f5f5; display: flex; flex-direction: column; align-items: center; padding: 20px; font-family: Arial, sans-serif; }
+  canvas { background: #fff; display: block; border: 1px solid #ccc; }
+  #printBtn {
+    margin: 16px 0 8px 0;
+    padding: 10px 28px;
+    background: #1A252F;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    cursor: pointer;
+    font-family: Arial, sans-serif;
+    letter-spacing: 0.3px;
+  }
+  #printBtn:hover { background: #2c3e50; }
+  @media print {
+    body { padding: 0; background: #fff; }
+    #printBtn { display: none; }
+    canvas { border: none; }
+  }
+</style>
+</head>
+<body>
+<button id="printBtn" onclick="window.print()">📸 Print / Save as Image</button>
+<canvas id="diagram" width="1100" height="900"></canvas>
+<script>
+const canvas = document.getElementById('diagram');
+const ctx = canvas.getContext('2d');
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function roundedRect(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function drawState(cx, cy, w, h, label, terminal) {
+  const x = cx - w / 2, y = cy - h / 2, r = 20;
+  roundedRect(x, y, w, h, r);
+  ctx.fillStyle = terminal ? '#F0F0F0' : '#fff';
+  ctx.fill();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.font = 'bold 13px Arial';
+  ctx.fillStyle = '#000';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(label, cx, cy);
+}
+
+function drawInitial(cx, cy) {
+  ctx.beginPath();
+  ctx.arc(cx, cy, 10, 0, Math.PI * 2);
+  ctx.fillStyle = '#000';
+  ctx.fill();
+}
+
+function drawFinal(cx, cy) {
+  ctx.beginPath();
+  ctx.arc(cx, cy, 14, 0, Math.PI * 2);
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(cx, cy, 8, 0, Math.PI * 2);
+  ctx.fillStyle = '#000';
+  ctx.fill();
+}
+
+function arrowHead(x2, y2, angle) {
+  ctx.beginPath();
+  ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - 10 * Math.cos(angle - 0.4), y2 - 10 * Math.sin(angle - 0.4));
+  ctx.lineTo(x2 - 10 * Math.cos(angle + 0.4), y2 - 10 * Math.sin(angle + 0.4));
+  ctx.closePath();
+  ctx.fillStyle = '#000';
+  ctx.fill();
+}
+
+function arrow(x1, y1, x2, y2) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([]);
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+  const angle = Math.atan2(y2 - y1, x2 - x1);
+  arrowHead(x2, y2, angle);
+  ctx.restore();
+}
+
+function polyArrow(pts) {
+  if (pts.length < 2) return;
+  ctx.save();
+  ctx.beginPath();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([]);
+  ctx.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+  ctx.stroke();
+  const last = pts[pts.length - 1];
+  const prev = pts[pts.length - 2];
+  const angle = Math.atan2(last[1] - prev[1], last[0] - prev[0]);
+  arrowHead(last[0], last[1], angle);
+  ctx.restore();
+}
+
+function transLabel(x, y, text) {
+  ctx.save();
+  ctx.font = 'italic 11px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const tw = ctx.measureText(text).width;
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(x - tw / 2 - 3, y - 8, tw + 6, 16);
+  ctx.fillStyle = '#333';
+  ctx.fillText(text, x, y);
+  ctx.restore();
+}
+
+// ── 1. White background ───────────────────────────────────────────────────────
+ctx.fillStyle = '#fff';
+ctx.fillRect(0, 0, 1100, 900);
+
+// ── 2. Title bar ──────────────────────────────────────────────────────────────
+ctx.fillStyle = '#1A252F';
+ctx.fillRect(0, 0, 1100, 65);
+ctx.font = 'bold 22px Arial';
+ctx.fillStyle = '#fff';
+ctx.textAlign = 'center';
+ctx.textBaseline = 'alphabetic';
+ctx.fillText('State Diagram – Application Lifecycle', 550, 34);
+ctx.font = '13px Arial';
+ctx.fillStyle = '#AED6F1';
+ctx.fillText('Candidate Application States · Events · Transitions', 550, 56);
+
+// ── 3. Subtle column shading for main flow ────────────────────────────────────
+ctx.fillStyle = '#FAFAFA';
+ctx.fillRect(450, 70, 200, 790);
+
+// ── 4. All arrows / transitions FIRST ────────────────────────────────────────
+
+// 1. Initial → Submitted
+arrow(550, 125, 550, 153);
+
+// 2. Submitted → Screened
+arrow(550, 197, 550, 253);
+
+// 3. Screened → Shortlisted
+arrow(550, 297, 550, 353);
+
+// 4. Shortlisted → Interviewing
+arrow(550, 397, 550, 453);
+
+// 5. Interviewing → Assessed
+arrow(550, 497, 550, 553);
+
+// 6. Assessed → Offered
+arrow(550, 597, 550, 653);
+
+// 7. Offered → Accepted
+arrow(550, 697, 550, 753);
+
+// 8. Accepted → Final
+arrow(550, 797, 550, 831);
+
+// 9. Screened → Rejected
+polyArrow([[470, 275], [200, 275], [200, 553]]);
+
+// 10. Shortlisted → Rejected
+polyArrow([[470, 375], [240, 375], [240, 575], [280, 575]]);
+
+// 11. Assessed → Rejected
+arrow(470, 575, 280, 575);
+
+// 12. Rejected → Final
+polyArrow([[200, 597], [200, 845], [536, 845]]);
+
+// 13. Submitted → Withdrawn
+polyArrow([[630, 175], [900, 175], [900, 353]]);
+
+// 14. Shortlisted → Withdrawn
+arrow(630, 375, 820, 375);
+
+// 15. Interviewing → Withdrawn
+polyArrow([[630, 475], [860, 475], [860, 397], [820, 397]]);
+
+// 16. Withdrawn → Final
+polyArrow([[900, 397], [900, 845], [564, 845]]);
+
+// 17. Interviewing self-loop
+polyArrow([[630, 465], [670, 465], [670, 485], [630, 485]]);
+
+// ── 5. All states ─────────────────────────────────────────────────────────────
+drawState(550, 175, 160, 44, 'Submitted', false);
+drawState(550, 275, 160, 44, 'Screened', false);
+drawState(550, 375, 160, 44, 'Shortlisted', false);
+drawState(550, 475, 160, 44, 'Interviewing', false);
+drawState(550, 575, 160, 44, 'Assessed', false);
+drawState(550, 675, 160, 44, 'Offered', false);
+drawState(550, 775, 160, 44, 'Accepted', true);
+drawState(200, 575, 160, 44, 'Rejected', true);
+drawState(900, 375, 160, 44, 'Withdrawn', true);
+
+// ── 6. Initial and Final nodes ────────────────────────────────────────────────
+drawInitial(550, 115);
+drawFinal(550, 845);
+
+// ── 7. All transition labels ──────────────────────────────────────────────────
+transLabel(430, 225, 'CV received / auto-screen');
+transLabel(420, 325, 'criteria met / shortlist');
+transLabel(410, 425, 'interview scheduled');
+transLabel(410, 525, 'interview completed');
+transLabel(380, 625, 'score >= threshold / approve');
+transLabel(390, 725, 'candidate accepts offer');
+
+// Rejection labels
+transLabel(310, 265, 'criteria not met');
+transLabel(330, 365, 'not selected');
+transLabel(370, 563, 'score < threshold');
+
+// Withdrawal labels
+transLabel(790, 165, 'candidate withdraws');
+transLabel(730, 363, 'candidate withdraws');
+transLabel(760, 463, 'candidate withdraws');
+
+// Self-loop label
+transLabel(720, 475, 're-interview scheduled');
+
+// ── 8. Legend ─────────────────────────────────────────────────────────────────
+ctx.save();
+ctx.strokeStyle = '#999';
+ctx.lineWidth = 1;
+ctx.setLineDash([]);
+ctx.strokeRect(20, 820, 220, 65);
+
+ctx.font = 'bold 11px Arial';
+ctx.fillStyle = '#000';
+ctx.textAlign = 'left';
+ctx.textBaseline = 'alphabetic';
+ctx.fillText('Legend', 30, 836);
+
+// Normal state sample
+roundedRect(30, 842, 80, 22, 10);
+ctx.fillStyle = '#fff';
+ctx.fill();
+ctx.strokeStyle = '#000';
+ctx.lineWidth = 1;
+ctx.stroke();
+ctx.font = '10px Arial';
+ctx.fillStyle = '#000';
+ctx.textAlign = 'left';
+ctx.textBaseline = 'alphabetic';
+ctx.fillText('State', 62, 857);
+
+// Terminal state sample
+roundedRect(120, 842, 80, 22, 10);
+ctx.fillStyle = '#F0F0F0';
+ctx.fill();
+ctx.strokeStyle = '#000';
+ctx.lineWidth = 1;
+ctx.stroke();
+ctx.font = '10px Arial';
+ctx.fillStyle = '#000';
+ctx.fillText('Terminal', 148, 857);
+
+// Arrow sample
+arrow(30, 875, 80, 875);
+ctx.font = 'italic 10px Arial';
+ctx.fillStyle = '#333';
+ctx.textAlign = 'left';
+ctx.textBaseline = 'alphabetic';
+ctx.fillText('event / transition', 88, 879);
+ctx.restore();
+
+// ── 9. Footer ─────────────────────────────────────────────────────────────────
+ctx.beginPath();
+ctx.strokeStyle = '#CCC';
+ctx.lineWidth = 1;
+ctx.setLineDash([]);
+ctx.moveTo(0, 880);
+ctx.lineTo(1100, 880);
+ctx.stroke();
+ctx.font = '10px Arial';
+ctx.fillStyle = '#999';
+ctx.textAlign = 'center';
+ctx.textBaseline = 'alphabetic';
+ctx.fillText('RMS · State Diagram · Application Lifecycle · Thesis Documentation', 550, 893);
+</script>
+</body>
+</html>
