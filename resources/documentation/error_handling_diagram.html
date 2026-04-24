@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Figure 3.21: Error-Handling and Observability Architecture</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #fff;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+  canvas {
+    display: block;
+    border: 1px solid #DDD;
+    background: #fff;
+  }
+  #printBtn {
+    margin-top: 14px;
+    padding: 8px 22px;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    background: #fff;
+    color: #333;
+    border: 1.5px solid #555;
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+  }
+  #printBtn:hover { background: #F5F5F5; }
+  @media print {
+    #printBtn { display: none; }
+    body { padding: 0; }
+    canvas { border: none; }
+  }
+</style>
+</head>
+<body>
+<canvas id="c" width="1100" height="820"></canvas>
+<button id="printBtn" onclick="window.print()">📸 Print / Save as Image</button>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+/* ── Helpers ── */
+function roundRect(x,y,w,h,r,fill,stroke,lw){
+  r=r||0;
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+  if(fill){ctx.fillStyle=fill;ctx.fill();}
+  if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw||1;ctx.stroke();}
+}
+
+function lbl(text,x,y,size,color,align,bold,italic){
+  let style='';
+  if(bold&&italic) style='bold italic ';
+  else if(bold) style='bold ';
+  else if(italic) style='italic ';
+  ctx.font=style+size+'px Arial';
+  ctx.fillStyle=color||'#000';
+  ctx.textAlign=align||'left';
+  ctx.textBaseline='middle';
+  ctx.fillText(text,x,y);
+}
+
+function hline(x1,x2,y,color,lw){
+  ctx.beginPath();
+  ctx.strokeStyle=color||'#CCC';
+  ctx.lineWidth=lw||1;
+  ctx.setLineDash([]);
+  ctx.moveTo(x1,y); ctx.lineTo(x2,y);
+  ctx.stroke();
+}
+
+function arrow(x1,y1,x2,y2){
+  ctx.save();
+  ctx.beginPath();
+  ctx.strokeStyle='#333';
+  ctx.lineWidth=1.5;
+  ctx.setLineDash([]);
+  ctx.moveTo(x1,y1); ctx.lineTo(x2,y2);
+  ctx.stroke();
+  const a=Math.atan2(y2-y1,x2-x1);
+  ctx.beginPath();
+  ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-10*Math.cos(a-0.4),y2-10*Math.sin(a-0.4));
+  ctx.lineTo(x2-10*Math.cos(a+0.4),y2-10*Math.sin(a+0.4));
+  ctx.closePath();
+  ctx.fillStyle='#333';
+  ctx.fill();
+  ctx.restore();
+}
+
+function polyArrow(pts,dashed){
+  ctx.save();
+  ctx.beginPath();
+  ctx.strokeStyle=dashed?'#888':'#333';
+  ctx.lineWidth=1.5;
+  if(dashed) ctx.setLineDash([5,4]);
+  else ctx.setLineDash([]);
+  ctx.moveTo(pts[0][0],pts[0][1]);
+  for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0],pts[i][1]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  const last=pts[pts.length-1], prev=pts[pts.length-2];
+  const a=Math.atan2(last[1]-prev[1],last[0]-prev[0]);
+  ctx.beginPath();
+  ctx.moveTo(last[0],last[1]);
+  ctx.lineTo(last[0]-10*Math.cos(a-0.4),last[1]-10*Math.sin(a-0.4));
+  ctx.lineTo(last[0]-10*Math.cos(a+0.4),last[1]-10*Math.sin(a+0.4));
+  ctx.closePath();
+  ctx.fillStyle=dashed?'#888':'#333';
+  ctx.fill();
+  ctx.restore();
+}
+
+function diamond(cx,cy,hw,hh,fill,stroke,lw){
+  ctx.beginPath();
+  ctx.moveTo(cx,cy-hh); ctx.lineTo(cx+hw,cy);
+  ctx.lineTo(cx,cy+hh); ctx.lineTo(cx-hw,cy);
+  ctx.closePath();
+  if(fill){ctx.fillStyle=fill;ctx.fill();}
+  if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw||1;ctx.stroke();}
+}
+
+function node(x,y,w,h,line1,line2){
+  roundRect(x,y,w,h,6,'#F5F5F5','#555',1.5);
+  lbl(line1,x+w/2,y+h/2-(line2?7:0),12,'#111','center',true);
+  if(line2) lbl(line2,x+w/2,y+h/2+9,10,'#555','center');
+}
+
+function triggerNode(x,y,w,h,line1,line2){
+  roundRect(x,y,w,h,6,'#EEE','#555',1.5);
+  lbl(line1,x+w/2,y+h/2-(line2?7:0),12,'#111','center',true);
+  if(line2) lbl(line2,x+w/2,y+h/2+9,10,'#555','center');
+}
+
+/* ══════════════════════════════════════════
+   DRAW
+══════════════════════════════════════════ */
+
+// 1. White background
+ctx.fillStyle='#fff';
+ctx.fillRect(0,0,1100,820);
+
+// 2. Title + subtitle + line
+lbl('Figure 3.21: Error-Handling and Observability Architecture',550,28,16,'#000','center',true);
+lbl('Exception Flow · Log Aggregation · Admin Notification · User-Friendly Error Rendering',550,48,11,'#555','center',false,true);
+hline(0,1100,60,'#CCC',1);
+
+// 3. ARROWS FIRST (drawn before nodes so nodes sit on top)
+
+// Main flow arrows (y=200)
+// Node1 → Node2
+arrow(180,200,230,200);
+// Node2 → Node3
+arrow(390,200,440,200);
+// Node3 → Node4
+arrow(580,200,630,200);
+// Node4 → Node5 (diamond at 820,200; left tip at 765,200)
+arrow(770,200,765,200);
+
+// Branch A — HIGH: diamond top (820,165) → up to (820,90) → right to Admin box left (900,90)
+polyArrow([[820,165],[820,90],[900,90]],false);
+
+// Branch B — LOW/MED: diamond bottom (820,235) → down to (820,310) → right to Audit box left (900,310)
+polyArrow([[820,235],[820,310],[900,310]],false);
+
+// User-facing branch: Node2 bottom center (310,225) → down to Error Renderer top (310,320)
+arrow(310,225,310,320);
+
+// Error Renderer → Production (polyline)
+polyArrow([[310,370],[310,415],[240,415],[240,440]],false);
+// Error Renderer → Development (polyline)
+polyArrow([[310,370],[310,415],[410,415],[410,440]],false);
+
+// Log Aggregator → Observability panel (dashed)
+polyArrow([[770,200],[770,520],[680,520]],true);
+
+// 4. NODES AND DIAMONDS
+
+// Node 1 — Exception Occurs
+triggerNode(40,175,140,50,'Exception','Occurs');
+
+// Node 2 — CodeIgniter Error Handler
+node(230,175,160,50,'CodeIgniter','Error Handler');
+
+// Node 3 — Log Writer
+node(440,175,140,50,'Log Writer','application/logs/');
+
+// Node 4 — Log Aggregator
+node(630,175,140,50,'Log','Aggregator');
+
+// Node 5 — Decision Diamond
+diamond(820,200,55,35,'#F5F5F5','#555',1.5);
+lbl('Severity?',820,200,11,'#333','center');
+
+// Admin Notification
+triggerNode(900,65,160,50,'Admin','Notification');
+lbl('Email · Dashboard Alert',980,128,10,'#777','center');
+
+// Audit Log DB
+node(900,285,160,50,'Audit Log','MySQL DB');
+lbl('audit_logs table',980,348,10,'#777','center');
+
+// Error Renderer
+node(230,320,160,50,'Error Renderer','View / Template');
+
+// Production output
+triggerNode(170,440,140,50,'Production','Generic 500 page');
+
+// Development output
+triggerNode(340,440,140,50,'Development','Full stack trace');
+
+// 5. ARROW LABELS
+
+// [HIGH] label on upward segment
+lbl('[HIGH]',808,128,10,'#555','right',false,true);
+
+// [LOW/MED] label on downward segment
+lbl('[LOW/MED]',808,272,10,'#555','right',false,true);
+
+// user-facing label
+lbl('user-facing',322,272,10,'#777','left',false,true);
+
+// APP_ENV labels
+lbl('[APP_ENV=production]',185,430,9,'#777','center');
+lbl('[APP_ENV=development]',410,430,9,'#777','center');
+
+// feeds label
+lbl('feeds',725,510,10,'#777','center',false,true);
+
+// 6. OBSERVABILITY PANEL
+const ox=680, oy=380, ow=380, oh=280;
+// Dashed border box
+ctx.save();
+ctx.beginPath();
+// rounded rect path manually for dashed stroke
+const or=6;
+ctx.moveTo(ox+or,oy);
+ctx.lineTo(ox+ow-or,oy);
+ctx.quadraticCurveTo(ox+ow,oy,ox+ow,oy+or);
+ctx.lineTo(ox+ow,oy+oh-or);
+ctx.quadraticCurveTo(ox+ow,oy+oh,ox+ow-or,oy+oh);
+ctx.lineTo(ox+or,oy+oh);
+ctx.quadraticCurveTo(ox,oy+oh,ox,oy+oh-or);
+ctx.lineTo(ox,oy+or);
+ctx.quadraticCurveTo(ox,oy,ox+or,oy);
+ctx.closePath();
+ctx.fillStyle='#FAFAFA';
+ctx.fill();
+ctx.strokeStyle='#AAA';
+ctx.lineWidth=1.5;
+ctx.setLineDash([6,4]);
+ctx.stroke();
+ctx.setLineDash([]);
+ctx.restore();
+
+lbl('Observability Stack',ox+16,oy+20,13,'#333','left',true);
+
+// 2×2 grid of component boxes inside observability panel
+// Row 1
+roundRect(ox+16,oy+50,160,44,4,'#FFF','#CCC',1);
+lbl('PHP Error Logs',ox+16+80,oy+50+14,11,'#111','center',true);
+lbl('log-YYYY-MM-DD.php',ox+16+80,oy+50+30,10,'#555','center');
+
+roundRect(ox+196,oy+50,160,44,4,'#FFF','#CCC',1);
+lbl('CI Debug Bar',ox+196+80,oy+50+14,11,'#111','center',true);
+lbl('Query · Memory · Time',ox+196+80,oy+50+30,10,'#555','center');
+
+// Row 2
+roundRect(ox+16,oy+114,160,44,4,'#FFF','#CCC',1);
+lbl('Audit Logger',ox+16+80,oy+114+14,11,'#111','center',true);
+lbl('Audit_logger.php',ox+16+80,oy+114+30,10,'#555','center');
+
+roundRect(ox+196,oy+114,160,44,4,'#FFF','#CCC',1);
+lbl('Email Alerts',ox+196+80,oy+114+14,11,'#111','center',true);
+lbl('SMTP via Gmail',ox+196+80,oy+114+30,10,'#555','center');
+
+// Row 3
+roundRect(ox+16,oy+178,160,44,4,'#FFF','#CCC',1);
+lbl('Session Monitor',ox+16+80,oy+178+14,11,'#111','center',true);
+lbl('ci_sessions table',ox+16+80,oy+178+30,10,'#555','center');
+
+roundRect(ox+196,oy+178,160,44,4,'#FFF','#CCC',1);
+lbl('Log Threshold',ox+196+80,oy+178+14,11,'#111','center',true);
+lbl('Dev: ALL · Prod: ERROR',ox+196+80,oy+178+30,10,'#555','center');
+
+// 7. ENVIRONMENT CONFIG NOTE (folded corner style)
+const nx=40, ny=560, nw=280, nh=120, fold=12;
+ctx.save();
+ctx.beginPath();
+ctx.moveTo(nx,ny);
+ctx.lineTo(nx+nw-fold,ny);
+ctx.lineTo(nx+nw,ny+fold);
+ctx.lineTo(nx+nw,ny+nh);
+ctx.lineTo(nx,ny+nh);
+ctx.closePath();
+ctx.fillStyle='#F8F8F8';
+ctx.fill();
+ctx.strokeStyle='#888';
+ctx.lineWidth=1;
+ctx.setLineDash([]);
+ctx.stroke();
+ctx.restore();
+
+// Folded corner triangle
+ctx.save();
+ctx.beginPath();
+ctx.moveTo(nx+nw-fold,ny);
+ctx.lineTo(nx+nw,ny+fold);
+ctx.lineTo(nx+nw-fold,ny+fold);
+ctx.closePath();
+ctx.fillStyle='#DDD';
+ctx.fill();
+ctx.strokeStyle='#888';
+ctx.lineWidth=1;
+ctx.stroke();
+ctx.restore();
+
+lbl('Environment Config',nx+10,ny+16,11,'#333','left',true);
+lbl('• APP_ENV auto-detected from domain',nx+10,ny+34,10,'#555','left');
+lbl('• Production: errors suppressed',nx+10,ny+50,10,'#555','left');
+lbl('• Development: full debug output',nx+10,ny+66,10,'#555','left');
+lbl('• Log threshold: 1 (prod) / 4 (dev)',nx+10,ny+82,10,'#555','left');
+lbl('• Config: application/config/environment.php',nx+10,ny+98,10,'#555','left');
+
+// 8. LEGEND
+const lx=700, ly=700, lw=360, lh=100;
+roundRect(lx,ly,lw,lh,4,'#F8F8F8','#DDD',1);
+lbl('Legend',lx+10,ly+14,11,'#333','left',true);
+
+// Row 1 — Trigger/Output node sample
+roundRect(lx+10,ly+28,30,14,2,'#EEE','#555',1);
+lbl('Trigger / Output node',lx+48,ly+35,10,'#555','left');
+
+// Row 2 — Processing node sample
+roundRect(lx+10,ly+50,30,14,2,'#F5F5F5','#555',1);
+lbl('Processing node',lx+48,ly+57,10,'#555','left');
+
+// Row 3 — Diamond sample
+ctx.save();
+ctx.beginPath();
+ctx.moveTo(lx+25,ly+72); ctx.lineTo(lx+40,ly+80);
+ctx.lineTo(lx+25,ly+88); ctx.lineTo(lx+10,ly+80);
+ctx.closePath();
+ctx.fillStyle='#F5F5F5';
+ctx.fill();
+ctx.strokeStyle='#555';
+ctx.lineWidth=1;
+ctx.stroke();
+ctx.restore();
+lbl('Decision point',lx+48,ly+80,10,'#555','left');
+
+// Row 4 — Dashed line sample
+ctx.save();
+ctx.beginPath();
+ctx.strokeStyle='#888';
+ctx.lineWidth=1.5;
+ctx.setLineDash([5,4]);
+ctx.moveTo(lx+10,ly+95); ctx.lineTo(lx+40,ly+95);
+ctx.stroke();
+ctx.setLineDash([]);
+ctx.restore();
+lbl('Observability feed',lx+48,ly+95,10,'#555','left');
+
+// 9. FOOTER
+hline(0,1100,790,'#CCC',1);
+lbl('RMS · Error-Handling & Observability Architecture · Thesis Documentation',550,803,10,'#999','center');
+
+</script>
+</body>
+</html>

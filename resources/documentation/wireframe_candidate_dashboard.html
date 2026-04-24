@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Figure 3.16: Candidate Dashboard Layout</title>
+<style>
+  body { margin: 0; padding: 20px; background: #fff; font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; }
+  canvas { display: block; border: 1px solid #CCC; }
+  #printBtn {
+    margin-bottom: 12px;
+    padding: 8px 18px;
+    font-size: 13px;
+    font-family: Arial, sans-serif;
+    background: #F0F0F0;
+    border: 1px solid #888;
+    cursor: pointer;
+    border-radius: 3px;
+  }
+  #printBtn:hover { background: #E0E0E0; }
+  @media print {
+    #printBtn { display: none; }
+    body { padding: 0; }
+  }
+</style>
+</head>
+<body>
+<button id="printBtn" onclick="window.print()">📸 Print / Save as Image</button>
+<canvas id="c" width="1200" height="950"></canvas>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+function roundRect(x,y,w,h,r,fill,stroke,lw){
+  r=r||0;
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+  if(fill){ctx.fillStyle=fill;ctx.fill();}
+  if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw||1;ctx.stroke();}
+}
+function lbl(text,x,y,size,color,align,bold){
+  ctx.font=(bold?'bold ':'')+size+'px Arial';
+  ctx.fillStyle=color||'#000';
+  ctx.textAlign=align||'left';
+  ctx.textBaseline='middle';
+  ctx.fillText(text,x,y);
+}
+function hline(x1,x2,y,color,lw){
+  ctx.beginPath();ctx.strokeStyle=color||'#CCC';ctx.lineWidth=lw||1;
+  ctx.moveTo(x1,y);ctx.lineTo(x2,y);ctx.stroke();
+}
+function progressBar(x,y,w,h,pct,fillColor){
+  ctx.fillStyle='#EEE';ctx.fillRect(x,y,w,h);
+  ctx.fillStyle=fillColor||'#555';ctx.fillRect(x,y,w*pct,h);
+  ctx.strokeStyle='#CCC';ctx.lineWidth=1;ctx.strokeRect(x,y,w,h);
+}
+
+// ── 1. White background ──────────────────────────────────────────────────────
+ctx.fillStyle='#FFF';
+ctx.fillRect(0,0,1200,950);
+
+// ── 2. Figure caption + line ─────────────────────────────────────────────────
+lbl('Figure 3.16: Candidate Dashboard Layout',600,22,14,'#000','center',true);
+hline(10,1190,30,'#CCC',1);
+
+// ── 3. Browser chrome ────────────────────────────────────────────────────────
+roundRect(10,35,1180,905,0,'#F0F0F0','#888',1);
+// Browser bar
+ctx.fillStyle='#DDD';
+ctx.fillRect(10,35,1180,28);
+ctx.strokeStyle='#888';ctx.lineWidth=1;
+ctx.strokeRect(10,35,1180,28);
+// Three circles
+[25,42,59].forEach(cx=>{
+  ctx.beginPath();ctx.arc(cx,49,6,0,Math.PI*2);
+  ctx.fillStyle='#BBB';ctx.fill();
+});
+// URL bar
+roundRect(80,40,700,18,3,'#FFF','#AAA',1);
+lbl('http://localhost/rms/C_dashboard',88,49,10,'#555','left',false);
+
+// ── 4. Top navigation bar ────────────────────────────────────────────────────
+ctx.fillStyle='#111';
+ctx.fillRect(10,63,1180,48);
+// Logo
+roundRect(20,75,120,24,3,'#333',null,0);
+lbl('RMS',80,87,14,'#FFF','center',true);
+// Nav items
+const navItems=[['Dashboard',200],['Browse Jobs',295],['My Applications',400],['Interviews',520],['Messages',610],['My CV',690]];
+navItems.forEach(([t,x])=>lbl(t,x,87,11,'#FFF','left',false));
+// Avatar
+ctx.beginPath();ctx.arc(1150,87,14,0,Math.PI*2);
+ctx.fillStyle='#555';ctx.fill();
+lbl('CA',1150,87,10,'#FFF','center',false);
+
+// ── 5. Left sidebar ──────────────────────────────────────────────────────────
+ctx.fillStyle='#F8F8F8';
+ctx.fillRect(10,111,180,829);
+// Right border
+ctx.beginPath();ctx.strokeStyle='#DDD';ctx.lineWidth=1;
+ctx.moveTo(190,111);ctx.lineTo(190,940);ctx.stroke();
+
+lbl('MAIN MENU',25,135,9,'#888','left',false);
+
+const menuItems=[
+  ['Dashboard',163,true],
+  ['Browse Jobs',201,false],
+  ['My Applications',237,false],
+  ['Interview Schedule',273,false],
+  ['Messages',309,false],
+  ['My Documents',345,false],
+  ['My CV Builder',381,false],
+  ['My Profile',417,false],
+];
+menuItems.forEach(([text,y,active])=>{
+  if(active){
+    ctx.fillStyle='#EEE';
+    ctx.fillRect(10,y-14,180,36);
+    ctx.fillStyle='#000';
+    ctx.fillRect(10,y-14,3,36);
+    lbl(text,30,y+4,12,'#111','left',true);
+  } else {
+    lbl(text,30,y+4,12,'#555','left',false);
+  }
+});
+
+// Divider
+hline(10,190,453,'#DDD',1);
+lbl('NOTIFICATIONS',25,468,9,'#888','left',false);
+lbl('● 2 new messages',25,488,11,'#333','left',false);
+lbl('● Interview invitation',25,510,11,'#333','left',false);
+lbl('○ Application update',25,532,11,'#888','left',false);
+
+// ── 6. Page header ───────────────────────────────────────────────────────────
+lbl('Welcome back, Emily!',210,145,18,'#111','left',true);
+lbl('You have 2 new notifications · 3 active applications',210,163,11,'#777','left',false);
+// Update CV button
+roundRect(1040,130,110,26,3,'#F8F8F8','#888',1);
+lbl('↑ Update CV',1095,143,11,'#555','center',false);
+
+// ── 7. Stat cards ────────────────────────────────────────────────────────────
+const cards=[
+  {x:200,title:'Active Applications',val:'3',sub:'1 awaiting response'},
+  {x:440,title:'Jobs Recommended',val:'12',sub:'Based on your profile'},
+  {x:680,title:'Interviews Scheduled',val:'1',sub:'Next: Tomorrow 10 AM'},
+  {x:920,title:'Profile Strength',val:'72%',sub:'Add skills to improve'},
+];
+cards.forEach(c=>{
+  roundRect(c.x,180,228,70,6,'#F8F8F8','#DDD',1);
+  lbl(c.title,c.x+114,200,10,'#777','center',false);
+  lbl(c.val,c.x+114,222,22,'#111','center',true);
+  lbl(c.sub,c.x+114,248,10,'#555','center',false);
+});
+
+// ── 8. Recommended Jobs panel ────────────────────────────────────────────────
+const rjX=200, rjY=268, rjW=580, rjH=252;
+roundRect(rjX,rjY,rjW,rjH,4,'#FFF','#DDD',1);
+// Header
+ctx.fillStyle='#F5F5F5';
+ctx.fillRect(rjX,rjY,rjW,36);
+hline(rjX,rjX+rjW,rjY,null,1);
+lbl('Recommended Jobs',rjX+16,rjY+18,12,'#333','left',true);
+lbl('View All →',rjX+rjW-12,rjY+18,10,'#777','right',false);
+hline(rjX,rjX+rjW,rjY+36,'#DDD',1);
+
+// Job cards
+const jobCards=[
+  {dy:44,title:'Senior Frontend Developer',sub:'TechCorp · Colombo, LK · Full-time',sal:'LKR 150k–200k',badge:'New'},
+  {dy:100,title:'UX/UI Designer',sub:'DesignHub · Remote · Contract',sal:'LKR 80k–120k',badge:'Match: 94%'},
+  {dy:156,title:'React Developer',sub:'StartupXYZ · Kandy, LK · Full-time',sal:'LKR 100k–140k',badge:'New'},
+  {dy:212,title:'Product Manager',sub:'GlobalCo · Colombo, LK · Full-time',sal:'LKR 200k–250k',badge:'Match: 88%'},
+];
+jobCards.forEach(j=>{
+  const cy=rjY+j.dy;
+  roundRect(rjX+8,cy,rjW-16,44,3,'#F8F8F8','#DDD',1);
+  lbl(j.title,rjX+14,cy+14,11,'#111','left',true);
+  lbl(j.sub,rjX+14,cy+30,10,'#777','left',false);
+  lbl(j.sal,rjX+rjW-160,cy+14,10,'#555','left',false);
+  // Apply btn
+  roundRect(rjX+rjW-60,cy+12,46,20,2,'#EEE','#888',1);
+  lbl('Apply',rjX+rjW-37,cy+22,9,'#333','center',false);
+  // Badge
+  roundRect(rjX+rjW-115,cy+12,50,18,2,'#EEE','#CCC',1);
+  lbl(j.badge,rjX+rjW-90,cy+21,9,'#555','center',false);
+});
+
+// ── 9. Interview Invitations panel ───────────────────────────────────────────
+const iiX=792, iiY=268, iiW=388, iiH=252;
+roundRect(iiX,iiY,iiW,iiH,4,'#FFF','#DDD',1);
+// Header
+ctx.fillStyle='#F5F5F5';
+ctx.fillRect(iiX,iiY,iiW,36);
+hline(iiX,iiX+iiW,iiY,null,1);
+lbl('Interview Invitations',iiX+16,iiY+18,12,'#333','left',true);
+// Badge "1 New"
+roundRect(iiX+iiW-60,iiY+10,52,18,2,'#EEE','#AAA',1);
+lbl('1 New',iiX+iiW-34,iiY+19,10,'#555','center',false);
+hline(iiX,iiX+iiW,iiY+36,'#DDD',1);
+
+// Invitation 1 — NEW
+const inv1Y=iiY+46;
+roundRect(iiX+8,inv1Y,iiW-16,80,4,'#F8F8F8','#CCC',1);
+// Left accent bar
+ctx.fillStyle='#333';
+ctx.fillRect(iiX+8,inv1Y,4,80);
+lbl('Round 1 – Technical Interview',iiX+26,inv1Y+18,11,'#111','left',true);
+lbl('Senior Frontend Developer',iiX+26,inv1Y+32,10,'#777','left',false);
+lbl('TechCorp · Tomorrow, 10:00 AM',iiX+26,inv1Y+46,10,'#555','left',false);
+// Confirm btn
+roundRect(iiX+iiW-148,inv1Y+52,64,22,2,'#EEE','#888',1);
+lbl('Confirm',iiX+iiW-116,inv1Y+63,9,'#333','center',false);
+// Decline btn
+roundRect(iiX+iiW-80,inv1Y+52,52,22,2,'#FFF','#AAA',1);
+lbl('Decline',iiX+iiW-54,inv1Y+63,9,'#888','center',false);
+
+// Invitation 2
+const inv2Y=iiY+134;
+roundRect(iiX+8,inv2Y,iiW-16,80,4,'#FFF','#DDD',1);
+// Left accent bar
+ctx.fillStyle='#AAA';
+ctx.fillRect(iiX+8,inv2Y,4,80);
+lbl('Round 2 – HR Interview',iiX+26,inv2Y+18,11,'#333','left',true);
+lbl('UX/UI Designer',iiX+26,inv2Y+32,10,'#777','left',false);
+lbl('DesignHub · 26 Apr, 02:00 PM',iiX+26,inv2Y+46,10,'#555','left',false);
+// Confirmed badge
+roundRect(iiX+iiW-84,inv2Y+52,68,22,2,'#EEE','#888',1);
+lbl('Confirmed',iiX+iiW-50,inv2Y+63,9,'#555','center',false);
+
+// ── 10. Active Applications table ────────────────────────────────────────────
+const atX=200, atY=530, atW=980, atH=200;
+roundRect(atX,atY,atW,atH,4,'#FFF','#DDD',1);
+// Header
+ctx.fillStyle='#F5F5F5';
+ctx.fillRect(atX,atY,atW,36);
+hline(atX,atX+atW,atY,null,1);
+lbl('My Active Applications',atX+16,atY+18,12,'#333','left',true);
+lbl('3 Applications',atX+atW-12,atY+18,10,'#777','right',false);
+hline(atX,atX+atW,atY+36,'#DDD',1);
+
+// Column headers
+const colOffsets=[14,220,360,450,570,700];
+const colHeaders=['Job Title','Company','Applied','Stage','Last Update','Action'];
+colHeaders.forEach((h,i)=>lbl(h,atX+colOffsets[i],atY+52,10,'#555','left',true));
+hline(atX,atX+atW,atY+62,'#DDD',1);
+
+// Data rows
+const appRows=[
+  {title:'Senior Frontend Developer',company:'TechCorp',applied:'20 Apr',stage:'Interviewing',stageStyle:'dark',last:'Today'},
+  {title:'UX/UI Designer',company:'DesignHub',applied:'18 Apr',stage:'Shortlisted',stageStyle:'dark',last:'22 Apr'},
+  {title:'React Developer',company:'StartupXYZ',applied:'22 Apr',stage:'Screening',stageStyle:'light',last:'23 Apr'},
+];
+appRows.forEach((row,i)=>{
+  const ry=atY+70+i*32;
+  ctx.fillStyle=i%2===0?'#FFF':'#F8F8F8';
+  ctx.fillRect(atX,ry,atW,32);
+  lbl(row.title,atX+colOffsets[0],ry+16,10,'#111','left',false);
+  lbl(row.company,atX+colOffsets[1],ry+16,10,'#333','left',false);
+  lbl(row.applied,atX+colOffsets[2],ry+16,10,'#555','left',false);
+  // Stage badge
+  const bFill=row.stageStyle==='dark'?'#EEE':'#F5F5F5';
+  const bStroke=row.stageStyle==='dark'?'#888':'#AAA';
+  const bColor=row.stageStyle==='dark'?'#333':'#888';
+  roundRect(atX+colOffsets[3],ry+6,76,20,2,bFill,bStroke,1);
+  lbl(row.stage,atX+colOffsets[3]+38,ry+16,9,bColor,'center',false);
+  lbl(row.last,atX+colOffsets[4],ry+16,10,'#555','left',false);
+  // View btn
+  roundRect(atX+colOffsets[5],ry+7,36,18,2,'#EEE','#888',1);
+  lbl('View',atX+colOffsets[5]+18,ry+16,9,'#333','center',false);
+});
+// Bottom border of table rows
+hline(atX,atX+atW,atY+70+3*32,'#DDD',1);
+
+// ── 11. Messages panel ───────────────────────────────────────────────────────
+const msgX=200, msgY=740, msgW=580, msgH=150;
+roundRect(msgX,msgY,msgW,msgH,4,'#FFF','#DDD',1);
+// Header
+ctx.fillStyle='#F5F5F5';
+ctx.fillRect(msgX,msgY,msgW,36);
+hline(msgX,msgX+msgW,msgY,null,1);
+lbl('Messages',msgX+16,msgY+18,12,'#333','left',true);
+// Badge "2 Unread"
+roundRect(msgX+msgW-76,msgY+10,68,18,2,'#EEE','#AAA',1);
+lbl('2 Unread',msgX+msgW-42,msgY+19,10,'#555','center',false);
+hline(msgX,msgX+msgW,msgY+36,'#DDD',1);
+
+const msgRows=[
+  {sender:'TechCorp Recruiter',preview:'Interview confirmation for tomorrow...',time:'10:32 AM',unread:true},
+  {sender:'DesignHub HR',preview:'Your application has been shortlisted',time:'Yesterday',unread:true},
+  {sender:'StartupXYZ',preview:'Thank you for applying to React Dev...',time:'22 Apr',unread:false},
+];
+msgRows.forEach((m,i)=>{
+  const my=msgY+44+i*32;
+  ctx.fillStyle=i%2===0?'#FFF':'#F8F8F8';
+  ctx.fillRect(msgX,my,msgW,32);
+  lbl(m.sender,msgX+14,my+16,10,m.unread?'#111':'#555','left',m.unread);
+  lbl(m.preview,msgX+160,my+16,10,m.unread?'#333':'#777','left',false);
+  lbl(m.time,msgX+430,my+16,10,'#888','left',false);
+  if(m.unread){
+    ctx.beginPath();ctx.arc(msgX+548,my+16,4,0,Math.PI*2);
+    ctx.fillStyle='#555';ctx.fill();
+  }
+});
+
+// ── 12. Profile Completion panel ─────────────────────────────────────────────
+const pcX=792, pcY=740, pcW=388, pcH=150;
+roundRect(pcX,pcY,pcW,pcH,4,'#FFF','#DDD',1);
+// Header
+ctx.fillStyle='#F5F5F5';
+ctx.fillRect(pcX,pcY,pcW,36);
+hline(pcX,pcX+pcW,pcY,null,1);
+lbl('Profile Completion',pcX+16,pcY+18,12,'#333','left',true);
+lbl('72%',pcX+pcW-12,pcY+18,12,'#333','right',true);
+hline(pcX,pcX+pcW,pcY+36,'#DDD',1);
+
+// Progress bar
+progressBar(pcX+14,pcY+50,pcW-28,12,0.72,'#555');
+
+// Completion items
+const pcItems=[
+  {icon:'✓',label:'Basic Info',status:'Complete',done:true},
+  {icon:'✓',label:'Work Experience',status:'Complete',done:true},
+  {icon:'○',label:'Skills & Certifications',status:'Incomplete',done:false},
+  {icon:'○',label:'Portfolio / Links',status:'Incomplete',done:false},
+];
+pcItems.forEach((item,i)=>{
+  const iy=pcY+74+i*22;
+  const lColor=item.done?'#333':'#888';
+  const sColor=item.done?'#555':'#AAA';
+  lbl(item.icon+' '+item.label,pcX+14,iy,10,lColor,'left',false);
+  lbl(item.status,pcX+pcW-12,iy,10,sColor,'right',false);
+});
+
+// ── 13. Footer bar ───────────────────────────────────────────────────────────
+ctx.fillStyle='#F5F5F5';
+ctx.fillRect(190,920,1000,24);
+hline(190,1190,920,'#DDD',1);
+lbl('RMS v1.0.0  ·  Candidate Portal  ·  Profile last updated: 22 April 2026',690,932,10,'#888','center',false);
+
+</script>
+</body>
+</html>

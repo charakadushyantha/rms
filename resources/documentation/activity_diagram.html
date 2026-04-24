@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Activity Diagram – End-to-End Recruitment Pipeline</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { 
+  font-family: Arial, sans-serif; 
+  background: #f0f0f0; 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  padding: 20px; 
+}
+#container { 
+  background: #fff; 
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+  border-radius: 8px; 
+  overflow: hidden; 
+}
+canvas { display: block; }
+#printBtn {
+  margin: 20px 0;
+  padding: 12px 24px;
+  background: #1A252F;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  transition: all 0.3s;
+}
+#printBtn:hover {
+  background: #2c3e50;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+@media print {
+  body { background: #fff; padding: 0; }
+  #printBtn { display: none; }
+  #container { box-shadow: none; border-radius: 0; }
+}
+</style>
+</head>
+<body>
+<button id="printBtn" onclick="window.print()">📸 Print / Save as Image</button>
+<div id="container">
+  <canvas id="diagram" width="1200" height="1600"></canvas>
+</div>
+
+<script>
+const canvas = document.getElementById('diagram');
+const ctx = canvas.getContext('2d');
+
+// Helper functions
+function drawActivity(cx, cy, label, w, h) {
+  w = w || 200; h = h || 36;
+  const x = cx - w/2, y = cy - h/2, r = 16;
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+  ctx.fillStyle='#fff'; ctx.fill();
+  ctx.strokeStyle='#000'; ctx.lineWidth=1.5; ctx.stroke();
+  
+  // Handle text wrapping
+  const words = label.split(' ');
+  let lines = [], cur = '';
+  ctx.font='bold 11px Arial';
+  words.forEach(word => {
+    const test = cur ? cur+' '+word : word;
+    if(ctx.measureText(test).width > w-16 && cur) { 
+      lines.push(cur); 
+      cur=word; 
+    } else {
+      cur=test;
+    }
+  });
+  if(cur) lines.push(cur);
+  
+  ctx.font='bold 11px Arial'; 
+  ctx.fillStyle='#000'; 
+  ctx.textAlign='center'; 
+  ctx.textBaseline='middle';
+  const lh=14, startY=cy-(lines.length-1)*lh/2;
+  lines.forEach((l,i)=>ctx.fillText(l,cx,startY+i*lh));
+}
+
+function drawDecision(cx, cy, label) {
+  const hw=52, hh=26;
+  ctx.beginPath();
+  ctx.moveTo(cx,cy-hh); ctx.lineTo(cx+hw,cy);
+  ctx.lineTo(cx,cy+hh); ctx.lineTo(cx-hw,cy);
+  ctx.closePath();
+  ctx.fillStyle='#fff'; ctx.fill();
+  ctx.strokeStyle='#000'; ctx.lineWidth=1.5; ctx.stroke();
+  ctx.font='10px Arial'; 
+  ctx.fillStyle='#000'; 
+  ctx.textAlign='center'; 
+  ctx.textBaseline='middle';
+  ctx.fillText(label,cx,cy);
+}
+
+function drawInitial(cx,cy) {
+  ctx.beginPath(); 
+  ctx.arc(cx,cy,12,0,Math.PI*2);
+  ctx.fillStyle='#000'; 
+  ctx.fill();
+}
+
+function drawFinal(cx,cy) {
+  ctx.beginPath(); 
+  ctx.arc(cx,cy,16,0,Math.PI*2);
+  ctx.strokeStyle='#000'; 
+  ctx.lineWidth=2; 
+  ctx.stroke();
+  ctx.beginPath(); 
+  ctx.arc(cx,cy,10,0,Math.PI*2);
+  ctx.fillStyle='#000'; 
+  ctx.fill();
+}
+
+function drawFork(x,y,w) {
+  ctx.fillStyle='#000';
+  ctx.fillRect(x,y-3,w,6);
+}
+
+function arrow(x1,y1,x2,y2) {
+  ctx.save();
+  ctx.beginPath(); 
+  ctx.strokeStyle='#000'; 
+  ctx.lineWidth=1.5; 
+  ctx.setLineDash([]);
+  ctx.moveTo(x1,y1); 
+  ctx.lineTo(x2,y2); 
+  ctx.stroke();
+  const angle=Math.atan2(y2-y1,x2-x1);
+  ctx.beginPath();
+  ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-10*Math.cos(angle-0.4),y2-10*Math.sin(angle-0.4));
+  ctx.lineTo(x2-10*Math.cos(angle+0.4),y2-10*Math.sin(angle+0.4));
+  ctx.closePath(); 
+  ctx.fillStyle='#000'; 
+  ctx.fill();
+  ctx.restore();
+}
+
+function guardLabel(x,y,text) {
+  ctx.font='italic 10px Arial'; 
+  ctx.fillStyle='#333'; 
+  ctx.textAlign='center'; 
+  ctx.textBaseline='middle';
+  const tw=ctx.measureText(text).width;
+  ctx.fillStyle='#fff'; 
+  ctx.fillRect(x-tw/2-2,y-8,tw+4,14);
+  ctx.fillStyle='#333'; 
+  ctx.fillText(text,x,y);
+}
+
+function polyArrow(pts) {
+  if(pts.length<2) return;
+  ctx.save(); 
+  ctx.beginPath(); 
+  ctx.strokeStyle='#000'; 
+  ctx.lineWidth=1.5; 
+  ctx.setLineDash([]);
+  ctx.moveTo(pts[0][0],pts[0][1]);
+  for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0],pts[i][1]);
+  ctx.stroke();
+  const last=pts[pts.length-1], prev=pts[pts.length-2];
+  const angle=Math.atan2(last[1]-prev[1],last[0]-prev[0]);
+  ctx.beginPath();
+  ctx.moveTo(last[0],last[1]);
+  ctx.lineTo(last[0]-10*Math.cos(angle-0.4),last[1]-10*Math.sin(angle-0.4));
+  ctx.lineTo(last[0]-10*Math.cos(angle+0.4),last[1]-10*Math.sin(angle+0.4));
+  ctx.closePath(); 
+  ctx.fillStyle='#000'; 
+  ctx.fill();
+  ctx.restore();
+}
+
+// Draw diagram
+// 1. White background
+ctx.fillStyle='#fff'; 
+ctx.fillRect(0,0,1200,1600);
+
+// 2. Title bar
+ctx.fillStyle='#1A252F'; 
+ctx.fillRect(0,0,1200,65);
+ctx.font='bold 22px Arial'; 
+ctx.fillStyle='#fff'; 
+ctx.textAlign='center'; 
+ctx.textBaseline='alphabetic';
+ctx.fillText('Activity Diagram – End-to-End Recruitment Pipeline',600,30);
+ctx.font='12px Arial'; 
+ctx.fillStyle='#AED6F1';
+ctx.fillText('Job Creation · Sourcing · Application · Screening · Interviewing · Assessment · Decision · Offer · Onboarding',600,52);
+
+// 3. Swimlane backgrounds
+ctx.fillStyle='#FAFAFA'; ctx.fillRect(0,65,300,1535);   // Lane 1
+ctx.fillStyle='#F5F5F5'; ctx.fillRect(300,65,300,1535); // Lane 2
+ctx.fillStyle='#FAFAFA'; ctx.fillRect(600,65,300,1535); // Lane 3
+ctx.fillStyle='#F5F5F5'; ctx.fillRect(900,65,300,1535); // Lane 4
+
+// 4. Swimlane headers
+const laneHeaders = ['Admin / Recruiter','System (RMS)','Candidate','Interviewer'];
+const laneX = [0,300,600,900];
+laneHeaders.forEach((h,i)=>{
+  ctx.fillStyle='#1A252F'; 
+  ctx.fillRect(laneX[i],65,300,35);
+  ctx.font='bold 12px Arial'; 
+  ctx.fillStyle='#fff'; 
+  ctx.textAlign='center'; 
+  ctx.textBaseline='middle';
+  ctx.fillText(h, laneX[i]+150, 82);
+});
+
+// 5. Swimlane vertical dividers
+ctx.strokeStyle='#CCC'; 
+ctx.lineWidth=1; 
+ctx.setLineDash([]);
+[300,600,900].forEach(x=>{
+  ctx.beginPath(); 
+  ctx.moveTo(x,65); 
+  ctx.lineTo(x,1600); 
+  ctx.stroke();
+});
+// Outer border
+ctx.strokeStyle='#888'; 
+ctx.lineWidth=1.5;
+ctx.strokeRect(0,65,1200,1535);
+
+// 6. Draw all nodes
+drawInitial(150, 145);
+drawActivity(150, 195, 'Create Job Posting');
+drawActivity(150, 255, 'Define Requirements & Set Criteria', 220, 36);
+drawActivity(450, 315, 'Publish to Job Platforms');
+drawFork(100, 375, 700);
+drawActivity(450, 430, 'AI Chatbot Engages Candidates');
+drawActivity(750, 430, 'Candidate Registers & Searches Jobs', 220, 36);
+drawActivity(750, 490, 'Upload CV / Resume');
+drawActivity(450, 490, 'Parse & Score CV (AI)');
+drawFork(300, 550, 600);
+drawDecision(450, 610, 'CV Meets Criteria?');
+drawActivity(1050, 610, 'Send Rejection Email');
+drawActivity(150, 670, 'Shortlist Candidate');
+drawActivity(150, 730, 'Schedule Interview');
+drawActivity(450, 790, 'Send Interview Invitation');
+drawActivity(750, 790, 'Receive Interview Invitation');
+drawDecision(750, 850, 'Candidate Confirms?');
+drawActivity(1050, 850, 'Request Reschedule');
+drawActivity(1050, 910, 'Conduct Interview');
+drawActivity(1050, 970, 'Submit Feedback & Ratings');
+drawActivity(450, 1030, 'Aggregate Panel Scores');
+drawDecision(450, 1090, 'Score >= Passing?');
+drawActivity(150, 1090, 'Mark as Rejected');
+drawActivity(750, 1090, 'Send Rejection Notification');
+drawActivity(150, 1150, 'Record Hiring Decision: Selected', 220, 36);
+drawActivity(150, 1210, 'Generate Offer Letter');
+drawActivity(450, 1270, 'Send Offer to Candidate');
+drawActivity(750, 1270, 'Review & Accept Offer');
+drawDecision(750, 1330, 'Offer Accepted?');
+drawActivity(1050, 1330, 'Negotiate / Withdraw');
+drawActivity(150, 1390, 'Initiate Onboarding Process', 220, 36);
+drawActivity(450, 1450, 'Update System Records');
+drawFinal(600, 1520);
+
+// 7. Draw all arrows
+arrow(150,157,150,177);
+arrow(150,213,150,237);
+polyArrow([[150,273],[150,315],[340,315]]);
+arrow(450,333,450,372);
+arrow(450,378,450,412);
+arrow(750,378,750,412);
+arrow(450,448,450,472);
+arrow(750,448,750,472);
+polyArrow([[750,508],[750,550]]);
+arrow(450,508,450,547);
+arrow(450,553,450,584);
+polyArrow([[398,610],[150,610],[150,652]]);
+guardLabel(270,600,'[Yes]');
+polyArrow([[502,610],[1050,610]]);
+guardLabel(750,600,'[No]');
+arrow(1050,628,1050,660);
+arrow(150,688,150,712);
+polyArrow([[150,748],[150,790],[340,790]]);
+arrow(550,790,640,790);
+arrow(750,808,750,824);
+polyArrow([[802,850],[1050,850],[1050,892]]);
+guardLabel(930,840,'[Yes]');
+polyArrow([[750,876],[750,920],[1050,920],[1050,868]]);
+guardLabel(760,900,'[No]');
+polyArrow([[1050,832],[1050,730],[260,730]]);
+arrow(1050,928,1050,952);
+polyArrow([[1050,988],[1050,1030],[550,1030]]);
+arrow(450,1048,450,1064);
+polyArrow([[398,1090],[150,1090],[150,1132]]);
+guardLabel(270,1080,'[Yes]');
+polyArrow([[502,1090],[750,1090]]);
+guardLabel(620,1080,'[No]');
+arrow(750,1108,750,1130);
+polyArrow([[750,1108],[750,1160],[600,1160],[600,1504]]);
+arrow(150,1168,150,1192);
+polyArrow([[150,1228],[150,1270],[340,1270]]);
+arrow(550,1270,640,1270);
+arrow(750,1288,750,1312);
+polyArrow([[698,1330],[150,1330],[150,1372]]);
+guardLabel(420,1320,'[Yes]');
+polyArrow([[802,1330],[1050,1330]]);
+guardLabel(930,1320,'[No]');
+polyArrow([[1050,1348],[1050,1520],[616,1520]]);
+polyArrow([[150,1408],[150,1450],[340,1450]]);
+polyArrow([[550,1450],[600,1450],[600,1504]]);
+
+// Small final node for rejection branch
+ctx.beginPath(); 
+ctx.arc(1050,672,10,0,Math.PI*2); 
+ctx.strokeStyle='#000'; 
+ctx.lineWidth=1.5; 
+ctx.stroke();
+ctx.beginPath(); 
+ctx.arc(1050,672,6,0,Math.PI*2); 
+ctx.fillStyle='#000'; 
+ctx.fill();
+
+// 8. Footer
+ctx.beginPath(); 
+ctx.strokeStyle='#CCC'; 
+ctx.lineWidth=1; 
+ctx.setLineDash([]);
+ctx.moveTo(0,1570); 
+ctx.lineTo(1200,1570); 
+ctx.stroke();
+ctx.font='10px Arial'; 
+ctx.fillStyle='#999'; 
+ctx.textAlign='center'; 
+ctx.textBaseline='alphabetic';
+ctx.fillText('RMS · Activity Diagram · End-to-End Recruitment Pipeline · Thesis Documentation',600,1585);
+</script>
+</body>
+</html>

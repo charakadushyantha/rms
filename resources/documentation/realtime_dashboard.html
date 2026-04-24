@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Figure 5.3: Real-Time Collaborative Hiring Dashboard</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0f1e;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    padding: 20px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  .print-btn {
+    margin-bottom: 14px;
+    padding: 9px 22px;
+    background: #3B82F6;
+    color: #fff;
+    border: none;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: background 0.2s;
+  }
+  .print-btn:hover { background: #2563EB; }
+  canvas {
+    display: block;
+    border-radius: 10px;
+    box-shadow: 0 8px 48px rgba(0,0,0,0.7);
+  }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .print-btn { display: none; }
+    canvas { box-shadow: none; border-radius: 0; }
+  }
+</style>
+</head>
+<body>
+<button class="print-btn" onclick="window.print()">📸 Print / Save as Image</button>
+<canvas id="c" width="1300" height="900"></canvas>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function roundRect(x, y, w, h, r, fill, stroke, lw) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw || 1; ctx.stroke(); }
+}
+
+function lbl(text, x, y, size, color, align, bold) {
+  ctx.save();
+  ctx.font = (bold ? 'bold ' : '') + size + 'px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif';
+  ctx.fillStyle = color;
+  ctx.textAlign = align || 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, x, y);
+  ctx.restore();
+}
+
+function hline(x1, x2, y, color, lw) {
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lw || 1;
+  ctx.beginPath();
+  ctx.moveTo(x1, y);
+  ctx.lineTo(x2, y);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function pill(x, y, w, h, text, fill, textColor, size) {
+  roundRect(x, y, w, h, h / 2, fill, null, 0);
+  lbl(text, x + w / 2, y + h / 2, size || 9, textColor, 'center', true);
+}
+
+function avatar(cx, cy, r, fill, initials) {
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fillStyle = fill;
+  ctx.fill();
+  ctx.strokeStyle = '#0F172A';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  lbl(initials, cx, cy, Math.max(7, r * 0.65), '#FFFFFF', 'center', true);
+  ctx.beginPath();
+  ctx.arc(cx + r * 0.7, cy + r * 0.7, r * 0.28, 0, Math.PI * 2);
+  ctx.fillStyle = '#10B981';
+  ctx.fill();
+  ctx.strokeStyle = '#0F172A';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+}
+
+function sparkline(x, y, w, h, data, color) {
+  const max = Math.max(...data), min = Math.min(...data);
+  const range = max - min || 1;
+  ctx.save();
+  // fill area
+  ctx.beginPath();
+  data.forEach((v, i) => {
+    const px = x + i / (data.length - 1) * w;
+    const py = y + h - (v - min) / range * h;
+    i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+  });
+  ctx.lineTo(x + w, y + h);
+  ctx.lineTo(x, y + h);
+  ctx.closePath();
+  ctx.fillStyle = color + '22';
+  ctx.fill();
+  // line
+  ctx.beginPath();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  data.forEach((v, i) => {
+    const px = x + i / (data.length - 1) * w;
+    const py = y + h - (v - min) / range * h;
+    i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+  });
+  ctx.stroke();
+  // dots
+  data.forEach((v, i) => {
+    const px = x + i / (data.length - 1) * w;
+    const py = y + h - (v - min) / range * h;
+    ctx.beginPath();
+    ctx.arc(px, py, 2, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+  });
+  ctx.restore();
+}
+
+function actionBtn(x, y, w, h, text, color) {
+  roundRect(x, y, w, h, 6, color + '26', color, 1);
+  lbl(text, x + w / 2, y + h / 2, 10, color, 'center', true);
+}
+
+// ── Sparkline data ────────────────────────────────────────────────────────────
+const spPipeline   = [180,195,210,205,220,235,240,247];
+const spInterviews = [12,14,13,15,16,17,16,18];
+const spOffers     = [3,4,5,5,6,6,7,7];
+const spTimeToHire = [24,23,22,21,21,20,19,18];
+const spOpenPos    = [18,19,20,21,22,22,23,23];
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 1. BACKGROUND
+// ═══════════════════════════════════════════════════════════════════════════════
+ctx.fillStyle = '#0F172A';
+ctx.fillRect(0, 0, 1300, 900);
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 2. FIGURE CAPTION (y=0, h=28)
+// ═══════════════════════════════════════════════════════════════════════════════
+ctx.fillStyle = '#0F172A';
+ctx.fillRect(0, 0, 1300, 28);
+lbl('Figure 5.3: Real-Time Collaborative Hiring Dashboard', 650, 14, 13, '#94A3B8', 'center', true);
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 3. TOP NAVIGATION BAR (y=28, h=52)
+// ═══════════════════════════════════════════════════════════════════════════════
+ctx.fillStyle = '#1E293B';
+ctx.fillRect(0, 28, 1300, 52);
+hline(0, 1300, 80, '#334155', 1);
+
+// Logo
+roundRect(16, 38, 32, 32, 6, '#3B82F6', null, 0);
+lbl('RMS', 32, 54, 11, '#FFFFFF', 'center', true);
+
+// Title
+lbl('Hiring Dashboard', 56, 54, 15, '#F1F5F9', 'left', true);
+
+// LIVE badge
+pill(180, 44, 64, 18, '● LIVE', '#10B981', '#FFFFFF', 9);
+
+// Last updated
+lbl('Last updated: 2 seconds ago', 650, 54, 10, '#64748B', 'center', false);
+
+// Presence avatars
+const avatarData = [
+  { fill: '#3B82F6', init: 'SR' },
+  { fill: '#10B981', init: 'MK' },
+  { fill: '#F59E0B', init: 'JP' },
+  { fill: '#8B5CF6', init: 'LC' },
+  { fill: '#EF4444', init: 'TW' },
+];
+const avR = 14, avOverlap = 8;
+const avStartX = 960;
+avatarData.forEach((a, i) => {
+  avatar(avStartX + i * (avR * 2 - avOverlap), 54, avR, a.fill, a.init);
+});
+lbl('5 users online', avStartX + avatarData.length * (avR * 2 - avOverlap) + 6, 54, 10, '#94A3B8', 'left', false);
+
+// Quick Actions button
+roundRect(1160, 40, 124, 28, 6, '#3B82F6', null, 0);
+lbl('⚡ Quick Actions', 1222, 54, 11, '#FFFFFF', 'center', true);
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 4. KPI TILES (y=80, h=110)
+// ═══════════════════════════════════════════════════════════════════════════════
+const kpis = [
+  { x: 12,  label: 'Total Pipeline',    value: '247',  sub: '↑ 12 today',          subColor: '#10B981', accent: '#3B82F6',  sp: spPipeline   },
+  { x: 258, label: 'Active Interviews', value: '18',   sub: '↑ 3 this week',        subColor: '#10B981', accent: '#10B981',  sp: spInterviews },
+  { x: 504, label: 'Offers Extended',   value: '7',    sub: '2 pending response',   subColor: '#F59E0B', accent: '#F59E0B',  sp: spOffers     },
+  { x: 750, label: 'Time to Hire',      value: '18d',  sub: '↓ 3d vs last month',   subColor: '#10B981', accent: '#8B5CF6',  sp: spTimeToHire },
+  { x: 996, label: 'Open Positions',    value: '23',   sub: '5 urgent',             subColor: '#EF4444', accent: '#EF4444',  sp: spOpenPos    },
+];
+
+kpis.forEach(k => {
+  const tw = 234, th = 90, ty = 88;
+  roundRect(k.x, ty, tw, th, 8, '#1E293B', '#334155', 1);
+  // right accent bar
+  ctx.fillStyle = k.accent;
+  ctx.fillRect(k.x + tw - 3, ty + 8, 3, th - 16);
+  // icon circle
+  roundRect(k.x + tw - 46, ty + 10, 36, 36, 18, k.accent + '26', null, 0);
+  // label
+  lbl(k.label, k.x + 12, ty + 16, 10, '#94A3B8', 'left', false);
+  // big number
+  lbl(k.value, k.x + 12, ty + 46, 34, '#F1F5F9', 'left', true);
+  // sub text
+  lbl(k.sub, k.x + 12, ty + 70, 10, k.subColor, 'left', false);
+  // sparkline
+  sparkline(k.x + 12, ty + 56, tw - 60, 22, k.sp, k.accent);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 5. PIPELINE KANBAN (x=12, y=200, w=780, h=480)
+// ═══════════════════════════════════════════════════════════════════════════════
+const PX = 12, PY = 200, PW = 780, PH = 480;
+roundRect(PX, PY, PW, PH, 8, '#1E293B', '#334155', 1);
+
+// Panel header
+lbl('Shared Pipeline View', PX + 16, PY + 22, 13, '#F1F5F9', 'left', true);
+pill(PX + 210, PY + 13, 38, 18, 'LIVE', '#10B981', '#FFFFFF', 8);
+lbl('Viewing: 3 users', PX + 260, PY + 22, 10, '#94A3B8', 'left', false);
+// 3 small colored dots for viewers
+[['#3B82F6', 0], ['#10B981', 10], ['#F59E0B', 20]].forEach(([c, ox]) => {
+  ctx.beginPath();
+  ctx.arc(PX + 370 + ox, PY + 22, 5, 0, Math.PI * 2);
+  ctx.fillStyle = c;
+  ctx.fill();
+});
+
+hline(PX, PX + PW, PY + 40, '#334155', 1);
+
+// Kanban columns
+const cols = [
+  { title: 'Sourced',   count: 48, color: '#3B82F6', hdrBg: '#1E3A5F',
+    cards: [
+      { name: 'Alex Johnson', role: 'Sr. Engineer',  src: 'LinkedIn', viewers: ['#3B82F6','#10B981'] },
+      { name: 'Maria Chen',   role: 'UX Designer',   src: 'Indeed',   viewers: [] },
+      { name: '+45 more',     role: null,             src: null,       viewers: [], more: true },
+    ]
+  },
+  { title: 'Screening', count: 31, color: '#10B981', hdrBg: '#1E3A2F',
+    cards: [
+      { name: 'David Kim',    role: 'Product Mgr',   src: 'Referral', viewers: [] },
+      { name: 'Emma Wilson',  role: 'Data Analyst',  src: 'LinkedIn', viewers: [] },
+      { name: '+28 more',     role: null,             src: null,       viewers: [], more: true },
+    ]
+  },
+  { title: 'Interview', count: 18, color: '#F59E0B', hdrBg: '#3A2E1E',
+    cards: [
+      { name: 'Sophie Brown', role: 'Dev Lead',      src: 'Indeed',   viewers: ['#F59E0B'] },
+      { name: 'Ryan Davis',   role: 'QA Engineer',   src: 'LinkedIn', viewers: [] },
+      { name: '+15 more',     role: null,             src: null,       viewers: [], more: true },
+    ]
+  },
+  { title: 'Offer',     count: 7,  color: '#8B5CF6', hdrBg: '#2E1E3A',
+    cards: [
+      { name: 'James Lee',    role: 'CTO',           src: 'Referral', viewers: [] },
+      { name: 'Anna White',   role: 'Designer',      src: 'LinkedIn', viewers: [] },
+    ]
+  },
+  { title: 'Hired',     count: 12, color: '#10B981', hdrBg: '#1E2E1E',
+    cards: [
+      { name: 'Tom Harris',   role: 'Engineer',      src: null,       viewers: [], hired: true },
+      { name: 'Lisa Chen',    role: 'Designer',      src: null,       viewers: [], hired: true },
+    ]
+  },
+];
+
+const colW = 140, colGap = 8;
+const colStartX = PX + 16, colStartY = PY + 50;
+
+cols.forEach((col, ci) => {
+  const cx = colStartX + ci * (colW + colGap);
+  const cy = colStartY;
+
+  // Column header
+  roundRect(cx, cy, colW, 26, 4, col.hdrBg, null, 0);
+  lbl(col.title, cx + 8, cy + 13, 10, col.color, 'left', true);
+  // count badge
+  const badgeW = 24;
+  pill(cx + colW - badgeW - 4, cy + 5, badgeW, 16, String(col.count), col.color, '#FFFFFF', 8);
+
+  // Cards
+  col.cards.forEach((card, ki) => {
+    const cardX = cx;
+    const cardY = cy + 32 + ki * 58;
+    const cardH = 52;
+
+    roundRect(cardX, cardY, colW, cardH, 6, '#0F172A', '#334155', 1);
+
+    if (card.more) {
+      lbl(card.name, cardX + colW / 2, cardY + cardH / 2, 9, '#64748B', 'center', false);
+      ctx.font = 'italic 9px sans-serif';
+    } else {
+      // hired checkmark
+      if (card.hired) {
+        ctx.fillStyle = '#10B981';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('✓', cardX + colW - 6, cardY + 14);
+      }
+      lbl(card.name, cardX + 8, cardY + 14, 10, '#F1F5F9', 'left', true);
+      if (card.role) lbl(card.role, cardX + 8, cardY + 27, 9, '#94A3B8', 'left', false);
+      if (card.src)  lbl(card.src,  cardX + 8, cardY + 40, 8, '#64748B', 'left', false);
+
+      // small colored dot (source indicator)
+      ctx.beginPath();
+      ctx.arc(cardX + colW - 10, cardY + 40, 4, 0, Math.PI * 2);
+      ctx.fillStyle = col.color;
+      ctx.fill();
+
+      // viewer presence dots
+      if (card.viewers && card.viewers.length > 0) {
+        card.viewers.forEach((vc, vi) => {
+          const vx = cardX + colW - 10 - vi * 12;
+          const vy = cardY + 14;
+          ctx.beginPath();
+          ctx.arc(vx, vy, 7, 0, Math.PI * 2);
+          ctx.fillStyle = vc;
+          ctx.fill();
+          ctx.strokeStyle = '#0F172A';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        });
+        // "N viewing" label
+        lbl(card.viewers.length + ' viewing', cardX + 8, cardY + 42, 7, '#64748B', 'left', false);
+      }
+    }
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 6. LIVE ACTIVITY FEED — Panel A (x=804, y=200, w=484, h=155)
+// ═══════════════════════════════════════════════════════════════════════════════
+const AX = 804, AY = 200, AW = 484, AH = 155;
+roundRect(AX, AY, AW, AH, 8, '#1E293B', '#334155', 1);
+
+lbl('Live Activity', AX + 14, AY + 20, 12, '#F1F5F9', 'left', true);
+lbl('● 12 events', AX + 120, AY + 20, 9, '#10B981', 'left', false);
+hline(AX, AX + AW, AY + 36, '#334155', 1);
+
+const activities = [
+  { dot: '#10B981', text: 'Sarah R. moved Alex Johnson → Interview',  time: '2s ago'  },
+  { dot: '#3B82F6', text: 'Mike K. added feedback for Sophie Brown',  time: '45s ago' },
+  { dot: '#F59E0B', text: 'James P. scheduled interview: Emma Wilson',time: '2m ago'  },
+  { dot: '#8B5CF6', text: 'Lisa C. shortlisted 3 candidates',         time: '5m ago'  },
+  { dot: '#EF4444', text: 'Tom W. sent offer to James Lee',           time: '8m ago'  },
+];
+
+activities.forEach((a, i) => {
+  const ay = AY + 50 + i * 22;
+  ctx.beginPath();
+  ctx.arc(AX + 18, ay, 5, 0, Math.PI * 2);
+  ctx.fillStyle = a.dot;
+  ctx.fill();
+  lbl(a.text, AX + 30, ay, 9, '#94A3B8', 'left', false);
+  lbl(a.time, AX + AW - 10, ay, 9, '#64748B', 'right', false);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 7. QUICK ACTIONS — Panel B (x=804, y=367, w=484, h=155)
+// ═══════════════════════════════════════════════════════════════════════════════
+const BX = 804, BY = 367, BW = 484, BH = 155;
+roundRect(BX, BY, BW, BH, 8, '#1E293B', '#334155', 1);
+
+lbl('Quick Actions', BX + 14, BY + 20, 12, '#F1F5F9', 'left', true);
+hline(BX, BX + BW, BY + 36, '#334155', 1);
+
+const qaBtns = [
+  [{ t: '+ Add Candidate',   c: '#3B82F6' }, { t: 'Schedule Interview', c: '#10B981' }, { t: 'Send Offer',       c: '#8B5CF6' }],
+  [{ t: 'Generate Report',   c: '#F59E0B' }, { t: 'Post Job',           c: '#06B6D4' }, { t: 'Review Feedback',  c: '#EF4444' }],
+];
+const btnW = 144, btnH = 40, btnGap = 8;
+qaBtns.forEach((row, ri) => {
+  row.forEach((btn, ci) => {
+    const bx = BX + 10 + ci * (btnW + btnGap);
+    const by = BY + 46 + ri * (btnH + btnGap);
+    actionBtn(bx, by, btnW, btnH, btn.t, btn.c);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 8. INTERVIEWER AVAILABILITY — Panel C (x=804, y=534, w=484, h=146)
+// ═══════════════════════════════════════════════════════════════════════════════
+const CX = 804, CY = 534, CW = 484, CH = 146;
+roundRect(CX, CY, CW, CH, 8, '#1E293B', '#334155', 1);
+
+lbl('Panel Availability', CX + 14, CY + 20, 12, '#F1F5F9', 'left', true);
+lbl('Today', CX + 150, CY + 20, 9, '#64748B', 'left', false);
+hline(CX, CX + CW, CY + 36, '#334155', 1);
+
+const interviewers = [
+  { fill: '#3B82F6', init: 'SR', name: 'Sarah Reynolds', status: 'Available',    statusColor: '#10B981', barFill: 0.85 },
+  { fill: '#10B981', init: 'MK', name: 'Mike Kim',        status: 'Busy 2–4 PM', statusColor: '#F59E0B', barFill: 0.45 },
+  { fill: '#F59E0B', init: 'JP', name: 'James Park',      status: 'Available',   statusColor: '#10B981', barFill: 0.90 },
+  { fill: '#8B5CF6', init: 'LC', name: 'Lisa Chen',       status: 'In Interview',statusColor: '#EF4444', barFill: 0.20 },
+  { fill: '#EF4444', init: 'TW', name: 'Tom Wilson',      status: 'Available',   statusColor: '#10B981', barFill: 0.80 },
+];
+
+interviewers.forEach((iv, i) => {
+  const iy = CY + 50 + i * 22;
+  // avatar
+  ctx.beginPath();
+  ctx.arc(CX + 22, iy, 9, 0, Math.PI * 2);
+  ctx.fillStyle = iv.fill;
+  ctx.fill();
+  lbl(iv.init, CX + 22, iy, 7, '#FFFFFF', 'center', true);
+  // name
+  lbl(iv.name, CX + 38, iy, 10, '#F1F5F9', 'left', false);
+  // availability bar
+  const barX = CX + 175, barY = iy - 4, barW = 180, barH = 8;
+  roundRect(barX, barY, barW, barH, 4, '#0F172A', null, 0);
+  roundRect(barX, barY, barW * iv.barFill, barH, 4, iv.statusColor + '88', null, 0);
+  // status text
+  lbl(iv.status, CX + CW - 10, iy, 9, iv.statusColor, 'right', false);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 9. BOTTOM BAR (y=690, h=50)
+// ═══════════════════════════════════════════════════════════════════════════════
+ctx.fillStyle = '#1E293B';
+ctx.fillRect(0, 690, 1300, 50);
+hline(0, 1300, 690, '#334155', 1);
+
+lbl('🔄 Auto-refresh: ON · Every 30s', 20, 715, 10, '#64748B', 'left', false);
+lbl('RMS Real-Time Dashboard · Powered by WebSocket · 5 concurrent users', 650, 715, 10, '#64748B', 'center', false);
+lbl('⚡ 47ms latency · 99.9% uptime', 1280, 715, 10, '#10B981', 'right', false);
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 10. FOOTER (y=740, h=30)
+// ═══════════════════════════════════════════════════════════════════════════════
+ctx.fillStyle = '#0F172A';
+ctx.fillRect(0, 740, 1300, 30);
+lbl('Figure 5.3: Real-Time Collaborative Hiring Dashboard · RMS v1.0.0 · Thesis Documentation', 650, 755, 10, '#475569', 'center', false);
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// EXTRA POLISH — subtle grid lines on kanban area
+// ═══════════════════════════════════════════════════════════════════════════════
+ctx.save();
+ctx.globalAlpha = 0.04;
+for (let gx = PX + 16; gx < PX + PW; gx += 20) {
+  ctx.strokeStyle = '#94A3B8';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(gx, PY + 50);
+  ctx.lineTo(gx, PY + PH - 10);
+  ctx.stroke();
+}
+ctx.restore();
+
+</script>
+</body>
+</html>

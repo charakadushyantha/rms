@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Selenium Regression Test Report — RMS Run #47</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #E8E8E8;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+  }
+  canvas {
+    display: block;
+    background: #FFFFFF;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  }
+  #printBtn {
+    margin-top: 14px;
+    padding: 9px 22px;
+    background: #2C3E50;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: Arial, sans-serif;
+    letter-spacing: 0.3px;
+  }
+  #printBtn:hover { background: #1a252f; }
+  @media print {
+    body { background: #fff; padding: 0; }
+    #printBtn { display: none; }
+    canvas { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+<canvas id="c" width="1200" height="1100"></canvas>
+<button id="printBtn" onclick="window.print()">📸 Print / Save as Image</button>
+<script>
+(function(){
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+
+  /* ── helpers ─────────────────────────────────────────────────────── */
+  function roundRect(x,y,w,h,r,fill,stroke,lw){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.lineTo(x+w-r,y);
+    ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+    ctx.lineTo(x+w,y+h-r);
+    ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+    ctx.lineTo(x+r,y+h);
+    ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+    ctx.lineTo(x,y+r);
+    ctx.quadraticCurveTo(x,y,x+r,y);
+    ctx.closePath();
+    if(fill){ ctx.fillStyle=fill; ctx.fill(); }
+    if(stroke){ ctx.strokeStyle=stroke; ctx.lineWidth=lw||1; ctx.stroke(); }
+  }
+
+  function lbl(text,x,y,size,color,align,bold,italic){
+    let f='';
+    if(italic) f+='italic ';
+    if(bold)   f+='bold ';
+    f+=size+'px Arial';
+    ctx.font=f;
+    ctx.fillStyle=color;
+    ctx.textAlign=align||'left';
+    ctx.textBaseline='middle';
+    ctx.fillText(text,x,y);
+  }
+
+  function hline(x1,x2,y,color,lw){
+    ctx.beginPath();
+    ctx.moveTo(x1,y);
+    ctx.lineTo(x2,y);
+    ctx.strokeStyle=color;
+    ctx.lineWidth=lw||1;
+    ctx.stroke();
+  }
+
+  function vline(x,y1,y2,color,lw){
+    ctx.beginPath();
+    ctx.moveTo(x,y1);
+    ctx.lineTo(x,y2);
+    ctx.strokeStyle=color;
+    ctx.lineWidth=lw||1;
+    ctx.stroke();
+  }
+
+  function badge(x,y,w,h,text,fill,stroke,textColor,size){
+    roundRect(x,y,w,h,3,fill,stroke,1);
+    lbl(text,x+w/2,y+h/2,size||9,textColor,'center',true);
+  }
+
+  function truncate(text, maxWidth){
+    ctx.font='11px Arial';
+    if(ctx.measureText(text).width <= maxWidth) return text;
+    let t = text;
+    while(ctx.measureText(t+'...').width > maxWidth && t.length > 0){
+      t = t.slice(0,-1);
+    }
+    return t+'...';
+  }
+
+  /* ── FIGURE CAPTION ──────────────────────────────────────────────── */
+  lbl('Figure 3.25: Selenium Regression Test Run',600,22,14,'#000000','center',true);
+  hline(10,1190,32,'#CCCCCC',1);
+
+  /* ── BROWSER CHROME ──────────────────────────────────────────────── */
+  // Outer rect
+  roundRect(10,36,1180,1054,4,'#F0F0F0','#888888',1);
+  // Browser bar
+  ctx.fillStyle='#DDDDDD';
+  ctx.fillRect(10,36,1180,28);
+  // Traffic light circles
+  ctx.beginPath(); ctx.arc(25,50,6,0,Math.PI*2); ctx.fillStyle='#FF5F57'; ctx.fill();
+  ctx.beginPath(); ctx.arc(42,50,6,0,Math.PI*2); ctx.fillStyle='#FEBC2E'; ctx.fill();
+  ctx.beginPath(); ctx.arc(59,50,6,0,Math.PI*2); ctx.fillStyle='#28C840'; ctx.fill();
+  // URL bar
+  roundRect(80,41,700,18,3,'#FFFFFF','#AAAAAA',1);
+  lbl('file:///selenium-reports/regression-run-2026-04-24.html',88,50,10,'#555555','left');
+
+  /* ── REPORT HEADER BAR ───────────────────────────────────────────── */
+  ctx.fillStyle='#2C3E50';
+  ctx.fillRect(10,64,1180,56);
+  lbl('Selenium Regression Test Report',30,87,18,'#FFFFFF','left',true);
+  lbl('RMS End-to-End Test Suite  ·  Run #47  ·  24 April 2026  ·  09:14:32',30,104,11,'#95A5A6','left');
+
+  /* ── SUMMARY STATS ROW ───────────────────────────────────────────── */
+  ctx.fillStyle='#F8F9FA';
+  ctx.fillRect(10,120,1180,64);
+  hline(10,1190,184,'#BDC3C7',1);
+
+  function statBox(x,y,label,value,valueColor){
+    lbl(label,x,y+8,10,'#7F8C8D','left');
+    lbl(value,x,y+30,24,valueColor,'left',true);
+  }
+  statBox(30,130,'Total Tests','42','#2C3E50');
+  statBox(230,130,'Passed','38','#27AE60');
+  statBox(430,130,'Failed','3','#E74C3C');
+  statBox(630,130,'Skipped','1','#F39C12');
+  statBox(830,130,'Duration','4m 23s','#2C3E50');
+
+  // Progress bar
+  roundRect(1000,132,160,40,4,'#E0E0E0',null,0);
+  roundRect(1000,132,Math.round(160*0.905),40,4,'#27AE60',null,0);
+  // right edge clip fix — redraw right portion of bg
+  ctx.fillStyle='#E0E0E0';
+  ctx.fillRect(1000+Math.round(160*0.905),132,160-Math.round(160*0.905),40);
+  // re-draw rounded right side of bg
+  roundRect(1000,132,160,40,4,null,'#BDC3C7',1);
+  lbl('90.5% Pass Rate',1080,152,11,'#27AE60','center',true);
+
+  /* ── FILTER BAR ──────────────────────────────────────────────────── */
+  ctx.fillStyle='#ECF0F1';
+  ctx.fillRect(10,184,1180,36);
+  hline(10,1190,220,'#BDC3C7',1);
+
+  lbl('Filter:',30,202,11,'#555555','left');
+
+  // Filter buttons
+  const filterBtns=[
+    {label:'All',   x:75,  active:true},
+    {label:'Passed',x:140, active:false},
+    {label:'Failed',x:205, active:false},
+    {label:'Skipped',x:270,active:false},
+  ];
+  filterBtns.forEach(b=>{
+    const w = b.label==='Skipped'?65:60;
+    if(b.active){
+      roundRect(b.x,191,w,22,3,'#2C3E50',null,0);
+      lbl(b.label,b.x+w/2,202,10,'#FFFFFF','center',true);
+    } else {
+      roundRect(b.x,191,w,22,3,'#FFFFFF','#BDC3C7',1);
+      lbl(b.label,b.x+w/2,202,10,'#555555','center');
+    }
+  });
+
+  // Search box
+  roundRect(400,191,300,22,3,'#FFFFFF','#BDC3C7',1);
+  lbl('Search tests...',410,202,10,'#AAAAAA','left');
+
+  // Export button
+  roundRect(1100,191,70,22,3,'#FFFFFF','#BDC3C7',1);
+  lbl('↓ Export',1135,202,10,'#555555','center');
+
+  /* ── TABLE HEADER ────────────────────────────────────────────────── */
+  ctx.fillStyle='#ECF0F1';
+  ctx.fillRect(10,220,1180,28);
+  ctx.strokeStyle='#BDC3C7'; ctx.lineWidth=1;
+  ctx.strokeRect(10,220,1180,28);
+
+  const colHeaders=[
+    {text:'#',       x:22},
+    {text:'Test ID', x:65},
+    {text:'Test Name / Description', x:155},
+    {text:'Suite',   x:640},
+    {text:'Duration',x:770},
+    {text:'Status',  x:860},
+    {text:'Notes',   x:950},
+  ];
+  colHeaders.forEach(c=>{
+    lbl(c.text,c.x,234,10,'#555555','left',true);
+  });
+
+  /* ── SUITE BADGE STYLES ──────────────────────────────────────────── */
+  const suiteStyles={
+    'Auth':        {fill:'#D6EAF8',stroke:'#2980B9',text:'#1A5276'},
+    'Candidate':   {fill:'#D5F5E3',stroke:'#27AE60',text:'#1E8449'},
+    'Recruiter':   {fill:'#FDEBD0',stroke:'#E67E22',text:'#784212'},
+    'Admin':       {fill:'#E8DAEF',stroke:'#8E44AD',text:'#4A235A'},
+    'Interview':   {fill:'#FDFEFE',stroke:'#BDC3C7',text:'#555555'},
+    'Integration': {fill:'#EBF5FB',stroke:'#2980B9',text:'#1A5276'},
+  };
+
+  const statusStyles={
+    'PASS':{fill:'#EAFAF1',stroke:'#27AE60',text:'#1E8449'},
+    'FAIL':{fill:'#FDEDEC',stroke:'#E74C3C',text:'#922B21'},
+    'SKIP':{fill:'#FEF9E7',stroke:'#F39C12',text:'#784212'},
+  };
+
+  const rowBgFail='#FDEDEC';
+  const rowBgSkip='#FEF9E7';
+
+  /* ── TEST DATA ───────────────────────────────────────────────────── */
+  const suites=[
+    {
+      title:'▶  ST-01: Complete Candidate Journey — Register · Apply · Interview · Feedback',
+      rows:[
+        [1,'TC-001','User registration with valid credentials','Auth','1.2s','PASS','—'],
+        [2,'TC-002','Email verification link sent on signup','Auth','0.8s','PASS','—'],
+        [3,'TC-003','Login with registered credentials','Auth','0.6s','PASS','—'],
+        [4,'TC-004','Browse and search available job listings','Candidate','1.4s','PASS','—'],
+        [5,'TC-005','Submit application with CV upload','Candidate','2.1s','PASS','—'],
+        [6,'TC-006','Application confirmation email dispatched','Candidate','1.8s','PASS','—'],
+        [7,'TC-007','Candidate receives interview invitation','Interview','1.3s','PASS','—'],
+        [8,'TC-008','Candidate confirms interview attendance','Interview','0.9s','PASS','—'],
+        [9,'TC-009','Interview feedback survey submitted','Interview','1.6s','PASS','—'],
+        [10,'TC-010','All ST-01 notifications dispatched correctly','Integration','2.4s','PASS','All milestones reached'],
+      ]
+    },
+    {
+      title:'▶  ST-02: Recruiter Full Pipeline',
+      rows:[
+        [11,'TC-011','Recruiter creates new job posting','Recruiter','1.1s','PASS','—'],
+        [12,'TC-012','Job published to LinkedIn and Indeed platforms','Recruiter','3.2s','PASS','—'],
+        [13,'TC-013','Candidate applications received and listed','Recruiter','0.9s','PASS','—'],
+        [14,'TC-014','Recruiter shortlists three candidates','Recruiter','1.4s','PASS','—'],
+        [15,'TC-015','Interview scheduled for shortlisted candidates','Interview','1.7s','PASS','—'],
+        [16,'TC-016','Interviewer assigned to panel','Interview','0.8s','PASS','—'],
+        [17,'TC-017','Feedback collected from all panel members','Interview','2.2s','PASS','—'],
+        [18,'TC-018','Aggregate score calculated correctly','Interview','1.0s','PASS','—'],
+        [19,'TC-019','Offer letter generated and sent to candidate','Recruiter','1.9s','PASS','—'],
+        [20,'TC-020','Pipeline state persisted across sessions','Integration','2.8s','PASS','All state persisted'],
+      ]
+    },
+    {
+      title:'▶  ST-03: Administrator Controls',
+      rows:[
+        [21,'TC-021','Admin logs in with admin credentials','Admin','0.7s','PASS','—'],
+        [22,'TC-022','Admin views all users in management panel','Admin','1.2s','PASS','—'],
+        [23,'TC-023','Admin deactivates a recruiter account','Admin','1.0s','PASS','—'],
+        [24,'TC-024','Deactivated user cannot log in','Auth','0.8s','PASS','Login denied correctly'],
+        [25,'TC-025','Deactivation reflected in audit log','Admin','1.1s','PASS','—'],
+        [26,'TC-026','Admin reactivates user account','Admin','0.9s','PASS','—'],
+        [27,'TC-027','Reactivated user can log in successfully','Auth','0.7s','PASS','—'],
+        [28,'TC-028','Admin generates MIS report — all candidates','Admin','4.1s','PASS','—'],
+        [29,'TC-029','CSV export downloads with correct data','Admin','2.3s','FAIL','Encoding error on special chars'],
+        [30,'TC-030','Role permissions enforced on restricted routes','Auth','1.5s','PASS','—'],
+      ]
+    },
+    {
+      title:'▶  ST-04: Concurrency & Edge Cases',
+      rows:[
+        [31,'TC-031','Concurrent users editing same candidate record','Integration','3.8s','PASS','Last-writer-wins; conflict warning shown'],
+        [32,'TC-032','Audit log captures both concurrent edits','Admin','1.4s','PASS','—'],
+        [33,'TC-033','Session timeout redirects to login page','Auth','2.1s','PASS','—'],
+        [34,'TC-034','XSS payload rejected in candidate name field','Auth','0.9s','PASS','—'],
+        [35,'TC-035','SQL injection attempt blocked by Active Record','Auth','0.8s','PASS','—'],
+        [36,'TC-036','File upload rejects executable file types','Candidate','1.2s','PASS','—'],
+        [37,'TC-037','Oversized CV upload (>5MB) rejected with message','Candidate','1.0s','FAIL','Error message not displayed'],
+        [38,'TC-038','Interview link expires after 7 days','Interview','1.6s','PASS','—'],
+        [39,'TC-039','Expired interview link shows correct error page','Interview','0.9s','PASS','—'],
+        [40,'TC-040','Google OAuth login creates candidate account','Auth','2.7s','FAIL','OAuth callback timeout (CI env)'],
+        [41,'TC-041','Password reset flow completes end-to-end','Auth','3.4s','PASS','—'],
+        [42,'TC-042','Mobile viewport renders dashboard correctly','Candidate','1.8s','SKIP','Skipped — mobile driver not configured'],
+      ]
+    },
+  ];
+
+  /* ── DRAW ROWS ───────────────────────────────────────────────────── */
+  let curY = 248;
+  const RH = 22;   // row height
+  const SH = 20;   // suite divider height
+  let passAlt = 0; // alternating counter for PASS rows
+
+  // vertical divider x positions
+  const vDividers=[50,130,605,705,785,845];
+
+  suites.forEach(suite=>{
+    // Suite divider row
+    ctx.fillStyle='#D5D8DC';
+    ctx.fillRect(10,curY,1180,SH);
+    hline(10,1190,curY+SH,'#BDC3C7',1);
+    lbl(suite.title,22,curY+SH/2,10,'#2C3E50','left',true);
+    curY+=SH;
+
+    suite.rows.forEach(row=>{
+      const [num,id,name,suiteKey,dur,status,notes]=row;
+
+      // Row background
+      let bg;
+      if(status==='FAIL') bg=rowBgFail;
+      else if(status==='SKIP') bg=rowBgSkip;
+      else { bg=(passAlt%2===0)?'#FFFFFF':'#F8F9FA'; passAlt++; }
+
+      ctx.fillStyle=bg;
+      ctx.fillRect(10,curY,1180,RH);
+      hline(10,1190,curY+RH,'#E8EAED',1);
+
+      // Vertical dividers
+      vDividers.forEach(vx=>{
+        vline(vx,curY,curY+RH,'#E0E3E6',1);
+      });
+
+      // # column
+      lbl(String(num),35,curY+RH/2,10,'#7F8C8D','center');
+
+      // Test ID — blue link style
+      lbl(id,57,curY+RH/2,10,'#2980B9','left',true);
+
+      // Test Name — truncate to fit 470px
+      const tname=truncate(name,460);
+      lbl(tname,132,curY+RH/2,11,'#2C3E50','left');
+
+      // Suite badge — w=80 h=14
+      const ss=suiteStyles[suiteKey]||suiteStyles['Auth'];
+      badge(607,curY+4,80,14,suiteKey,ss.fill,ss.stroke,ss.text,9);
+
+      // Duration
+      lbl(dur,712,curY+RH/2,10,'#7F8C8D','left');
+
+      // Status badge — w=44 h=14
+      const st=statusStyles[status];
+      badge(787,curY+4,44,14,status,st.fill,st.stroke,st.text,9);
+
+      // Notes
+      const noteText=(notes==='—')?'—':notes;
+      const noteColor=(notes==='—')?'#AAAAAA':'#555555';
+      const truncNotes=truncate(noteText,330);
+      lbl(truncNotes,852,curY+RH/2,10,noteColor,'left',false,notes!=='—');
+
+      curY+=RH;
+    });
+  });
+
+  // Bottom border of last row
+  hline(10,1190,curY,'#BDC3C7',1);
+
+  /* ── FOOTER BAR ──────────────────────────────────────────────────── */
+  ctx.fillStyle='#2C3E50';
+  ctx.fillRect(10,1060,1180,30);
+  lbl(
+    'Selenium WebDriver 4.1  ·  TestNG 7.4  ·  Chrome 124  ·  RMS v1.0.0  ·  Total Duration: 4m 23s  ·  38 passed  ·  3 failed  ·  1 skipped',
+    600,1075,10,'#95A5A6','center'
+  );
+
+  /* ── OUTER BORDER (on top of everything) ─────────────────────────── */
+  ctx.strokeStyle='#888888';
+  ctx.lineWidth=1;
+  ctx.strokeRect(10,36,1180,1054);
+
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Figure 3.22: MIS Value Framework for Recruitment</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+  }
+  canvas {
+    display: block;
+    border: 1px solid #DDD;
+    background: #fff;
+  }
+  #printBtn {
+    margin-top: 14px;
+    padding: 8px 22px;
+    background: #fff;
+    border: 1.5px solid #555;
+    border-radius: 4px;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    color: #333;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+  }
+  #printBtn:hover { background: #F0F0F0; }
+  @media print {
+    #printBtn { display: none; }
+    body { padding: 0; }
+    canvas { border: none; }
+  }
+</style>
+</head>
+<body>
+<canvas id="c" width="1000" height="820"></canvas>
+<button id="printBtn" onclick="window.print()">📸 Print / Save as Image</button>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+/* ── helpers ── */
+function roundRect(x, y, w, h, r, fill, stroke, lw) {
+  r = r || 0;
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+  if (fill)   { ctx.fillStyle = fill;   ctx.fill(); }
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw || 1; ctx.stroke(); }
+}
+
+function lbl(text, x, y, size, color, align, bold, italic) {
+  let style = '';
+  if (bold && italic) style = 'bold italic ';
+  else if (bold)      style = 'bold ';
+  else if (italic)    style = 'italic ';
+  ctx.font = style + size + 'px Arial';
+  ctx.fillStyle = color || '#000';
+  ctx.textAlign = align || 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, x, y);
+}
+
+function hline(x1, x2, y, color, lw) {
+  ctx.beginPath();
+  ctx.strokeStyle = color || '#CCC';
+  ctx.lineWidth = lw || 1;
+  ctx.moveTo(x1, y);
+  ctx.lineTo(x2, y);
+  ctx.stroke();
+}
+
+function arrow(x1, y1, x2, y2) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.strokeStyle = '#555';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([]);
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+  const a = Math.atan2(y2 - y1, x2 - x1);
+  ctx.beginPath();
+  ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - 10 * Math.cos(a - 0.4), y2 - 10 * Math.sin(a - 0.4));
+  ctx.lineTo(x2 - 10 * Math.cos(a + 0.4), y2 - 10 * Math.sin(a + 0.4));
+  ctx.closePath();
+  ctx.fillStyle = '#555';
+  ctx.fill();
+  ctx.restore();
+}
+
+function rotatedText(text, x, y, color, bold) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(-Math.PI / 2);
+  ctx.font = (bold ? 'bold ' : '') + '10px Arial';
+  ctx.fillStyle = color || '#FFF';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, 0, 0);
+  ctx.restore();
+}
+
+/* ══════════════════════════════════════════
+   1. WHITE BACKGROUND
+══════════════════════════════════════════ */
+ctx.fillStyle = '#FFF';
+ctx.fillRect(0, 0, 1000, 820);
+
+/* ══════════════════════════════════════════
+   2. TITLE + SUBTITLE + LINE
+══════════════════════════════════════════ */
+lbl('Figure 3.22: MIS Value Framework for Recruitment', 500, 28, 16, '#000', 'center', true, false);
+lbl('How the MIS Reports Module Contributes to the Three Managerial Tiers', 500, 48, 11, '#555', 'center', false, true);
+hline(30, 970, 60, '#CCC', 1);
+
+/* ══════════════════════════════════════════
+   3. MIS REPORTS MODULE BOX (LEFT)
+   x=30, y=100, w=180, h=560
+══════════════════════════════════════════ */
+const misX = 30, misY = 100, misW = 180, misH = 560;
+
+// Main box
+roundRect(misX, misY, misW, misH, 6, '#EEE', '#555', 1.5);
+
+// Header — top rounded corners only
+ctx.save();
+ctx.beginPath();
+ctx.moveTo(misX + 6, misY);
+ctx.lineTo(misX + misW - 6, misY);
+ctx.quadraticCurveTo(misX + misW, misY, misX + misW, misY + 6);
+ctx.lineTo(misX + misW, misY + 40);
+ctx.lineTo(misX, misY + 40);
+ctx.lineTo(misX, misY + 6);
+ctx.quadraticCurveTo(misX, misY, misX + 6, misY);
+ctx.closePath();
+ctx.fillStyle = '#333';
+ctx.fill();
+ctx.restore();
+
+lbl('MIS Reports Module', misX + 90, misY + 20, 12, '#FFF', 'center', true, false);
+
+// 8 report pills
+const pills = [
+  'Candidate Pipeline Report',
+  'Time-to-Hire Analysis',
+  'Source Effectiveness',
+  'Interview Completion Rate',
+  'Recruiter Performance',
+  'Offer Acceptance Rate',
+  'Cost-per-Hire Report',
+  'Diversity & Inclusion'
+];
+const pillStartY = misY + 60;
+const pillSpacing = 58;
+const pillW = 150, pillH = 26;
+const pillX = misX + (misW - pillW) / 2;
+
+pills.forEach((p, i) => {
+  const py = pillStartY + i * pillSpacing;
+  roundRect(pillX, py, pillW, pillH, 4, '#FFF', '#888', 1);
+  lbl(p, pillX + pillW / 2, py + pillH / 2, 10, '#333', 'center', false, false);
+});
+
+/* ══════════════════════════════════════════
+   4. THREE TIER BOXES (CENTER)
+   Center column: x=250, y=100, w=480, h=560
+══════════════════════════════════════════ */
+
+/* ── TIER 3: STRATEGIC (top) ──
+   x=250, y=100, w=480, h=170 */
+const t3x = 250, t3y = 100, t3w = 480, t3h = 170;
+roundRect(t3x, t3y, t3w, t3h, 0, '#E0E0E0', '#666', 1.5);
+
+// Left label strip
+ctx.fillStyle = '#333';
+ctx.fillRect(t3x, t3y, 28, t3h);
+rotatedText('STRATEGIC', t3x + 14, t3y + t3h / 2, '#FFF', true);
+
+// Header text
+lbl('Tier 3: Strategic Management', t3x + 50, t3y + 22, 13, '#111', 'left', true, false);
+lbl('Long-term workforce planning & ROI', t3x + 50, t3y + 38, 10, '#777', 'left', false, true);
+hline(t3x + 28, t3x + t3w, t3y + 48, '#AAA', 1);
+
+// Columns
+// Col 1 — Users
+lbl('Users', t3x + 70, t3y + 62, 10, '#333', 'left', true, false);
+lbl('C-Suite', t3x + 70, t3y + 78, 10, '#555', 'left', false, false);
+lbl('Directors', t3x + 70, t3y + 93, 10, '#555', 'left', false, false);
+
+// Col 2 — Reports Used
+lbl('Reports Used', t3x + 220, t3y + 62, 10, '#333', 'left', true, false);
+lbl('Cost-per-Hire', t3x + 220, t3y + 78, 10, '#555', 'left', false, false);
+lbl('Diversity Report', t3x + 220, t3y + 93, 10, '#555', 'left', false, false);
+lbl('ROI Analysis', t3x + 220, t3y + 108, 10, '#555', 'left', false, false);
+
+// Col 3 — Decisions Made
+lbl('Decisions Made', t3x + 370, t3y + 62, 10, '#333', 'left', true, false);
+lbl('Budget allocation', t3x + 370, t3y + 78, 10, '#555', 'left', false, false);
+lbl('Hiring strategy', t3x + 370, t3y + 93, 10, '#555', 'left', false, false);
+lbl('Policy changes', t3x + 370, t3y + 108, 10, '#555', 'left', false, false);
+
+/* ── TIER 2: TACTICAL (middle) ──
+   x=250, y=280, w=480, h=170 */
+const t2x = 250, t2y = 280, t2w = 480, t2h = 170;
+roundRect(t2x, t2y, t2w, t2h, 0, '#EBEBEB', '#777', 1.5);
+
+// Left label strip
+ctx.fillStyle = '#444';
+ctx.fillRect(t2x, t2y, 28, t2h);
+rotatedText('TACTICAL', t2x + 14, t2y + t2h / 2, '#FFF', true);
+
+lbl('Tier 2: Tactical Management', t2x + 50, t2y + 22, 13, '#111', 'left', true, false);
+lbl('Weekly/monthly performance monitoring', t2x + 50, t2y + 38, 10, '#777', 'left', false, true);
+hline(t2x + 28, t2x + t2w, t2y + 48, '#AAA', 1);
+
+// Col 1
+lbl('Users', t2x + 70, t2y + 62, 10, '#333', 'left', true, false);
+lbl('HR Managers', t2x + 70, t2y + 78, 10, '#555', 'left', false, false);
+lbl('Team Leads', t2x + 70, t2y + 93, 10, '#555', 'left', false, false);
+
+// Col 2
+lbl('Reports Used', t2x + 220, t2y + 62, 10, '#333', 'left', true, false);
+lbl('Time-to-Hire', t2x + 220, t2y + 78, 10, '#555', 'left', false, false);
+lbl('Recruiter KPIs', t2x + 220, t2y + 93, 10, '#555', 'left', false, false);
+lbl('Offer Rate', t2x + 220, t2y + 108, 10, '#555', 'left', false, false);
+
+// Col 3
+lbl('Decisions Made', t2x + 370, t2y + 62, 10, '#333', 'left', true, false);
+lbl('Reassign workload', t2x + 370, t2y + 78, 10, '#555', 'left', false, false);
+lbl('Adjust sourcing', t2x + 370, t2y + 93, 10, '#555', 'left', false, false);
+lbl('Set targets', t2x + 370, t2y + 108, 10, '#555', 'left', false, false);
+
+/* ── TIER 1: OPERATIONAL (bottom) ──
+   x=250, y=460, w=480, h=200 */
+const t1x = 250, t1y = 460, t1w = 480, t1h = 200;
+roundRect(t1x, t1y, t1w, t1h, 0, '#F5F5F5', '#888', 1.5);
+
+// Left label strip
+ctx.fillStyle = '#555';
+ctx.fillRect(t1x, t1y, 28, t1h);
+rotatedText('OPERATIONAL', t1x + 14, t1y + t1h / 2, '#FFF', true);
+
+lbl('Tier 1: Operational Management', t1x + 50, t1y + 22, 13, '#111', 'left', true, false);
+lbl('Day-to-day recruitment execution', t1x + 50, t1y + 38, 10, '#777', 'left', false, true);
+hline(t1x + 28, t1x + t1w, t1y + 48, '#AAA', 1);
+
+// Col 1
+lbl('Users', t1x + 70, t1y + 62, 10, '#333', 'left', true, false);
+lbl('Recruiters', t1x + 70, t1y + 78, 10, '#555', 'left', false, false);
+lbl('Interviewers', t1x + 70, t1y + 93, 10, '#555', 'left', false, false);
+
+// Col 2
+lbl('Reports Used', t1x + 220, t1y + 62, 10, '#333', 'left', true, false);
+lbl('Pipeline Report', t1x + 220, t1y + 78, 10, '#555', 'left', false, false);
+lbl('Interview Rate', t1x + 220, t1y + 93, 10, '#555', 'left', false, false);
+lbl('Source Report', t1x + 220, t1y + 108, 10, '#555', 'left', false, false);
+
+// Col 3
+lbl('Decisions Made', t1x + 370, t1y + 62, 10, '#333', 'left', true, false);
+lbl('Schedule interviews', t1x + 370, t1y + 78, 10, '#555', 'left', false, false);
+lbl('Shortlist candidates', t1x + 370, t1y + 93, 10, '#555', 'left', false, false);
+lbl('Update status', t1x + 370, t1y + 108, 10, '#555', 'left', false, false);
+
+/* ══════════════════════════════════════════
+   5. OUTCOMES BOX (RIGHT)
+   x=790, y=100, w=180, h=560
+══════════════════════════════════════════ */
+const outX = 790, outY = 100, outW = 180, outH = 560;
+roundRect(outX, outY, outW, outH, 6, '#EEE', '#555', 1.5);
+
+// Header
+ctx.save();
+ctx.beginPath();
+ctx.moveTo(outX + 6, outY);
+ctx.lineTo(outX + outW - 6, outY);
+ctx.quadraticCurveTo(outX + outW, outY, outX + outW, outY + 6);
+ctx.lineTo(outX + outW, outY + 40);
+ctx.lineTo(outX, outY + 40);
+ctx.lineTo(outX, outY + 6);
+ctx.quadraticCurveTo(outX, outY, outX + 6, outY);
+ctx.closePath();
+ctx.fillStyle = '#333';
+ctx.fill();
+ctx.restore();
+
+lbl('Business Outcomes', outX + outW / 2, outY + 20, 12, '#FFF', 'center', true, false);
+
+// ── Strategic Outcomes (y+60)
+lbl('Strategic', outX + 14, outY + 60, 10, '#333', 'left', true, false);
+lbl('• Informed budget decisions', outX + 14, outY + 76, 10, '#555', 'left', false, false);
+lbl('• Workforce planning', outX + 14, outY + 91, 10, '#555', 'left', false, false);
+lbl('• Competitive positioning', outX + 14, outY + 106, 10, '#555', 'left', false, false);
+
+hline(outX + 10, outX + outW - 10, outY + 220, '#CCC', 1);
+
+// ── Tactical Outcomes (y+230)
+lbl('Tactical', outX + 14, outY + 235, 10, '#333', 'left', true, false);
+lbl('• Optimised team performance', outX + 14, outY + 251, 10, '#555', 'left', false, false);
+lbl('• Reduced time-to-hire', outX + 14, outY + 266, 10, '#555', 'left', false, false);
+lbl('• Better sourcing mix', outX + 14, outY + 281, 10, '#555', 'left', false, false);
+
+hline(outX + 10, outX + outW - 10, outY + 390, '#CCC', 1);
+
+// ── Operational Outcomes (y+400)
+lbl('Operational', outX + 14, outY + 400, 10, '#333', 'left', true, false);
+lbl('• Faster candidate processing', outX + 14, outY + 416, 10, '#555', 'left', false, false);
+lbl('• Accurate pipeline tracking', outX + 14, outY + 431, 10, '#555', 'left', false, false);
+lbl('• Reduced manual reporting', outX + 14, outY + 446, 10, '#555', 'left', false, false);
+
+/* ══════════════════════════════════════════
+   6. ARROWS
+══════════════════════════════════════════ */
+// Left arrows: MIS module → tiers
+arrow(210, 200, 250, 185);   // → Strategic
+arrow(210, 370, 250, 365);   // → Tactical
+arrow(210, 560, 250, 560);   // → Operational
+
+// Right arrows: tiers → Outcomes
+arrow(730, 185, 790, 200);   // Strategic →
+arrow(730, 365, 790, 370);   // Tactical →
+arrow(730, 560, 790, 560);   // Operational →
+
+/* ══════════════════════════════════════════
+   7. DATA FLOW LABEL
+══════════════════════════════════════════ */
+lbl('Data flows upward through tiers', 500, 690, 10, '#888', 'center', false, true);
+
+/* ══════════════════════════════════════════
+   8. LEGEND
+   x=30, y=720, w=940, h=60
+══════════════════════════════════════════ */
+const lgX = 30, lgY = 720, lgW = 940, lgH = 60;
+roundRect(lgX, lgY, lgW, lgH, 4, '#F8F8F8', '#DDD', 1);
+
+lbl('Legend:', lgX + 12, lgY + 20, 11, '#333', 'left', true, false);
+
+// Evenly space 5 items across the legend
+// Item positions (after "Legend:" label at ~80px)
+const items = [
+  { fill: '#EEE',    stroke: '#555', label: 'Source / Output Module' },
+  { fill: '#F5F5F5', stroke: '#888', label: 'Operational Tier' },
+  { fill: '#EBEBEB', stroke: '#777', label: 'Tactical Tier' },
+  { fill: '#E0E0E0', stroke: '#666', label: 'Strategic Tier' },
+  { fill: null,      stroke: null,   label: 'Information flow', isArrow: true }
+];
+
+const lgStartX = lgX + 90;
+const lgEndX   = lgX + lgW - 20;
+const lgSpan   = lgEndX - lgStartX;
+const lgStep   = lgSpan / (items.length - 1);
+
+items.forEach((item, i) => {
+  const ix = lgStartX + i * lgStep;
+  const iy = lgY + 30;
+
+  if (item.isArrow) {
+    // Draw a small arrow sample
+    arrow(ix - 18, iy, ix + 12, iy);
+    lbl(item.label, ix + 18, iy, 10, '#555', 'left', false, false);
+  } else {
+    // Draw rect swatch
+    ctx.fillStyle = item.fill;
+    ctx.fillRect(ix - 15, iy - 7, 30, 14);
+    ctx.strokeStyle = item.stroke;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(ix - 15, iy - 7, 30, 14);
+    lbl(item.label, ix + 20, iy, 10, '#555', 'left', false, false);
+  }
+});
+
+/* ══════════════════════════════════════════
+   9. FOOTER
+══════════════════════════════════════════ */
+hline(30, 970, 790, '#CCC', 1);
+lbl('RMS · MIS Value Framework · Managerial Tier Contribution · Thesis Documentation', 500, 805, 10, '#999', 'center', false, false);
+
+</script>
+</body>
+</html>

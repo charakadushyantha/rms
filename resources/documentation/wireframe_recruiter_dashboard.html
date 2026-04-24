@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Figure 3.14: Recruiter Dashboard Layout</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #fff;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+  canvas {
+    display: block;
+    border: 1px solid #ccc;
+  }
+  #printBtn {
+    margin: 16px auto;
+    display: block;
+    padding: 10px 22px;
+    font-size: 13px;
+    font-family: Arial, sans-serif;
+    background: #fff;
+    border: 1.5px solid #555;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #222;
+  }
+  #printBtn:hover { background: #f0f0f0; }
+  @media print {
+    #printBtn { display: none !important; }
+    body { padding: 0; }
+    canvas { border: none; }
+  }
+</style>
+</head>
+<body>
+<button id="printBtn" onclick="window.print()">📸 Print / Save as Image</button>
+<canvas id="wf" width="1200" height="950"></canvas>
+<script>
+const canvas = document.getElementById('wf');
+const ctx = canvas.getContext('2d');
+
+// ── Helper Functions ──────────────────────────────────────────────────────────
+
+function roundRect(x, y, w, h, r, fill, stroke, lw) {
+  r = r || 0;
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw || 1; ctx.stroke(); }
+}
+
+function lbl(text, x, y, size, color, align, bold) {
+  ctx.font = (bold ? 'bold ' : '') + size + 'px Arial';
+  ctx.fillStyle = color || '#000';
+  ctx.textAlign = align || 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, x, y);
+}
+
+function hline(x1, x2, y, color, lw) {
+  ctx.beginPath();
+  ctx.strokeStyle = color || '#CCC';
+  ctx.lineWidth = lw || 1;
+  ctx.moveTo(x1, y);
+  ctx.lineTo(x2, y);
+  ctx.stroke();
+}
+
+function progressBar(x, y, w, h, pct, fillColor) {
+  ctx.fillStyle = '#EEE'; ctx.fillRect(x, y, w, h);
+  ctx.fillStyle = fillColor || '#555'; ctx.fillRect(x, y, w * pct, h);
+  ctx.strokeStyle = '#CCC'; ctx.lineWidth = 1; ctx.strokeRect(x, y, w, h);
+}
+
+// ── 1. White Background ───────────────────────────────────────────────────────
+ctx.fillStyle = '#FFF';
+ctx.fillRect(0, 0, 1200, 950);
+
+// ── 2. Figure Caption + Line ──────────────────────────────────────────────────
+lbl('Figure 3.14: Recruiter Dashboard Layout', 600, 22, 14, '#000', 'center', true);
+hline(10, 1190, 30, '#CCC', 1);
+
+// ── 3. Browser Chrome ─────────────────────────────────────────────────────────
+// Outer frame
+roundRect(10, 35, 1180, 905, 0, '#F0F0F0', '#888', 1);
+// Browser bar
+ctx.fillStyle = '#DDD';
+ctx.fillRect(10, 35, 1180, 28);
+ctx.strokeStyle = '#888'; ctx.lineWidth = 1;
+ctx.strokeRect(10, 35, 1180, 28);
+// Browser buttons
+[25, 42, 59].forEach(bx => {
+  ctx.beginPath();
+  ctx.arc(bx, 49, 6, 0, Math.PI * 2);
+  ctx.fillStyle = '#BBB'; ctx.fill();
+  ctx.strokeStyle = '#999'; ctx.lineWidth = 0.5; ctx.stroke();
+});
+// URL bar
+roundRect(80, 40, 700, 18, 3, '#FFF', '#AAA', 1);
+lbl('http://localhost/rms/R_dashboard', 88, 49, 10, '#555', 'left', false);
+
+// ── 4. Top Navigation Bar ─────────────────────────────────────────────────────
+ctx.fillStyle = '#111';
+ctx.fillRect(10, 63, 1180, 48);
+// Logo
+roundRect(20, 75, 120, 24, 3, '#333', null, 0);
+lbl('RMS', 80, 87, 14, '#FFF', 'center', true);
+// Nav items
+const navItems = [
+  { text: 'Dashboard',      x: 200 },
+  { text: 'My Candidates',  x: 300 },
+  { text: 'Job Postings',   x: 415 },
+  { text: 'Calendar',       x: 510 },
+  { text: 'Reports',        x: 590 },
+];
+navItems.forEach(n => lbl(n.text, n.x, 91, 11, '#FFF', 'left', false));
+// Avatar circle
+ctx.beginPath();
+ctx.arc(1150, 87, 14, 0, Math.PI * 2);
+ctx.fillStyle = '#555'; ctx.fill();
+lbl('RC', 1150, 87, 10, '#FFF', 'center', true);
+
+// ── 5. Left Sidebar ───────────────────────────────────────────────────────────
+ctx.fillStyle = '#F8F8F8';
+ctx.fillRect(10, 111, 180, 829);
+// Right border
+ctx.beginPath();
+ctx.strokeStyle = '#DDD'; ctx.lineWidth = 1;
+ctx.moveTo(190, 111); ctx.lineTo(190, 940); ctx.stroke();
+
+lbl('MAIN MENU', 25, 135, 9, '#888', 'left', false);
+
+const menuItems = [
+  { text: 'Dashboard',           y: 163, active: true },
+  { text: 'My Candidates',       y: 201, active: false },
+  { text: 'Pipeline View',       y: 237, active: false },
+  { text: 'Job Postings',        y: 273, active: false },
+  { text: 'Interview Schedule',  y: 309, active: false },
+  { text: 'CV Sourcing',         y: 345, active: false },
+  { text: 'Referrals',           y: 381, active: false },
+  { text: 'My Reports',          y: 417, active: false },
+];
+
+menuItems.forEach(item => {
+  if (item.active) {
+    ctx.fillStyle = '#EEE';
+    ctx.fillRect(10, item.y - 18, 180, 36);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(10, item.y - 18, 3, 36);
+    lbl(item.text, 30, item.y, 12, '#111', 'left', true);
+  } else {
+    lbl(item.text, 30, item.y, 12, '#555', 'left', false);
+  }
+});
+
+hline(15, 185, 453, '#DDD', 1);
+lbl('QUICK ACTIONS', 25, 468, 9, '#888', 'left', false);
+
+const quickActions = [
+  { text: '+ Add Candidate',       y: 490 },
+  { text: '+ Schedule Interview',  y: 520 },
+  { text: '+ Post Job',            y: 550 },
+];
+quickActions.forEach(q => lbl(q.text, 30, q.y, 11, '#333', 'left', false));
+
+// ── 6. Page Header ────────────────────────────────────────────────────────────
+lbl('Recruiter Dashboard', 210, 145, 18, '#111', 'left', true);
+lbl('Welcome back, Sarah \u00B7 3 tasks need your attention today', 210, 163, 11, '#777', 'left', false);
+// Export button
+roundRect(1080, 130, 80, 26, 3, '#FFF', '#888', 1);
+lbl('\u2193 Export', 1120, 143, 11, '#555', 'center', false);
+
+// ── 7. KPI Cards ─────────────────────────────────────────────────────────────
+const kpiCards = [
+  { x: 200, title: 'My Candidates',        value: '124',  sub: '\u2191 8 added this week' },
+  { x: 440, title: 'Active Vacancies',     value: '7',    sub: '2 closing soon' },
+  { x: 680, title: 'Interviews This Week', value: '12',   sub: '3 today' },
+  { x: 920, title: 'Conversion Rate',      value: '34%',  sub: '\u2191 4% vs last month' },
+];
+kpiCards.forEach(c => {
+  roundRect(c.x, 180, 228, 76, 6, '#F8F8F8', '#DDD', 1);
+  lbl(c.title, c.x + 114, 198, 10, '#777', 'center', false);
+  lbl(c.value,  c.x + 114, 224, 22, '#111', 'center', true);
+  lbl(c.sub,    c.x + 114, 244, 10, '#555', 'center', false);
+});
+
+// ── 8. Active Vacancies Table ─────────────────────────────────────────────────
+const tvX = 200, tvY = 270, tvW = 980, tvH = 200;
+roundRect(tvX, tvY, tvW, tvH, 4, '#FFF', '#DDD', 1);
+// Header
+ctx.fillStyle = '#F5F5F5';
+ctx.fillRect(tvX + 1, tvY + 1, tvW - 2, 36);
+lbl('Active Vacancies', tvX + 16, tvY + 22, 12, '#333', 'left', true);
+lbl('7 Open Positions', tvX + tvW - 16, tvY + 22, 10, '#777', 'right', false);
+hline(tvX, tvX + tvW, tvY + 36, '#DDD', 1);
+
+// Column headers
+const tvCols = [
+  { text: 'Job Title',   x: tvX + 14 },
+  { text: 'Department',  x: tvX + 220 },
+  { text: 'Posted',      x: tvX + 370 },
+  { text: 'Applicants',  x: tvX + 480 },
+  { text: 'Status',      x: tvX + 570 },
+  { text: 'Action',      x: tvX + 680 },
+];
+tvCols.forEach(c => lbl(c.text, c.x, tvY + 52, 10, '#555', 'left', true));
+hline(tvX, tvX + tvW, tvY + 62, '#DDD', 1);
+
+const tvRows = [
+  { title: 'Senior Software Engineer', dept: 'Engineering', posted: '18 Apr', apps: '23', status: 'Active' },
+  { title: 'UX Designer',              dept: 'Product',     posted: '20 Apr', apps: '11', status: 'Active' },
+  { title: 'Sales Manager',            dept: 'Sales',       posted: '15 Apr', apps: '34', status: 'Active' },
+  { title: 'DevOps Engineer',          dept: 'Engineering', posted: '22 Apr', apps: '8',  status: 'Draft'  },
+];
+tvRows.forEach((r, i) => {
+  const ry = tvY + 66 + i * 32;
+  ctx.fillStyle = i % 2 === 0 ? '#FFF' : '#F8F8F8';
+  ctx.fillRect(tvX + 1, ry, tvW - 2, 32);
+  lbl(r.title,  tvX + 14,  ry + 16, 10, '#333', 'left', false);
+  lbl(r.dept,   tvX + 220, ry + 16, 10, '#333', 'left', false);
+  lbl(r.posted, tvX + 370, ry + 16, 10, '#333', 'left', false);
+  lbl(r.apps,   tvX + 480, ry + 16, 10, '#333', 'left', false);
+  // Status badge
+  if (r.status === 'Active') {
+    roundRect(tvX + 562, ry + 8, 44, 16, 2, '#EEE', '#888', 1);
+    lbl('Active', tvX + 584, ry + 16, 9, '#333', 'center', false);
+  } else {
+    roundRect(tvX + 562, ry + 8, 36, 16, 2, '#F5F5F5', '#AAA', 1);
+    lbl('Draft', tvX + 580, ry + 16, 9, '#888', 'center', false);
+  }
+  // View button
+  roundRect(tvX + 672, ry + 7, 36, 18, 2, '#EEE', '#888', 1);
+  lbl('View', tvX + 690, ry + 16, 9, '#333', 'center', false);
+});
+
+// ── 9. Pipeline Kanban ────────────────────────────────────────────────────────
+const pkX = 200, pkY = 480, pkW = 980, pkH = 230;
+roundRect(pkX, pkY, pkW, pkH, 4, '#F8F8F8', '#DDD', 1);
+// Header
+ctx.fillStyle = '#F0F0F0';
+ctx.fillRect(pkX + 1, pkY + 1, pkW - 2, 36);
+lbl('Candidate Pipeline', pkX + 16, pkY + 22, 12, '#333', 'left', true);
+lbl('124 total candidates', pkX + pkW - 16, pkY + 22, 10, '#777', 'right', false);
+hline(pkX, pkX + pkW, pkY + 36, '#DDD', 1);
+
+const kanbanCols = [
+  { name: 'New',          count: '28', cards: [['Alex Johnson', 'Sr. Engineer'], ['Maria Chen', 'UX Designer']] },
+  { name: 'Screening',    count: '19', cards: [['David Kim', 'Sales Mgr'], ['Emma Wilson', 'DevOps']] },
+  { name: 'Shortlisted',  count: '14', cards: [['James Lee', 'Sr. Engineer'], ['Sophie Brown', 'UX']] },
+  { name: 'Interviewing', count: '8',  cards: [['Ryan Davis', 'DevOps'], ['Anna White', 'Sales']] },
+  { name: 'Selected',     count: '5',  cards: [['Tom Harris', 'Sr. Engineer']] },
+];
+
+const colW = 180, colH = 170, colGap = 10;
+const colStartX = pkX + 14, colStartY = pkY + 46;
+
+kanbanCols.forEach((col, ci) => {
+  const cx = colStartX + ci * (colW + colGap);
+  const cy = colStartY;
+
+  // Column header
+  roundRect(cx, cy, colW, 28, 0, '#EEE', '#CCC', 1);
+  lbl(col.name, cx + 8, cy + 14, 11, '#333', 'left', true);
+  // Count badge
+  const badgeW = 24;
+  roundRect(cx + colW - badgeW - 6, cy + 6, badgeW, 16, 2, '#DDD', null, 0);
+  lbl(col.count, cx + colW - badgeW / 2 - 6, cy + 14, 9, '#555', 'center', false);
+
+  // Column body
+  roundRect(cx, cy + 28, colW, colH - 28, 0, '#FFF', '#CCC', 1);
+
+  // Candidate cards
+  col.cards.forEach((card, ki) => {
+    const cardX = cx + 8;
+    const cardY = cy + 36 + ki * 44;
+    const cardW = colW - 16;
+    roundRect(cardX, cardY, cardW, 36, 3, '#F5F5F5', '#DDD', 1);
+    lbl(card[0], cardX + 8, cardY + 13, 10, '#333', 'left', false);
+    lbl(card[1], cardX + 8, cardY + 26, 9,  '#777', 'left', false);
+  });
+});
+
+// ── 10. Upcoming Interviews Panel ─────────────────────────────────────────────
+const uiX = 200, uiY = 720, uiW = 580, uiH = 180;
+roundRect(uiX, uiY, uiW, uiH, 4, '#FFF', '#DDD', 1);
+// Header
+ctx.fillStyle = '#F5F5F5';
+ctx.fillRect(uiX + 1, uiY + 1, uiW - 2, 36);
+lbl('Upcoming Interviews', uiX + 16, uiY + 22, 12, '#333', 'left', true);
+lbl('View Calendar \u2192', uiX + uiW - 16, uiY + 22, 10, '#777', 'right', false);
+hline(uiX, uiX + uiW, uiY + 36, '#DDD', 1);
+
+const uiRows = [
+  { time: '10:00 AM', name: 'Alex Johnson', role: 'Sr. Software Engineer', round: 'Round 1', day: 'Today' },
+  { time: '02:30 PM', name: 'Maria Chen',   role: 'UX Designer',           round: 'Round 2', day: 'Today' },
+  { time: '11:00 AM', name: 'David Kim',    role: 'Sales Manager',         round: 'Round 1', day: 'Tomorrow' },
+  { time: '03:00 PM', name: 'Emma Wilson',  role: 'DevOps Engineer',       round: 'Round 1', day: '25 Apr' },
+];
+uiRows.forEach((r, i) => {
+  const ry = uiY + 40 + i * 32;
+  ctx.fillStyle = i % 2 === 0 ? '#FFF' : '#F8F8F8';
+  ctx.fillRect(uiX + 1, ry, uiW - 2, 32);
+  lbl(r.time,  uiX + 14,  ry + 16, 10, '#333', 'left', false);
+  lbl(r.name,  uiX + 90,  ry + 16, 10, '#333', 'left', false);
+  lbl(r.role,  uiX + 220, ry + 16, 10, '#333', 'left', false);
+  lbl(r.round, uiX + 380, ry + 16, 10, '#333', 'left', false);
+  lbl(r.day,   uiX + 470, ry + 16, 10, '#333', 'left', false);
+});
+
+// ── 11. Performance KPIs Panel ────────────────────────────────────────────────
+const kpX = 792, kpY = 720, kpW = 388, kpH = 180;
+roundRect(kpX, kpY, kpW, kpH, 4, '#FFF', '#DDD', 1);
+// Header
+ctx.fillStyle = '#F5F5F5';
+ctx.fillRect(kpX + 1, kpY + 1, kpW - 2, 36);
+lbl('Performance KPIs', kpX + 16, kpY + 22, 12, '#333', 'left', true);
+hline(kpX, kpX + kpW, kpY + 36, '#DDD', 1);
+
+const kpiRows = [
+  { label: 'Time to Fill',            value: '18 days avg', pct: 0.60, fill: '#555' },
+  { label: 'Offer Acceptance',        value: '78%',         pct: 0.78, fill: '#777' },
+  { label: 'Interview-to-Hire',       value: '42%',         pct: 0.42, fill: '#999' },
+  { label: 'Candidate Satisfaction',  value: '4.2 / 5',     pct: 0.84, fill: '#AAA' },
+];
+kpiRows.forEach((k, i) => {
+  const ky = kpY + 40 + i * 34;
+  lbl(k.label, kpX + 14, ky + 8, 10, '#555', 'left', false);
+  lbl(k.value, kpX + kpW - 14, ky + 8, 10, '#333', 'right', true);
+  progressBar(kpX + 14, ky + 18, kpW - 28, 8, k.pct, k.fill);
+});
+
+// ── 12. Footer Bar ────────────────────────────────────────────────────────────
+ctx.fillStyle = '#F5F5F5';
+ctx.fillRect(190, 920, 1000, 24);
+hline(190, 1190, 920, '#DDD', 1);
+lbl('RMS v1.0.0  \u00B7  Recruiter Portal  \u00B7  Last sync: 2 minutes ago', 690, 932, 10, '#888', 'center', false);
+</script>
+</body>
+</html>

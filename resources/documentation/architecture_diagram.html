@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RMS – High-Level System Architecture</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #f0f4f8; font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+  .btn-print {
+    margin: 16px 0;
+    padding: 10px 28px;
+    background: #2980B9;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    cursor: pointer;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+    transition: background 0.2s;
+  }
+  .btn-print:hover { background: #1a5f8a; }
+  canvas { display: block; background: #fff; box-shadow: 0 4px 24px rgba(0,0,0,0.13); }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .btn-print { display: none; }
+    canvas { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+<button class="btn-print" onclick="window.print()">📸 Print / Save as Image</button>
+<canvas id="diagram" width="1400" height="1000"></canvas>
+<script>
+const canvas = document.getElementById('diagram');
+const ctx = canvas.getContext('2d');
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function roundRect(x, y, w, h, r, fill, stroke, lw) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw || 2; ctx.stroke(); }
+}
+
+// Component pill inside a layer
+function drawPill(x, y, w, h, label, borderColor) {
+  ctx.shadowColor = 'rgba(0,0,0,0.08)';
+  ctx.shadowBlur = 4;
+  ctx.shadowOffsetX = 1; ctx.shadowOffsetY = 2;
+  roundRect(x, y, w, h, 8, '#FFFFFF', borderColor, 1.8);
+  ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+  ctx.fillStyle = '#1A252F';
+  ctx.font = 'bold 11px Arial';
+  ctx.textAlign = 'center';
+  // word-wrap simple: split on space
+  const words = label.split(' ');
+  let lines = [], cur = '';
+  words.forEach(word => {
+    const test = cur ? cur + ' ' + word : word;
+    if (ctx.measureText(test).width > w - 10 && cur) {
+      lines.push(cur); cur = word;
+    } else { cur = test; }
+  });
+  if (cur) lines.push(cur);
+  const lineH = 14;
+  const startY = y + h / 2 - (lines.length - 1) * lineH / 2;
+  lines.forEach((l, i) => ctx.fillText(l, x + w / 2, startY + i * lineH));
+}
+
+// Vertical rotated label on left side
+function drawRotatedLabel(text, cx, cy, color) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillStyle = color;
+  ctx.font = 'bold 13px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText(text, 0, 5);
+  ctx.restore();
+}
+
+// Vertical double-headed arrow with label
+function drawVArrow(x, y1, y2, label, color) {
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(x, y1 + 6);
+  ctx.lineTo(x, y2 - 6);
+  ctx.stroke();
+
+  // arrowhead down
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(x, y2 - 2);
+  ctx.lineTo(x - 7, y2 - 14);
+  ctx.lineTo(x + 7, y2 - 14);
+  ctx.closePath(); ctx.fill();
+
+  // arrowhead up
+  ctx.beginPath();
+  ctx.moveTo(x, y1 + 2);
+  ctx.lineTo(x - 7, y1 + 14);
+  ctx.lineTo(x + 7, y1 + 14);
+  ctx.closePath(); ctx.fill();
+
+  // label
+  if (label) {
+    const my = (y1 + y2) / 2;
+    ctx.font = '11px Arial';
+    const tw = ctx.measureText(label).width;
+    roundRect(x - tw/2 - 6, my - 10, tw + 12, 18, 4, '#fff', '#ccc', 1);
+    ctx.fillStyle = '#333';
+    ctx.textAlign = 'center';
+    ctx.fillText(label, x, my + 4);
+  }
+  ctx.restore();
+}
+
+// Diagonal arrow from layer 2 to layer 4 (external)
+function drawDiagArrow(x1, y1, x2, y2, label, color) {
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6, 4]);
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  const angle = Math.atan2(y2 - y1, x2 - x1);
+  const aLen = 12;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - aLen * Math.cos(angle - 0.35), y2 - aLen * Math.sin(angle - 0.35));
+  ctx.lineTo(x2 - aLen * Math.cos(angle + 0.35), y2 - aLen * Math.sin(angle + 0.35));
+  ctx.closePath(); ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x1 + aLen * Math.cos(angle - 0.35), y1 + aLen * Math.sin(angle - 0.35));
+  ctx.lineTo(x1 + aLen * Math.cos(angle + 0.35), y1 + aLen * Math.sin(angle + 0.35));
+  ctx.closePath(); ctx.fill();
+
+  if (label) {
+    const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+    ctx.font = '10px Arial';
+    const tw = ctx.measureText(label).width;
+    roundRect(mx - tw/2 - 5, my - 10, tw + 10, 16, 3, '#fff', '#ccc', 1);
+    ctx.fillStyle = '#333';
+    ctx.textAlign = 'center';
+    ctx.fillText(label, mx, my + 3);
+  }
+  ctx.restore();
+}
+
+// ── Layout constants ──────────────────────────────────────────────────────────
+const TITLE_H = 80;
+const LEFT_LABEL_W = 60;
+const ARROW_ZONE_H = 50;
+const LAYER_H = 130;
+const CANVAS_W = 1400;
+const LAYER_X = LEFT_LABEL_W + 20;
+const LAYER_W = CANVAS_W - LAYER_X - 30;
+
+// Layer Y positions (top of each layer band)
+const L1Y = TITLE_H + 20;
+const L2Y = L1Y + LAYER_H + ARROW_ZONE_H;
+const L3Y = L2Y + LAYER_H + ARROW_ZONE_H;
+const L4Y = L3Y + LAYER_H + ARROW_ZONE_H;
+
+// ── Background ────────────────────────────────────────────────────────────────
+ctx.fillStyle = '#FFFFFF';
+ctx.fillRect(0, 0, 1400, 1000);
+
+// ── Title Bar ─────────────────────────────────────────────────────────────────
+ctx.fillStyle = '#1A252F';
+ctx.fillRect(0, 0, 1400, TITLE_H);
+ctx.fillStyle = '#FFFFFF';
+ctx.font = 'bold 26px Arial';
+ctx.textAlign = 'center';
+ctx.fillText('RMS – High-Level System Architecture', 700, 38);
+ctx.font = '14px Arial';
+ctx.fillStyle = '#AED6F1';
+ctx.fillText('Layered Architecture: Presentation · Application · Data · External Integration', 700, 62);
+
+// ── Layer definitions ─────────────────────────────────────────────────────────
+const layers = [
+  {
+    y: L1Y, color: '#D6EAF8', border: '#2980B9', labelColor: '#1A4E7A',
+    title: 'Presentation Tier',
+    components: [
+      'Admin Dashboard UI', 'Recruiter Dashboard UI', 'Candidate Portal UI',
+      'Interviewer Portal UI', 'AI Chatbot Widget', 'Interview Taking UI'
+    ]
+  },
+  {
+    y: L2Y, color: '#D5F5E3', border: '#27AE60', labelColor: '#1A5C35',
+    title: 'Application Tier',
+    components: [
+      'Authentication & Session Manager', 'Candidate & Pipeline Controller',
+      'Interview Flow Controller', 'Job Posting Controller',
+      'Bot Engine (NLP + CV Parser)', 'Marketing & Campaign Controller',
+      'Reports & Analytics Engine', 'Audit Logger'
+    ]
+  },
+  {
+    y: L3Y, color: '#FDEBD0', border: '#E67E22', labelColor: '#7D4E0F',
+    title: 'Data Tier',
+    components: [
+      'Users & Profiles (MySQL)', 'Candidate Details (MySQL)',
+      'Interview Data (MySQL)', 'Chat History (MySQL)',
+      'Job Postings (MySQL)', 'Campaign Data (MySQL)',
+      'Session Store (ci_sessions)'
+    ]
+  },
+  {
+    y: L4Y, color: '#E8DAEF', border: '#8E44AD', labelColor: '#5B2C6F',
+    title: 'External Integration Tier',
+    components: [
+      'Google OAuth 2.0', 'OpenAI GPT-3.5',
+      'Gmail SMTP', 'LinkedIn API', 'Indeed API'
+    ]
+  }
+];
+
+// ── Draw layers ───────────────────────────────────────────────────────────────
+layers.forEach(layer => {
+  // Band background
+  roundRect(LAYER_X, layer.y, LAYER_W, LAYER_H, 10, layer.color, layer.border, 2);
+
+  // Left label background strip
+  ctx.fillStyle = layer.border;
+  ctx.beginPath();
+  ctx.moveTo(LAYER_X, layer.y + 10);
+  ctx.lineTo(LAYER_X + 36, layer.y + 10);
+  ctx.lineTo(LAYER_X + 36, layer.y + LAYER_H - 10);
+  ctx.lineTo(LAYER_X, layer.y + LAYER_H - 10);
+  ctx.quadraticCurveTo(LAYER_X, layer.y + LAYER_H, LAYER_X + 10, layer.y + LAYER_H);
+  ctx.lineTo(LAYER_X + 10, layer.y);
+  ctx.quadraticCurveTo(LAYER_X, layer.y, LAYER_X, layer.y + 10);
+  ctx.closePath();
+  ctx.fill();
+
+  // Rotated tier name inside left strip
+  drawRotatedLabel(layer.title, LAYER_X + 18, layer.y + LAYER_H / 2, '#fff');
+
+  // Component pills
+  const pillArea = LAYER_W - 46;
+  const n = layer.components.length;
+  const pillW = Math.min(170, Math.floor((pillArea - (n + 1) * 12) / n));
+  const pillH = 60;
+  const totalW = n * pillW + (n - 1) * 12;
+  const startX = LAYER_X + 46 + (pillArea - totalW) / 2;
+  const pillY = layer.y + (LAYER_H - pillH) / 2;
+
+  layer.components.forEach((comp, i) => {
+    drawPill(startX + i * (pillW + 12), pillY, pillW, pillH, comp, layer.border);
+  });
+
+  // Left-side rotated label (outside the canvas left)
+  drawRotatedLabel(layer.title, 30, layer.y + LAYER_H / 2, layer.labelColor);
+});
+
+// ── Inter-layer arrows ────────────────────────────────────────────────────────
+const arrowX = CANVAS_W / 2;
+
+// Layer 1 ↔ Layer 2
+drawVArrow(arrowX, L1Y + LAYER_H, L2Y,
+  'HTTP Requests / HTML Responses', '#2C3E50');
+
+// Layer 2 ↔ Layer 3
+drawVArrow(arrowX, L2Y + LAYER_H, L3Y,
+  'SQL Queries / Result Sets (MySQLi)', '#2C3E50');
+
+// Layer 2 ↔ Layer 4 (diagonal, since layer 4 is below layer 3)
+// Draw a curved path from bottom of layer 2 to top of layer 4
+const l2Bottom = L2Y + LAYER_H;
+const l4Top = L4Y;
+const midY = (l2Bottom + l4Top) / 2;
+
+// We'll draw a bent arrow on the right side
+const bentX = CANVAS_W - 60;
+ctx.save();
+ctx.strokeStyle = '#8E44AD';
+ctx.lineWidth = 2;
+ctx.setLineDash([7, 4]);
+ctx.beginPath();
+ctx.moveTo(LAYER_X + LAYER_W - 20, L2Y + LAYER_H / 2);
+ctx.lineTo(bentX, L2Y + LAYER_H / 2);
+ctx.lineTo(bentX, L4Y + LAYER_H / 2);
+ctx.lineTo(LAYER_X + LAYER_W - 20, L4Y + LAYER_H / 2);
+ctx.stroke();
+ctx.setLineDash([]);
+
+// arrowheads
+ctx.fillStyle = '#8E44AD';
+// right arrow into layer 2
+ctx.beginPath();
+ctx.moveTo(LAYER_X + LAYER_W - 20, L2Y + LAYER_H / 2);
+ctx.lineTo(LAYER_X + LAYER_W - 32, L2Y + LAYER_H / 2 - 6);
+ctx.lineTo(LAYER_X + LAYER_W - 32, L2Y + LAYER_H / 2 + 6);
+ctx.closePath(); ctx.fill();
+// left arrow into layer 4
+ctx.beginPath();
+ctx.moveTo(LAYER_X + LAYER_W - 20, L4Y + LAYER_H / 2);
+ctx.lineTo(LAYER_X + LAYER_W - 32, L4Y + LAYER_H / 2 - 6);
+ctx.lineTo(LAYER_X + LAYER_W - 32, L4Y + LAYER_H / 2 + 6);
+ctx.closePath(); ctx.fill();
+
+// label on the right side
+const labelMidY = (L2Y + LAYER_H / 2 + L4Y + LAYER_H / 2) / 2;
+ctx.font = '11px Arial';
+const lbl = 'REST API Calls / SMTP / OAuth Tokens';
+const tw = ctx.measureText(lbl).width;
+ctx.save();
+ctx.translate(bentX + 14, labelMidY);
+ctx.rotate(-Math.PI / 2);
+roundRect(-tw/2 - 6, -10, tw + 12, 18, 4, '#fff', '#ccc', 1);
+ctx.fillStyle = '#8E44AD';
+ctx.textAlign = 'center';
+ctx.fillText(lbl, 0, 4);
+ctx.restore();
+ctx.restore();
+
+// ── Tier boundary labels (between layers) ─────────────────────────────────────
+function drawBoundaryLabel(y, text) {
+  ctx.fillStyle = '#ECF0F1';
+  roundRect(LAYER_X + 46, y + 14, 260, 20, 4, '#ECF0F1', '#BDC3C7', 1);
+  ctx.fillStyle = '#7F8C8D';
+  ctx.font = 'italic 10px Arial';
+  ctx.textAlign = 'left';
+  ctx.fillText(text, LAYER_X + 54, y + 27);
+}
+
+// ── Legend ────────────────────────────────────────────────────────────────────
+const lx = LAYER_X + 46, ly = L4Y + LAYER_H + 20;
+roundRect(lx, ly, 700, 70, 6, '#F8FBFF', '#AED6F1', 1.5);
+ctx.fillStyle = '#1A252F'; ctx.font = 'bold 12px Arial'; ctx.textAlign = 'left';
+ctx.fillText('Legend', lx + 12, ly + 18);
+
+// Layer band sample
+roundRect(lx + 12, ly + 28, 50, 22, 4, '#D6EAF8', '#2980B9', 1.5);
+ctx.fillStyle = '#1A252F'; ctx.font = '10px Arial';
+ctx.fillText('Architecture Layer Band', lx + 68, ly + 42);
+
+// Component pill sample
+roundRect(lx + 220, ly + 28, 80, 22, 6, '#fff', '#27AE60', 1.5);
+ctx.fillStyle = '#1A252F'; ctx.font = '10px Arial';
+ctx.fillText('Component / Module', lx + 308, ly + 42);
+
+// Solid arrow
+ctx.strokeStyle = '#2C3E50'; ctx.lineWidth = 2;
+ctx.beginPath(); ctx.moveTo(lx + 440, ly + 39); ctx.lineTo(lx + 500, ly + 39); ctx.stroke();
+ctx.fillStyle = '#2C3E50';
+ctx.beginPath(); ctx.moveTo(lx+500,ly+39); ctx.lineTo(lx+490,ly+33); ctx.lineTo(lx+490,ly+45); ctx.closePath(); ctx.fill();
+ctx.beginPath(); ctx.moveTo(lx+440,ly+39); ctx.lineTo(lx+450,ly+33); ctx.lineTo(lx+450,ly+45); ctx.closePath(); ctx.fill();
+ctx.fillStyle = '#333'; ctx.font = '10px Arial';
+ctx.fillText('Data / Request Flow', lx + 508, ly + 42);
+
+// Dashed arrow
+ctx.save(); ctx.setLineDash([5,4]); ctx.strokeStyle='#8E44AD'; ctx.lineWidth=2;
+ctx.beginPath(); ctx.moveTo(lx+620,ly+39); ctx.lineTo(lx+680,ly+39); ctx.stroke();
+ctx.setLineDash([]);
+ctx.fillStyle='#8E44AD';
+ctx.beginPath(); ctx.moveTo(lx+680,ly+39); ctx.lineTo(lx+670,ly+33); ctx.lineTo(lx+670,ly+45); ctx.closePath(); ctx.fill();
+ctx.restore();
+ctx.fillStyle='#8E44AD'; ctx.font='10px Arial';
+ctx.fillText('External Integration', lx+688, ly+42);
+
+// ── Footer ────────────────────────────────────────────────────────────────────
+ctx.fillStyle = '#1A252F';
+ctx.fillRect(0, 960, 1400, 40);
+ctx.fillStyle = '#AED6F1';
+ctx.font = '11px Arial';
+ctx.textAlign = 'center';
+ctx.fillText('Recruitment Management System (RMS) · High-Level System Architecture · Thesis Documentation', 700, 984);
+</script>
+</body>
+</html>

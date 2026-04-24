@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sequence Diagram – Feedback Submission and Decision</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #fff; display: flex; flex-direction: column; align-items: center; padding: 20px; font-family: Arial, sans-serif; }
+  canvas { border: 1px solid #CCC; display: block; }
+  .btn-print {
+    margin: 14px 0 10px 0;
+    padding: 9px 22px;
+    background: #1A252F;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+  }
+  .btn-print:hover { background: #2c3e50; }
+  @media print {
+    .btn-print { display: none; }
+    body { padding: 0; }
+    canvas { border: none; }
+  }
+</style>
+</head>
+<body>
+<button class="btn-print" onclick="window.print()">📸 Print / Save as Image</button>
+<canvas id="diagram" width="1400" height="1050"></canvas>
+<script>
+const canvas = document.getElementById('diagram');
+const ctx = canvas.getContext('2d');
+
+// ── Helper Functions ──────────────────────────────────────────────────────────
+
+function drawLifeline(cx, name1, name2) {
+  const bw=140,bh=50,bx=cx-70,by=80;
+  ctx.fillStyle='#EEEEEE'; ctx.fillRect(bx,by,bw,bh);
+  ctx.strokeStyle='#000'; ctx.lineWidth=1.5; ctx.setLineDash([]);
+  ctx.strokeRect(bx,by,bw,bh);
+  ctx.font='bold 12px Arial'; ctx.fillStyle='#000'; ctx.textAlign='center'; ctx.textBaseline='alphabetic';
+  ctx.fillText(name1,cx,by+20);
+  ctx.font='11px Arial'; ctx.fillStyle='#333';
+  ctx.fillText(name2,cx,by+38);
+  ctx.beginPath(); ctx.setLineDash([4,3]); ctx.strokeStyle='#888'; ctx.lineWidth=1;
+  ctx.moveTo(cx,by+bh); ctx.lineTo(cx,1010); ctx.stroke(); ctx.setLineDash([]);
+}
+
+function activationBar(cx,yStart,yEnd) {
+  ctx.fillStyle='#CCC'; ctx.fillRect(cx-5,yStart,10,yEnd-yStart);
+  ctx.strokeStyle='#000'; ctx.lineWidth=0.5; ctx.setLineDash([]);
+  ctx.strokeRect(cx-5,yStart,10,yEnd-yStart);
+}
+
+function msgArrow(x1,x2,y,label) {
+  ctx.beginPath(); ctx.strokeStyle='#000'; ctx.lineWidth=1.5; ctx.setLineDash([]);
+  ctx.moveTo(x1,y); ctx.lineTo(x2-8,y); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x2,y); ctx.lineTo(x2-10,y-5); ctx.lineTo(x2-10,y+5);
+  ctx.closePath(); ctx.fillStyle='#000'; ctx.fill();
+  ctx.font='11px Arial'; ctx.textAlign='center'; ctx.textBaseline='alphabetic';
+  const mx=(x1+x2)/2; const tw=ctx.measureText(label).width;
+  ctx.fillStyle='#fff'; ctx.fillRect(mx-tw/2-2,y-17,tw+4,13);
+  ctx.fillStyle='#000'; ctx.fillText(label,mx,y-6);
+}
+
+function returnArrow(x1,x2,y,label) {
+  ctx.beginPath(); ctx.strokeStyle='#555'; ctx.lineWidth=1.2; ctx.setLineDash([5,4]);
+  ctx.moveTo(x1,y); ctx.lineTo(x2+8,y); ctx.stroke(); ctx.setLineDash([]);
+  ctx.beginPath(); ctx.moveTo(x2,y); ctx.lineTo(x2+10,y-5); ctx.lineTo(x2+10,y+5);
+  ctx.strokeStyle='#555'; ctx.lineWidth=1.2; ctx.stroke();
+  ctx.font='italic 11px Arial'; ctx.textAlign='center'; ctx.textBaseline='alphabetic';
+  const mx=(x1+x2)/2; const tw=ctx.measureText(label).width;
+  ctx.fillStyle='#fff'; ctx.fillRect(mx-tw/2-2,y-17,tw+4,13);
+  ctx.fillStyle='#555'; ctx.fillText(label,mx,y-6);
+}
+
+function selfCall(cx,y,label) {
+  const lw=44,lh=22;
+  ctx.beginPath(); ctx.strokeStyle='#000'; ctx.lineWidth=1.5; ctx.setLineDash([]);
+  ctx.moveTo(cx,y); ctx.lineTo(cx+lw,y); ctx.lineTo(cx+lw,y+lh); ctx.lineTo(cx,y+lh); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx,y+lh); ctx.lineTo(cx+10,y+lh-5); ctx.lineTo(cx+10,y+lh+5);
+  ctx.closePath(); ctx.fillStyle='#000'; ctx.fill();
+  ctx.font='11px Arial'; ctx.fillStyle='#000'; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+  ctx.fillText(label,cx+lw+5,y+lh/2+4);
+}
+
+function fragment(x,y,w,h,keyword,guard) {
+  ctx.strokeStyle='#000'; ctx.lineWidth=1.2; ctx.setLineDash([]); ctx.strokeRect(x,y,w,h);
+  ctx.beginPath();
+  ctx.moveTo(x,y); ctx.lineTo(x+36,y); ctx.lineTo(x+36,y+16); ctx.lineTo(x+30,y+22); ctx.lineTo(x,y+22); ctx.closePath();
+  ctx.fillStyle='#EEE'; ctx.fill(); ctx.strokeStyle='#000'; ctx.lineWidth=1; ctx.stroke();
+  ctx.font='bold 11px Arial'; ctx.fillStyle='#000'; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+  ctx.fillText(keyword,x+7,y+15);
+  ctx.font='italic 11px Arial'; ctx.fillStyle='#333';
+  ctx.fillText(guard,x+42,y+15);
+}
+
+function fragDivider(x,y,w,guard) {
+  ctx.beginPath(); ctx.setLineDash([5,4]); ctx.strokeStyle='#555'; ctx.lineWidth=1;
+  ctx.moveTo(x,y); ctx.lineTo(x+w,y); ctx.stroke(); ctx.setLineDash([]);
+  ctx.font='italic 11px Arial'; ctx.fillStyle='#333'; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+  ctx.fillText(guard,x+8,y+14);
+}
+
+function noteBox(x,y,w,h,lines,connectX,connectY) {
+  const fold=10;
+  ctx.beginPath();
+  ctx.moveTo(x,y); ctx.lineTo(x+w-fold,y); ctx.lineTo(x+w,y+fold);
+  ctx.lineTo(x+w,y+h); ctx.lineTo(x,y+h); ctx.closePath();
+  ctx.fillStyle='#F5F5F5'; ctx.fill(); ctx.strokeStyle='#888'; ctx.lineWidth=1; ctx.setLineDash([]); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x+w-fold,y); ctx.lineTo(x+w-fold,y+fold); ctx.lineTo(x+w,y+fold);
+  ctx.strokeStyle='#888'; ctx.lineWidth=1; ctx.stroke();
+  ctx.font='10px Arial'; ctx.fillStyle='#333'; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+  lines.forEach((l,i)=>ctx.fillText(l,x+6,y+14+i*14));
+  ctx.beginPath(); ctx.setLineDash([3,3]); ctx.strokeStyle='#888'; ctx.lineWidth=1;
+  ctx.moveTo(x,y+h/2); ctx.lineTo(connectX,connectY); ctx.stroke(); ctx.setLineDash([]);
+}
+
+// ── Lifeline centers ──────────────────────────────────────────────────────────
+const L1=110, L2=300, L3=490, L4=680, L5=870, L6=1060;
+
+// ── 1. White background ───────────────────────────────────────────────────────
+ctx.fillStyle='#fff';
+ctx.fillRect(0,0,1400,1050);
+
+// ── 2. Title bar ──────────────────────────────────────────────────────────────
+ctx.fillStyle='#1A252F';
+ctx.fillRect(0,0,1400,70);
+ctx.font='bold 22px Arial'; ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='alphabetic';
+ctx.fillText('Sequence Diagram \u2013 Feedback Submission and Decision',700,38);
+ctx.font='13px Arial'; ctx.fillStyle='#AED6F1';
+ctx.fillText('Interviewer Feedback \u00B7 Panel Aggregation \u00B7 Hiring Decision \u00B7 Recruiter Confirmation',700,60);
+
+// ── 3. Lifelines ──────────────────────────────────────────────────────────────
+drawLifeline(L1,'Interviewer','(Browser)');
+drawLifeline(L2,'I_dashboard','(Controller)');
+drawLifeline(L3,'Interviewer','Model');
+drawLifeline(L4,'Feedback','Aggregator');
+drawLifeline(L5,'Recruiter','(Browser)');
+drawLifeline(L6,'R_dashboard','(Controller)');
+
+// ── 4. Activation bars ────────────────────────────────────────────────────────
+activationBar(L1,160,560);
+activationBar(L2,160,560);
+activationBar(L3,200,480);
+activationBar(L4,340,480);
+activationBar(L5,620,960);
+activationBar(L6,620,960);
+
+// ── 5. LOOP fragment ──────────────────────────────────────────────────────────
+fragment(170,345,700,135,'loop','[for each panel member]');
+
+// ── 6. ALT fragment ───────────────────────────────────────────────────────────
+fragment(170,715,1100,230,'alt','[avgScore >= passingScore]');
+fragDivider(170,840,1100,'[avgScore < passingScore]');
+
+// ── 7. Separator dashed line at y=540 ─────────────────────────────────────────
+ctx.beginPath(); ctx.setLineDash([6,4]); ctx.strokeStyle='#AAA'; ctx.lineWidth=1;
+ctx.moveTo(0,540); ctx.lineTo(1400,540); ctx.stroke(); ctx.setLineDash([]);
+const sepLabel='— Recruiter reviews aggregated feedback and makes hiring decision —';
+ctx.font='italic 11px Arial'; ctx.textAlign='center'; ctx.textBaseline='alphabetic';
+const sepW=ctx.measureText(sepLabel).width;
+ctx.fillStyle='#fff'; ctx.fillRect(700-sepW/2-4,526,sepW+8,14);
+ctx.fillStyle='#888'; ctx.fillText(sepLabel,700,538);
+
+// ── 8. Messages ───────────────────────────────────────────────────────────────
+
+// Step 1 — y=160
+msgArrow(L1,L2,160,"POST /submit_feedback(interviewId, ratings, comments)");
+
+// Step 2 — y=205 self-call on I_dashboard
+selfCall(L2,205,"validateFeedbackData()");
+
+// Step 3 — y=250
+msgArrow(L2,L3,250,"saveFeedback(interviewId, interviewerUsername, ratings)");
+
+// Step 4 — y=290 self-call on Interviewer Model
+selfCall(L3,290,"calculateOverallRating()");
+
+// Step 5 — y=330
+returnArrow(L3,L2,330,"return feedbackId");
+
+// Step 6 — y=380
+msgArrow(L2,L4,380,"addPanelFeedback(feedbackId, ratings)");
+
+// Step 7 — y=415 self-call on Feedback Aggregator
+selfCall(L4,415,"aggregateScores()");
+
+// Step 8 — y=450
+returnArrow(L4,L2,450,"return aggregatedScore");
+
+// Step 9 — y=510
+returnArrow(L2,L1,510,"return {success:true, feedbackId, message:'Feedback saved'}");
+
+// Step 10 — y=580
+msgArrow(L5,L6,580,"GET /view_candidate_feedback(candidateId)");
+
+// Step 11 — y=620
+msgArrow(L6,L3,620,"getAggregatedFeedback(candidateId)");
+
+// Step 12 — y=660
+returnArrow(L3,L6,660,"return {feedbacks[], avgScore, recommendation}");
+
+// Step 13 — y=700
+returnArrow(L6,L5,700,"return feedbackSummary{panelCount, avgScore, ratings}");
+
+// Step 14 — y=750
+msgArrow(L5,L6,750,"POST /update_candidate_status(candidateId, 'Selected')");
+
+// Step 15 — y=790
+msgArrow(L6,L3,790,"updateStatus(candidateId, 'Selected')");
+
+// Step 16 — y=820
+returnArrow(L3,L6,820,"return updated: true");
+
+// Step 17 — y=870
+msgArrow(L5,L6,870,"POST /update_candidate_status(candidateId, 'Rejected')");
+
+// Step 18 — y=900
+msgArrow(L6,L3,900,"updateStatus(candidateId, 'Rejected')");
+
+// Step 19 — y=930
+returnArrow(L3,L6,930,"return updated: true");
+
+// Step 20 — y=960
+returnArrow(L6,L5,960,"return {success:true, status, message:'Decision recorded'}");
+
+// ── 9. Note boxes ─────────────────────────────────────────────────────────────
+noteBox(760,400,200,40,["Scores averaged across","all panel members"],680,420);
+noteBox(1160,735,200,40,["Status persisted to","candidate_details table"],1060,755);
+
+// ── 10. Footer ────────────────────────────────────────────────────────────────
+ctx.beginPath(); ctx.strokeStyle='#CCC'; ctx.lineWidth=1; ctx.setLineDash([]);
+ctx.moveTo(0,1020); ctx.lineTo(1400,1020); ctx.stroke();
+ctx.font='10px Arial'; ctx.fillStyle='#999'; ctx.textAlign='center'; ctx.textBaseline='alphabetic';
+ctx.fillText('RMS \u00B7 Sequence Diagram \u00B7 Feedback Submission and Decision \u00B7 Thesis Documentation',700,1038);
+
+</script>
+</body>
+</html>

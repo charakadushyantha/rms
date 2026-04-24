@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Figure 3.17: Job-Posting Creation Form</title>
+<style>
+  body { margin: 0; padding: 20px; background: #fff; font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; }
+  canvas { display: block; border: 1px solid #DDD; }
+  .print-btn {
+    margin-bottom: 16px;
+    padding: 8px 20px;
+    background: #333;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: Arial, sans-serif;
+    cursor: pointer;
+  }
+  .print-btn:hover { background: #555; }
+  @media print {
+    .print-btn { display: none; }
+    body { padding: 0; }
+    canvas { border: none; }
+  }
+</style>
+</head>
+<body>
+<button class="print-btn" onclick="window.print()">📸 Print / Save as Image</button>
+<canvas id="wf" width="1200" height="980"></canvas>
+<script>
+const canvas = document.getElementById('wf');
+const ctx = canvas.getContext('2d');
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function roundRect(x,y,w,h,r,fill,stroke,lw){
+  r=r||0;
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+  if(fill){ctx.fillStyle=fill;ctx.fill();}
+  if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw||1;ctx.stroke();}
+}
+function lbl(text,x,y,size,color,align,bold,italic){
+  let style='';
+  if(bold&&italic) style='bold italic ';
+  else if(bold) style='bold ';
+  else if(italic) style='italic ';
+  ctx.font=style+size+'px Arial';
+  ctx.fillStyle=color||'#000';
+  ctx.textAlign=align||'left';
+  ctx.textBaseline='middle';
+  ctx.fillText(text,x,y);
+}
+function hline(x1,x2,y,color,lw){
+  ctx.beginPath();ctx.strokeStyle=color||'#CCC';ctx.lineWidth=lw||1;
+  ctx.moveTo(x1,y);ctx.lineTo(x2,y);ctx.stroke();
+}
+function inputBox(x,y,w,h,placeholder,value){
+  roundRect(x,y,w,h,4,'#FFF','#CCC',1);
+  if(value){
+    lbl(value,x+12,y+h/2,11,'#333','left',false);
+  } else {
+    lbl(placeholder,x+12,y+h/2,11,'#AAA','left',false);
+  }
+}
+function dropdownBox(x,y,w,h,value){
+  roundRect(x,y,w,h,4,'#FFF','#CCC',1);
+  lbl(value,x+12,y+h/2,11,'#333','left',false);
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(x+w-20,y+h/2-4);
+  ctx.lineTo(x+w-12,y+h/2-4);
+  ctx.lineTo(x+w-16,y+h/2+4);
+  ctx.closePath();
+  ctx.fillStyle='#888';ctx.fill();
+  ctx.restore();
+}
+function fieldLabel(text,x,y){
+  lbl(text,x,y,11,'#333','left',true);
+}
+
+// ── 1. White background ───────────────────────────────────────────────────────
+ctx.fillStyle='#FFF';
+ctx.fillRect(0,0,1200,980);
+
+// ── 2. Figure caption + line ──────────────────────────────────────────────────
+lbl('Figure 3.17: Job-Posting Creation Form',600,22,14,'#000','center',true);
+hline(10,1190,30,'#CCC',1);
+
+// ── 3. Browser chrome ─────────────────────────────────────────────────────────
+// Outer rect
+roundRect(10,35,1180,935,0,'#F0F0F0','#888',1);
+// Browser bar
+ctx.fillStyle='#DDD';
+ctx.strokeStyle='#888';
+ctx.lineWidth=1;
+ctx.fillRect(10,35,1180,28);
+ctx.strokeRect(10,35,1180,28);
+// Three circles
+[25,42,59].forEach(cx=>{
+  ctx.beginPath();ctx.arc(cx,49,6,0,Math.PI*2);
+  ctx.fillStyle='#BBB';ctx.fill();
+});
+// URL bar
+roundRect(80,40,700,18,3,'#FFF','#AAA',1);
+lbl('http://localhost/rms/Job_posting/create',88,49,10,'#555','left',false);
+
+// ── 4. Top navigation bar ─────────────────────────────────────────────────────
+ctx.fillStyle='#111';
+ctx.fillRect(10,63,1180,48);
+// Logo box
+roundRect(20,75,120,24,3,'#333',null,0);
+lbl('RMS',80,87,14,'#FFF','center',true);
+// Nav items
+lbl('Dashboard',200,87,11,'#FFF','left',false);
+lbl('Job Postings',295,87,11,'#FFF','left',false);
+lbl('Candidates',400,87,11,'#FFF','left',false);
+lbl('Reports',490,87,11,'#FFF','left',false);
+// Avatar
+ctx.beginPath();ctx.arc(1150,87,14,0,Math.PI*2);
+ctx.fillStyle='#555';ctx.fill();
+lbl('RC',1150,87,10,'#FFF','center',true);
+
+// ── 5. Main content background ────────────────────────────────────────────────
+ctx.fillStyle='#F5F5F5';
+ctx.fillRect(10,111,1180,859);
+
+// ── 6. Page header ────────────────────────────────────────────────────────────
+ctx.fillStyle='#FFF';
+ctx.fillRect(10,111,1180,50);
+hline(10,1190,161,'#DDD',1);
+lbl('Create New Job Posting',40,133,18,'#111','left',true);
+lbl('Job Postings > Create New',40,150,11,'#888','left',false);
+// Save Draft button
+roundRect(980,122,90,28,3,'#FFF','#888',1);
+lbl('Save Draft',1025,136,11,'#555','center',false);
+// Cancel button
+roundRect(1080,122,70,28,3,'#FFF','#CCC',1);
+lbl('Cancel',1115,136,11,'#888','center',false);
+
+// ── 7. Step progress indicator ────────────────────────────────────────────────
+ctx.fillStyle='#FFF';
+ctx.fillRect(10,161,1180,60);
+hline(10,1190,221,'#DDD',1);
+
+// Connecting lines
+hline(266,434,185,'#333',2);
+hline(466,634,185,'#CCC',1);
+hline(666,834,185,'#CCC',1);
+
+// Step 1 — ACTIVE
+ctx.beginPath();ctx.arc(250,185,16,0,Math.PI*2);
+ctx.fillStyle='#333';ctx.fill();
+ctx.strokeStyle='#333';ctx.lineWidth=2;ctx.stroke();
+lbl('1',250,185,12,'#FFF','center',true);
+lbl('Job Details',250,209,11,'#333','center',true);
+
+// Step 2 — PENDING
+ctx.beginPath();ctx.arc(450,185,16,0,Math.PI*2);
+ctx.fillStyle='#FFF';ctx.fill();
+ctx.strokeStyle='#CCC';ctx.lineWidth=1;ctx.stroke();
+lbl('2',450,185,12,'#AAA','center',false);
+lbl('Requirements',450,209,11,'#AAA','center',false);
+
+// Step 3 — PENDING
+ctx.beginPath();ctx.arc(650,185,16,0,Math.PI*2);
+ctx.fillStyle='#FFF';ctx.fill();
+ctx.strokeStyle='#CCC';ctx.lineWidth=1;ctx.stroke();
+lbl('3',650,185,12,'#AAA','center',false);
+lbl('Screening Qs',650,209,11,'#AAA','center',false);
+
+// Step 4 — PENDING
+ctx.beginPath();ctx.arc(850,185,16,0,Math.PI*2);
+ctx.fillStyle='#FFF';ctx.fill();
+ctx.strokeStyle='#CCC';ctx.lineWidth=1;ctx.stroke();
+lbl('4',850,185,12,'#AAA','center',false);
+lbl('Distribution',850,209,11,'#AAA','center',false);
+
+// ── 8. Form card ──────────────────────────────────────────────────────────────
+roundRect(60,230,1080,620,6,'#FFF','#DDD',1);
+
+// ── 9. Card header ────────────────────────────────────────────────────────────
+ctx.save();
+ctx.beginPath();
+ctx.moveTo(66,230);ctx.lineTo(1134,230);
+ctx.quadraticCurveTo(1140,230,1140,236);
+ctx.lineTo(1140,274);ctx.lineTo(60,274);
+ctx.lineTo(60,236);
+ctx.quadraticCurveTo(60,230,66,230);
+ctx.closePath();
+ctx.fillStyle='#F8F8F8';ctx.fill();
+ctx.restore();
+hline(60,1140,274,'#DDD',1);
+lbl('Step 1: Job Details',80,252,13,'#333','left',true);
+lbl('* Required fields',1120,252,10,'#888','right',false,false,true);
+
+// ── 10. Form fields ───────────────────────────────────────────────────────────
+
+// ROW 1 — Job Title + Department
+fieldLabel('Job Title *',80,290);
+inputBox(80,305,500,34,'e.g. Senior Software Engineer',null);
+
+fieldLabel('Department *',600,290);
+dropdownBox(600,305,520,34,'Select department...');
+
+// ROW 2 — Employment Type + Location + Experience Level
+fieldLabel('Employment Type *',80,360);
+dropdownBox(80,375,320,34,'Full-time');
+
+fieldLabel('Location *',420,360);
+inputBox(420,375,320,34,'Colombo, Sri Lanka',null);
+
+fieldLabel('Experience Level',760,360);
+dropdownBox(760,375,360,34,'Mid-level (3-5 years)');
+
+// ROW 3 — Salary Range
+fieldLabel('Salary Range (LKR)',80,430);
+lbl('Min',80,448,10,'#777','left',false);
+inputBox(80,460,200,34,'80,000',null);
+lbl('–',295,477,14,'#555','left',false);
+lbl('Max',310,448,10,'#777','left',false);
+inputBox(310,460,200,34,'150,000',null);
+lbl('Per Month',525,477,10,'#777','left',false);
+// Checkbox
+roundRect(620,470,14,14,2,'#FFF','#888',1);
+lbl('Show salary publicly',642,477,11,'#555','left',false);
+
+// ROW 4 — Job Description
+fieldLabel('Job Description *',80,515);
+// Textarea
+roundRect(80,530,1040,90,4,'#FFF','#CCC',1);
+// Formatting toolbar inside textarea top
+const toolbarBtns = ['B','I','U','• List','Link'];
+let tbx = 92;
+toolbarBtns.forEach(btn=>{
+  let bw = btn.length > 1 ? 36 : 24;
+  roundRect(tbx,533,bw,20,2,'#F5F5F5','#DDD',1);
+  lbl(btn,tbx+bw/2,543,9,'#555','center',btn==='B');
+  tbx += bw + 4;
+});
+// Placeholder text in textarea (below toolbar)
+lbl('Describe the role, responsibilities, and what the candidate will be working on...',92,580,11,'#AAA','left',false);
+
+// ROW 5 — Skills / Tags
+fieldLabel('Skills / Tags',80,635);
+roundRect(80,650,700,34,4,'#FFF','#CCC',1);
+// Tag pills
+const pills = [{label:'JavaScript',x:92,w:80},{label:'React',x:180,w:52},{label:'Node.js',x:240,w:68}];
+pills.forEach(p=>{
+  roundRect(p.x,659,p.w,18,9,'#EEE','#CCC',1);
+  lbl(p.label,p.x+p.w/2-6,668,10,'#333','left',false);
+  lbl('×',p.x+p.w-8,668,9,'#888','left',false);
+});
+lbl('Add a skill...',320,667,11,'#AAA','left',false);
+
+// ── 11. Form navigation buttons bar ──────────────────────────────────────────
+ctx.fillStyle='#FFF';
+ctx.fillRect(60,850,1080,50);
+hline(60,1140,850,'#DDD',1);
+
+// Back button (grayed out)
+roundRect(80,872,90,28,3,'#FFF','#CCC',1);
+lbl('← Back',125,886,11,'#CCC','center',false);
+
+// Next button
+roundRect(980,872,160,32,4,'#333',null,0);
+lbl('Next: Requirements →',1060,888,11,'#FFF','center',true);
+
+// ── 12. Footer ────────────────────────────────────────────────────────────────
+ctx.fillStyle='#F5F5F5';
+ctx.fillRect(10,950,1180,20);
+hline(10,1190,950,'#DDD',1);
+lbl('RMS v1.0.0  ·  Job Posting Creation  ·  Step 1 of 4',600,960,10,'#999','center',false);
+
+</script>
+</body>
+</html>

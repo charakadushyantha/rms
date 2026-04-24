@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Figure 3.19: Interview Scheduling Calendar</title>
+<style>
+  body { margin: 0; padding: 20px; background: #fff; font-family: Arial, sans-serif; }
+  canvas { display: block; margin: 0 auto; border: 1px solid #EEE; }
+  #printBtn {
+    display: block; margin: 12px auto; padding: 8px 20px;
+    background: #333; color: #fff; border: none; border-radius: 4px;
+    font-size: 13px; font-family: Arial, sans-serif; cursor: pointer;
+  }
+  #printBtn:hover { background: #555; }
+  @media print {
+    #printBtn { display: none; }
+    body { padding: 0; }
+  }
+</style>
+</head>
+<body>
+<button id="printBtn" onclick="window.print()">📸 Print / Save as Image</button>
+<canvas id="c" width="1200" height="980"></canvas>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+function roundRect(x,y,w,h,r,fill,stroke,lw){
+  r=r||0;
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+  if(fill){ctx.fillStyle=fill;ctx.fill();}
+  if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw||1;ctx.stroke();}
+}
+function lbl(text,x,y,size,color,align,bold,italic){
+  let style='';
+  if(bold&&italic)style='bold italic ';
+  else if(bold)style='bold ';
+  else if(italic)style='italic ';
+  ctx.font=style+size+'px Arial';
+  ctx.fillStyle=color||'#000';
+  ctx.textAlign=align||'left';
+  ctx.textBaseline='middle';
+  ctx.fillText(text,x,y);
+}
+function hline(x1,x2,y,color,lw){
+  ctx.beginPath();ctx.strokeStyle=color||'#CCC';ctx.lineWidth=lw||1;
+  ctx.moveTo(x1,y);ctx.lineTo(x2,y);ctx.stroke();
+}
+function vline(x,y1,y2,color,lw){
+  ctx.beginPath();ctx.strokeStyle=color||'#CCC';ctx.lineWidth=lw||1;
+  ctx.moveTo(x,y1);ctx.lineTo(x,y2);ctx.stroke();
+}
+function dropdown(x,y,w,h,value,isPlaceholder){
+  roundRect(x,y,w,h,4,'#FFF','#CCC',1);
+  lbl(value,x+10,y+h/2,11,isPlaceholder?'#AAA':'#333','left',false);
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(x+w-18,y+h/2-3);
+  ctx.lineTo(x+w-10,y+h/2-3);
+  ctx.lineTo(x+w-14,y+h/2+4);
+  ctx.closePath();
+  ctx.fillStyle='#888';ctx.fill();
+  ctx.restore();
+}
+function calEvent(x,y,w,h,text,fill,stroke,conflict){
+  roundRect(x,y,w,h,3,fill,stroke,1);
+  lbl(text,x+5,y+h/2,9,'#333','left',false);
+  if(conflict){
+    lbl('\u26A0',x+w-14,y+h/2,9,'#555','left',false);
+  }
+}
+
+// ── 1. White background ──────────────────────────────────────────────────────
+ctx.fillStyle='#FFF';
+ctx.fillRect(0,0,1200,980);
+
+// ── 2. Figure caption + line ─────────────────────────────────────────────────
+lbl('Figure 3.19: Interview Scheduling Calendar',600,22,14,'#000','center',true);
+hline(10,1190,30,'#CCC',1);
+
+// ── 3. Browser chrome ────────────────────────────────────────────────────────
+roundRect(10,35,1180,935,0,'#F0F0F0','#888',1);
+// Browser bar
+ctx.fillStyle='#DDD';
+ctx.strokeStyle='#888';
+ctx.lineWidth=1;
+ctx.fillRect(10,35,1180,28);
+ctx.strokeRect(10,35,1180,28);
+// Three circles
+[25,42,59].forEach(cx=>{
+  ctx.beginPath();ctx.arc(cx,49,6,0,Math.PI*2);
+  ctx.fillStyle='#BBB';ctx.fill();
+});
+// URL bar
+roundRect(80,40,700,18,3,'#FFF','#AAA',1);
+lbl('http://localhost/rms/R_dashboard/Rcalendar_view',88,49,10,'#555','left');
+
+// ── 4. Top nav bar ───────────────────────────────────────────────────────────
+ctx.fillStyle='#111';
+ctx.fillRect(10,63,1180,48);
+// Logo
+roundRect(20,75,120,24,3,'#333',null,0);
+lbl('RMS',80,87,14,'#FFF','center',true);
+// Nav items
+const navItems=[['Dashboard',200],['Candidates',295],['Calendar',385],['Job Postings',465],['Reports',565]];
+navItems.forEach(([t,x])=>{
+  lbl(t,x,87,11,'#FFF','center');
+});
+// Underline for Calendar
+ctx.beginPath();ctx.strokeStyle='#FFF';ctx.lineWidth=2;
+ctx.moveTo(365,99);ctx.lineTo(405,99);ctx.stroke();
+// Avatar
+ctx.beginPath();ctx.arc(1150,87,14,0,Math.PI*2);
+ctx.fillStyle='#555';ctx.fill();
+lbl('RC',1150,87,10,'#FFF','center',true);
+
+// ── 5. Page header ───────────────────────────────────────────────────────────
+ctx.fillStyle='#FFF';
+ctx.fillRect(10,111,1180,50);
+hline(10,1190,161,'#DDD',1);
+lbl('Interview Scheduling Calendar',40,133,18,'#111','left',true);
+lbl('Manage and schedule candidate interviews · Assign panel members · Detect conflicts',40,152,11,'#777','left');
+roundRect(980,122,160,28,4,'#333',null,0);
+lbl('+ Schedule Interview',1060,136,11,'#FFF','center',true);
+
+// ── 6. Main content background ───────────────────────────────────────────────
+ctx.fillStyle='#F5F5F5';
+ctx.fillRect(10,161,1180,789);
+
+// ── 7. Calendar toolbar ──────────────────────────────────────────────────────
+ctx.fillStyle='#FFF';
+ctx.fillRect(10,161,840,50);
+hline(10,850,211,'#DDD',1);
+// Prev button
+roundRect(30,175,28,24,3,'#F5F5F5','#CCC',1);
+lbl('◀',44,187,11,'#555','center');
+// Month label
+lbl('April 2026',200,187,16,'#111','center',true);
+// Next button
+roundRect(240,175,28,24,3,'#F5F5F5','#CCC',1);
+lbl('▶',254,187,11,'#555','center');
+// Today button
+roundRect(290,175,50,24,3,'#F5F5F5','#CCC',1);
+lbl('Today',315,187,11,'#555','center');
+// View toggles
+roundRect(640,175,56,24,3,'#333',null,0);
+lbl('Month',668,187,10,'#FFF','center',true);
+roundRect(700,175,50,24,3,'#F5F5F5','#CCC',1);
+lbl('Week',725,187,10,'#555','center');
+roundRect(754,175,44,24,3,'#F5F5F5','#CCC',1);
+lbl('Day',776,187,10,'#555','center');
+
+// ── 8. Calendar grid background + day headers ────────────────────────────────
+ctx.fillStyle='#FFF';
+ctx.fillRect(10,211,840,700);
+ctx.strokeStyle='#DDD';ctx.lineWidth=1;
+ctx.strokeRect(10,211,840,700);
+
+// Day headers row background
+ctx.fillStyle='#F5F5F5';
+ctx.fillRect(10,211,840,32);
+
+const days=['SUN','MON','TUE','WED','THU','FRI','SAT'];
+const col=[10,130,250,370,490,610,730];
+const colW=120;
+days.forEach((d,i)=>{
+  lbl(d,col[i]+colW/2,227,11,'#555','center',true);
+});
+
+// ── 9. Calendar grid lines ───────────────────────────────────────────────────
+// Vertical dividers
+[130,250,370,490,610,730,850].forEach(x=>{
+  vline(x,211,911,'#DDD',1);
+});
+// Horizontal dividers
+[243,353,463,573,683,793,911].forEach(y=>{
+  hline(10,850,y,'#DDD',1);
+});
+
+// ── 10. Date numbers ─────────────────────────────────────────────────────────
+const row=[243,353,463,573,683,793];
+
+// Row 0: Mar 29,30,31, Apr 1–4
+const r0=[{d:'29',prev:true},{d:'30',prev:true},{d:'31',prev:true},{d:'1'},{d:'2'},{d:'3'},{d:'4'}];
+r0.forEach((cell,c)=>{
+  if(cell.prev){
+    ctx.fillStyle='#F8F8F8';
+    ctx.fillRect(col[c]+1,row[0]+1,colW-1,109);
+    lbl(cell.d,col[c]+8,row[0]+16,11,'#AAA','left',true);
+  } else {
+    lbl(cell.d,col[c]+8,row[0]+16,11,'#333','left',true);
+  }
+});
+
+// Row 1: Apr 5–11
+for(let c=0;c<7;c++){
+  lbl(String(5+c),col[c]+8,row[1]+16,11,'#333','left',true);
+}
+
+// Row 2: Apr 12–18
+for(let c=0;c<7;c++){
+  lbl(String(12+c),col[c]+8,row[2]+16,11,'#333','left',true);
+}
+
+// Row 3: Apr 19–25
+for(let c=0;c<7;c++){
+  lbl(String(19+c),col[c]+8,row[3]+16,11,'#333','left',true);
+}
+
+// Row 4: Apr 26–May 2
+const r4=[{d:'26'},{d:'27'},{d:'28'},{d:'29'},{d:'30'},{d:'1',next:true},{d:'2',next:true}];
+r4.forEach((cell,c)=>{
+  if(cell.next){
+    ctx.fillStyle='#F8F8F8';
+    ctx.fillRect(col[c]+1,row[4]+1,colW-1,109);
+    lbl(cell.d,col[c]+8,row[4]+16,11,'#AAA','left',true);
+  } else {
+    lbl(cell.d,col[c]+8,row[4]+16,11,'#333','left',true);
+  }
+});
+
+// Row 5: May 3–9 (all next month)
+for(let c=0;c<7;c++){
+  ctx.fillStyle='#F8F8F8';
+  ctx.fillRect(col[c]+1,row[5]+1,colW-1,117);
+  lbl(String(3+c),col[c]+8,row[5]+16,11,'#AAA','left',true);
+}
+
+// ── 11. Calendar event blocks ─────────────────────────────────────────────────
+
+// Row 1 events (Apr 5–11)
+// Apr 7 = MON = col[1]
+calEvent(col[1]+4,row[1]+28,112,22,'Alex Johnson · 10:00 AM','#EEE','#CCC',false);
+// Apr 8 = TUE = col[2]
+calEvent(col[2]+4,row[1]+28,112,22,'Maria Chen · 2:00 PM','#EEE','#CCC',false);
+// Apr 9 = WED = col[3] — CONFLICT
+calEvent(col[3]+4,row[1]+28,112,22,'Ryan Davis · 11:00 AM','#DDD','#888',true);
+
+// Row 2 events (Apr 12–18)
+// Apr 14 = MON = col[1]
+calEvent(col[1]+4,row[2]+28,112,22,'Emma Wilson · 9:00 AM','#EEE','#CCC',false);
+// Apr 15 = TUE = col[2]
+calEvent(col[2]+4,row[2]+28,112,22,'James Lee · 3:00 PM','#EEE','#CCC',false);
+// Apr 16 = WED = col[3] — TWO events
+calEvent(col[3]+4,row[2]+28,112,22,'Sophie Brown · 10:00 AM','#EEE','#CCC',false);
+calEvent(col[3]+4,row[2]+54,112,22,'Tom Harris · 2:00 PM','#EEE','#CCC',false);
+
+// Row 3 events (Apr 19–25)
+// Apr 21 = MON = col[1]
+calEvent(col[1]+4,row[3]+28,112,22,'David Kim · 11:00 AM','#EEE','#CCC',false);
+// Apr 22 = TUE = col[2]
+calEvent(col[2]+4,row[3]+28,112,22,'Anna White · 1:00 PM','#EEE','#CCC',false);
+// Apr 24 = THU = col[4] — TODAY event (darker)
+calEvent(col[4]+4,row[3]+28,112,22,'Alex Johnson · 10:00 AM','#DDD','#888',false);
+
+// Row 4 events (Apr 26–May 2)
+// Apr 28 = MON = col[1]
+calEvent(col[1]+4,row[4]+28,112,22,'Maria Chen · 9:00 AM','#EEE','#CCC',false);
+// Apr 29 = TUE = col[2]
+calEvent(col[2]+4,row[4]+28,112,22,'Ryan Davis · 2:00 PM','#EEE','#CCC',false);
+
+// Row 5 events (May 3–9, next month)
+// May 5 = MON = col[1]
+calEvent(col[1]+4,row[5]+28,112,22,'Emma Wilson · 11:00 AM','#F0F0F0','#CCC',false);
+// Override text color for next-month event
+roundRect(col[1]+4,row[5]+28,112,22,3,'#F0F0F0','#CCC',1);
+lbl('Emma Wilson · 11:00 AM',col[1]+9,row[5]+39,9,'#AAA','left');
+
+// ── 12. TODAY cell highlight (Apr 24 = col[4], row[3]) ───────────────────────
+// Fill cell background
+ctx.fillStyle='#F0F0F0';
+ctx.fillRect(col[4]+1,row[3]+1,colW-1,109);
+// Redraw date number in circle
+ctx.beginPath();ctx.arc(col[4]+20,row[3]+16,12,0,Math.PI*2);
+ctx.fillStyle='#333';ctx.fill();
+lbl('24',col[4]+20,row[3]+16,11,'#FFF','center',true);
+// Redraw today's event on top of cell fill
+calEvent(col[4]+4,row[3]+28,112,22,'Alex Johnson · 10:00 AM','#DDD','#888',false);
+
+// ── 13. Right panel 1: Schedule Interview ────────────────────────────────────
+const px=860, py=161, pw=330;
+
+// Panel border
+roundRect(px,py,pw,280,0,'#FFF','#DDD',1);
+// Header
+ctx.fillStyle='#F8F8F8';
+ctx.fillRect(px,py,pw,36);
+hline(px,px+pw,py+36,'#DDD',1);
+lbl('Schedule New Interview',px+16,py+22,12,'#333','left',true);
+
+// Candidate field
+lbl('Candidate *',px+14,py+52,10,'#555','left');
+dropdown(px+14,py+62,300,32,'Select candidate...',true);
+
+// Interviewer field
+lbl('Interviewer(s) *',px+14,py+106,10,'#555','left');
+dropdown(px+14,py+116,300,32,'Assign interviewers...',true);
+// Tag pills
+roundRect(px+14,py+154,80,20,8,'#EEE','#CCC',1);
+lbl('Michael T.',px+54,py+164,10,'#333','center');
+roundRect(px+100,py+154,70,20,8,'#EEE','#CCC',1);
+lbl('Sarah K.',px+135,py+164,10,'#333','center');
+
+// Date & Time
+lbl('Date & Time *',px+14,py+182,10,'#555','left');
+roundRect(px+14,py+192,140,32,4,'#FFF','#CCC',1);
+lbl('24 Apr 2026',px+24,py+208,11,'#333','left');
+roundRect(px+162,py+192,80,32,4,'#FFF','#CCC',1);
+lbl('10:00 AM',px+172,py+208,11,'#333','left');
+
+// Interview Round
+lbl('Interview Round',px+14,py+236,10,'#555','left');
+dropdown(px+14,py+246,140,32,'Round 1',false);
+
+// Schedule button
+roundRect(px+14,py+290,300,32,4,'#333',null,0);
+lbl('Schedule Interview',px+14+150,py+306,11,'#FFF','center',true);
+
+// ── 14. Right panel 2: Conflict Indicator ────────────────────────────────────
+const cp2y=453;
+roundRect(px,cp2y,pw,160,0,'#FFF','#DDD',1);
+ctx.fillStyle='#F8F8F8';
+ctx.fillRect(px,cp2y,pw,36);
+hline(px,px+pw,cp2y+36,'#DDD',1);
+lbl('⚠ Conflict Detected',px+16,cp2y+22,12,'#333','left',true);
+
+// Conflict alert 1
+roundRect(px+14,cp2y+46,300,60,4,'#F5F5F5','#AAA',1);
+lbl('Ryan Davis — 9 Apr, 11:00 AM',px+28,cp2y+62,11,'#333','left',true);
+lbl('Interviewer Michael T. has another interview at this time.',px+28,cp2y+78,10,'#777','left');
+// Reschedule link
+ctx.font='10px Arial';
+ctx.fillStyle='#555';
+ctx.textAlign='left';
+ctx.textBaseline='middle';
+ctx.fillText('Reschedule',px+28,cp2y+94);
+const tw=ctx.measureText('Reschedule').width;
+ctx.beginPath();ctx.strokeStyle='#555';ctx.lineWidth=1;
+ctx.moveTo(px+28,cp2y+99);ctx.lineTo(px+28+tw,cp2y+99);ctx.stroke();
+
+// Conflict alert 2
+roundRect(px+14,cp2y+116,300,40,4,'#F5F5F5','#AAA',1);
+lbl('No other conflicts found',px+14+150,cp2y+136,10,'#888','center',false,true);
+
+// ── 15. Right panel 3: Panel Assignment ──────────────────────────────────────
+const cp3y=625;
+roundRect(px,cp3y,pw,200,0,'#FFF','#DDD',1);
+ctx.fillStyle='#F8F8F8';
+ctx.fillRect(px,cp3y,pw,36);
+hline(px,px+pw,cp3y+36,'#DDD',1);
+lbl('Panel Assignment',px+16,cp3y+22,12,'#333','left',true);
+
+lbl('Available Interviewers',px+14,cp3y+58,10,'#555','left');
+
+const interviewers=[
+  {name:'Michael Thompson',status:'Available',statusColor:'#555',busy:false},
+  {name:'Sarah Kim',status:'Available',statusColor:'#555',busy:false},
+  {name:'James Park',status:'Busy 10–11 AM',statusColor:'#888',busy:true},
+  {name:'Lisa Chen',status:'Available',statusColor:'#555',busy:false},
+  {name:'Tom Wilson',status:'On Leave',statusColor:'#AAA',busy:true},
+];
+interviewers.forEach((iv,i)=>{
+  const ry=cp3y+68+i*28;
+  // Avatar
+  ctx.beginPath();ctx.arc(px+24,ry+10,10,0,Math.PI*2);
+  ctx.fillStyle='#DDD';ctx.fill();
+  // Name
+  lbl(iv.name,px+40,ry+10,11,'#333','left');
+  // Status
+  lbl(iv.status,px+pw-50,ry+10,9,iv.statusColor,'right');
+  // [+] button
+  roundRect(px+pw-36,ry+1,24,20,3,iv.busy?'#F0F0F0':'#EEE','#CCC',1);
+  lbl('+',px+pw-24,ry+11,11,iv.busy?'#AAA':'#555','center',true);
+});
+
+// ── 16. Right panel 4: Legend ─────────────────────────────────────────────────
+const cp4y=837;
+roundRect(px,cp4y,pw,113,0,'#FFF','#DDD',1);
+ctx.fillStyle='#F8F8F8';
+ctx.fillRect(px,cp4y,pw,36);
+hline(px,px+pw,cp4y+36,'#DDD',1);
+lbl('Legend',px+16,cp4y+22,12,'#333','left',true);
+
+const legendItems=[
+  {fill:'#EEE',stroke:'#CCC',text:'Scheduled Interview',textColor:'#555'},
+  {fill:'#DDD',stroke:'#888',text:"Today's Interview",textColor:'#555'},
+  {fill:'#F0F0F0',stroke:'#CCC',text:'Next Month',textColor:'#AAA'},
+  {fill:null,stroke:null,text:'Scheduling Conflict',textColor:'#555',icon:'⚠'},
+];
+legendItems.forEach((item,i)=>{
+  const ly=cp4y+52+i*18;
+  if(item.icon){
+    lbl(item.icon,px+14,ly+6,10,'#555','left');
+    lbl(item.text,px+52,ly+6,10,item.textColor,'left');
+  } else {
+    roundRect(px+14,ly,30,12,2,item.fill,item.stroke,1);
+    lbl(item.text,px+52,ly+6,10,item.textColor,'left');
+  }
+});
+
+// ── 17. Footer ────────────────────────────────────────────────────────────────
+hline(10,1190,960,'#DDD',1);
+lbl('RMS v1.0.0  ·  Interview Scheduling Calendar  ·  FullCalendar Integration',600,970,10,'#999','center');
+
+</script>
+</body>
+</html>
