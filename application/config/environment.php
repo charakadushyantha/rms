@@ -39,7 +39,12 @@ if (strpos($current_domain, 'lankantech.com') !== false || strpos($current_domai
 } else {
     // DEVELOPMENT ENVIRONMENT (localhost)
     define('APP_ENVIRONMENT', 'development');
-    define('APP_URL', 'http://localhost/rms/');
+
+    // Auto-detect protocol so the app works on both http:// and https://localhost
+    $detected_protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $detected_host     = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
+    define('APP_URL', $detected_protocol . '://' . $detected_host . '/rms/');
+
     define('APP_NAME', 'RMS - Development');
     
     // Database Configuration

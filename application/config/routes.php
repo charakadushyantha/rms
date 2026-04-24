@@ -64,3 +64,7 @@ $route['api/interview_api/update_status/(:num)'] = 'api/interview_api/update_sta
 
 // Interview Web Routes
 $route['interview/take/(:any)'] = 'interview/take/$1';
+
+// Password reset route with optional token
+$route['Login/reset_password/(:any)/(:any)'] = 'Login/reset_password/$1/$2';
+$route['Login/reset_password/(:any)']        = 'Login/reset_password/$1';

@@ -211,15 +211,24 @@
         <label for="email">Email Address</label>
         <div class="input-wrapper">
           <i class="fas fa-envelope"></i>
-          <input type="email" name="semail" id="email" value="<?php echo $semail; ?>" readonly>
+          <input type="email" name="semail" id="email" value="<?php echo htmlspecialchars($semail); ?>" readonly>
         </div>
       </div>
+
+      <!-- Hidden token field for DB validation -->
+      <input type="hidden" name="reset_token" value="<?php echo htmlspecialchars(isset($token) ? $token : ''); ?>">
+
+      <?php if (isset($error)): ?>
+        <div style="background:#fee;color:#c33;border:1px solid #fcc;padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:14px;">
+          <i class="fas fa-exclamation-circle"></i> <?php echo $error; ?>
+        </div>
+      <?php endif; ?>
 
       <div class="form-group">
         <label for="newpassword">New Password</label>
         <div class="input-wrapper">
           <i class="fas fa-lock"></i>
-          <input type="password" name="newpassword" id="newpassword" placeholder="Enter new password" required>
+          <input type="password" name="newpassword" id="newpassword" placeholder="Enter new password" required minlength="6">
           <i class="fas fa-eye toggle-password" data-target="newpassword"></i>
         </div>
       </div>
@@ -228,7 +237,7 @@
         <label for="confirmpassword">Confirm Password</label>
         <div class="input-wrapper">
           <i class="fas fa-lock"></i>
-          <input type="password" id="confirmpassword" placeholder="Re-enter new password" required>
+          <input type="password" name="confirmpassword" id="confirmpassword" placeholder="Re-enter new password" required minlength="6">
           <i class="fas fa-eye toggle-password" data-target="confirmpassword"></i>
         </div>
         <div class="password-match" id="matchMessage"></div>

@@ -216,7 +216,7 @@
       }
     ?>
 
-    <form action="forgot_pass_process" method="post">
+    <form action="<?php echo LOGIN_URL; ?>/forgot_pass_process" method="post">
       <div class="form-group">
         <label for="email">Email Address</label>
         <div class="input-wrapper">

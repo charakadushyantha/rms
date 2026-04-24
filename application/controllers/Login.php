@@ -323,10 +323,30 @@ class Login extends CI_Controller {
 
 	public function forgot_pass_process()
 	{
-		if($this->Login_model->email_exists())
+		if ($this->Login_model->email_exists())
 		{
-	    $subject = "Forgot Password ";
-	    $config = array(
+			$rec_email   = $this->input->post('femail');
+
+			// Generate a secure token and store it in the DB (not session — survives new tabs/requests)
+			$reset_token   = bin2hex(random_bytes(32));
+			$reset_expires = date('Y-m-d H:i:s', strtotime('+1 hour'));
+
+			// Store token on the user record (wrapped in try/catch in case columns don't exist yet)
+			try {
+				$this->db->where('u_email', $rec_email);
+				$this->db->update(TBL_USERS, array(
+					'reset_token'   => $reset_token,
+					'reset_expires' => $reset_expires
+				));
+			} catch (Exception $e) {
+				log_message('error', 'Could not save reset token (run setup_database.php): ' . $e->getMessage());
+			}
+
+			// Build reset link
+			$reset_link = base_url('Login/reset_password/' . urlencode($rec_email) . '/' . $reset_token);
+
+			$subject = "Forgot Password - RMS";
+			$config  = array(
 				'protocol'    => 'smtp',
 				'smtp_host'   => 'smtp.gmail.com',
 				'smtp_port'   => 587,
@@ -343,65 +363,118 @@ class Login extends CI_Controller {
 			);
 
 			$this->load->library('email', $config);
+			$this->email->set_newline("\r\n");
+			$this->email->from(SENDER_EMAIL, 'RMS System');
+			$this->email->to($rec_email);
+			$this->email->subject($subject);
+			$message = "
+				<html>
+				<body>
+					<h3>Password Reset Request</h3>
+					<p>Click the link below to reset your password. This link expires in 1 hour.</p>
+					<p><a href='{$reset_link}' style='background:#667eea;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;'>Reset Password</a></p>
+					<p>Or copy this link:<br>{$reset_link}</p>
+					<p>If you did not request this, ignore this email.</p>
+				</body>
+				</html>
+			";
+			$this->email->message($message);
 
-	      $this->email->set_newline("\r\n");
-	      $this->email->from(SENDER_EMAIL);
-				$rec_email = $this->input->post('femail');
-	      $this->email->to($rec_email);
-	      $this->email->subject($subject);
-	      $message = 	"
-	            <html>
-	            <head>
-	            </head>
-	            <body>
-								 <h3>Click the below link for set new Password</h3>
-	              <h4><a href='".base_url('Login/reset_password/'.$rec_email)."'>Reset Password</a></h4>
-	            </body>
-	            </html>
-	            ";
-	         $this->email->message($message);
-	         if($this->email->send()){
-						 // Use new modern success page
-						 $this->load->view('forgot_password_success');
-					 }
-					 else {
-						 $data['fmsg'] = "Mail is not sent , Please try again.";
-						 $this->load->view('forgotpassword_new',$data);
-					 }
+			if ($this->email->send()) {
+				$this->load->view('forgot_password_success');
+			} else {
+				// SMTP failed (common on localhost XAMPP) — show direct link as fallback
+				log_message('error', 'Password reset email failed: ' . $this->email->print_debugger());
 
-
+				$data['greeting'] = $this->get_time_based_greeting('Asia/Kolkata');
+				$data['fmsg']     = 'Email could not be sent (SMTP not configured on localhost). '
+					. '<a href="' . $reset_link . '" style="color:#667eea;font-weight:bold;">Click here to reset your password directly</a>.';
+				$this->load->view('forgotpassword_new', $data);
+			}
 		}
-		else {
-			$data['efailed'] = "There is no Account exists which connected to entered Email.";
-			$this->load->view('forgotpassword_new',$data);
+		else
+		{
+			$data['greeting'] = $this->get_time_based_greeting('Asia/Kolkata');
+			$data['efailed']  = "No account found with that email address.";
+			$this->load->view('forgotpassword_new', $data);
 		}
 	}
 
-
-
 	public function reset_password()
 	{
-		$data['semail'] = $this->uri->segment(3);
-		// Add dynamic greeting
+		$email = urldecode($this->uri->segment(3));
+		$token = $this->uri->segment(4);
+
+		// Validate token against DB
+		$this->db->where('u_email', $email);
+		$this->db->where('reset_token', $token);
+		$this->db->where('reset_expires >=', date('Y-m-d H:i:s'));
+		$user = $this->db->get(TBL_USERS)->row();
+
+		if (!$user) {
+			$this->session->set_flashdata('msgad', 'Invalid or expired reset link. Please request a new one.');
+			redirect(base_url('Login/forgotpassword'));
+			return;
+		}
+
+		$data['semail']   = $email;
+		$data['token']    = $token;
 		$data['greeting'] = $this->get_time_based_greeting('Asia/Kolkata');
-		
-		$this->load->view('resetpassword_new',$data); // Using new modern UI
-		// To use old design: $this->load->view('resetpassword',$data);
+		$this->load->view('resetpassword_new', $data);
 	}
 
 	public function reset_password_process()
 	{
-		$email = $this->input->post('semail');
-		$pass = md5($this->input->post('newpassword'));
-		$this->db->where('u_email',$email);
-		$result = $this->db->update(TBL_USERS,array('u_password'=> $pass ));
-		if($result)
-		{
-			$this->session->set_flashdata('msgup','Your Password is Changed');
-			redirect(LOGIN_URL);
+		$email   = $this->input->post('semail');
+		$token   = $this->input->post('reset_token');
+		$newpass = $this->input->post('newpassword');
+		$confirm = $this->input->post('confirmpassword');
+
+		// Validate inputs
+		if (empty($email) || empty($newpass) || empty($token)) {
+			$this->session->set_flashdata('msgad', 'Invalid request. Please try again.');
+			redirect(base_url('Login/forgotpassword'));
+			return;
 		}
-		else {
-			echo "Password is not changed";
+
+		if ($newpass !== $confirm) {
+			$data['semail']   = $email;
+			$data['token']    = $token;
+			$data['greeting'] = $this->get_time_based_greeting('Asia/Kolkata');
+			$data['error']    = 'Passwords do not match.';
+			$this->load->view('resetpassword_new', $data);
+			return;
+		}
+
+		// Re-validate token from DB before updating
+		$this->db->where('u_email', $email);
+		$this->db->where('reset_token', $token);
+		$this->db->where('reset_expires >=', date('Y-m-d H:i:s'));
+		$user = $this->db->get(TBL_USERS)->row();
+
+		if (!$user) {
+			$this->session->set_flashdata('msgad', 'Reset link has expired. Please request a new one.');
+			redirect(base_url('Login/forgotpassword'));
+			return;
+		}
+
+		// Update password and clear the token
+		$this->db->where('u_email', $email);
+		$this->db->update(TBL_USERS, array(
+			'u_password'    => md5($newpass),
+			'reset_token'   => NULL,
+			'reset_expires' => NULL
+		));
+
+		if ($this->db->affected_rows() > 0) {
+			$this->session->set_flashdata('msgup', 'Your password has been changed successfully. Please log in.');
+			redirect(LOGIN_URL);
+		} else {
+			$data['semail']   = $email;
+			$data['token']    = $token;
+			$data['greeting'] = $this->get_time_based_greeting('Asia/Kolkata');
+			$data['error']    = 'Password could not be updated. Please try again.';
+			$this->load->view('resetpassword_new', $data);
 		}
 	}
 
