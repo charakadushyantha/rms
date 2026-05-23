@@ -74,8 +74,8 @@ class A_dashboard extends CI_Controller
   public function Arecruiter_view()
   {
     $data['uname'] = $this->session->userdata('username');
-    $this->load->view('Admin_dashboard_view/Arecruiter_new',$data); // Using new modern UI
-    // To use old design: $this->load->view('Admin_dashboard_view/Arecruiter',$data);
+    $this->load->view('Admin_dashboard_view/Arecruiter',$data);
+    // Old design removed — Arecruiter.php is now the current modern UI
   }
 
   public function Aaccount_details_view()
@@ -819,6 +819,100 @@ class A_dashboard extends CI_Controller
       } else {
           echo json_encode(['success' => false, 'message' => 'Interviewer not found']);
       }
+  }
+
+  public function get_all_interviewers()
+  {
+      if (!$this->session->userdata('authenticated')) {
+          echo json_encode(['success' => false, 'message' => 'Not authenticated']);
+          return;
+      }
+
+      // Get all interviewers
+      $this->db->select('u.u_username as username, u.u_email as email, p.pi_phone as phone, p.pi_gender as gender');
+      $this->db->from('users u');
+      $this->db->join('profile_info p', 'u.u_username = p.pi_username', 'left');
+      $this->db->where('u.u_role', 'Interviewer');
+      $this->db->order_by('u.u_username', 'ASC');
+      $interviewers = $this->db->get()->result_array();
+
+      // Get statistics
+      $total = count($interviewers);
+      
+      // Count active interviewers (those who have conducted interviews)
+      $this->db->select('COUNT(DISTINCT ce_interviewer) as count');
+      $this->db->from('calendar_events');
+      $this->db->where('ce_interviewer IS NOT NULL');
+      $result = $this->db->get();
+      $active = $result->row()->count;
+
+      echo json_encode([
+          'success' => true,
+          'data' => $interviewers,
+          'stats' => [
+              'total' => $total,
+              'active' => $active
+          ]
+      ]);
+  }
+
+  public function update_interviewer()
+  {
+      if (!$this->session->userdata('authenticated')) {
+          echo json_encode(['success' => false, 'message' => 'Not authenticated']);
+          return;
+      }
+
+      $username = $this->input->post('username');
+      $email = $this->input->post('email');
+      $password = $this->input->post('password');
+      $phone = $this->input->post('phone');
+      $gender = $this->input->post('gender');
+
+      if (empty($username) || empty($email)) {
+          echo json_encode(['success' => false, 'message' => 'Username and email are required']);
+          return;
+      }
+
+      // Check if email is taken by another user
+      $this->db->where('u_email', $email);
+      $this->db->where('u_username !=', $username);
+      if ($this->db->count_all_results('users') > 0) {
+          echo json_encode(['success' => false, 'message' => 'Email already in use by another account']);
+          return;
+      }
+
+      // Update users table
+      $user_data = array('u_email' => $email);
+      
+      if (!empty($password)) {
+          $user_data['u_password'] = md5($password);
+      }
+
+      $this->db->where('u_username', $username);
+      $this->db->where('u_role', 'Interviewer');
+      $this->db->update('users', $user_data);
+
+      // Update or insert profile_info
+      $this->db->where('pi_username', $username);
+      $existing_profile = $this->db->get('profile_info')->row();
+
+      $profile_data = array(
+          'pi_phone' => $phone,
+          'pi_gender' => $gender
+      );
+
+      if ($existing_profile) {
+          $this->db->where('pi_username', $username);
+          $this->db->update('profile_info', $profile_data);
+      } else {
+          $profile_data['pi_username'] = $username;
+          $profile_data['pi_email'] = $email;
+          $profile_data['pi_role'] = 'Interviewer';
+          $this->db->insert('profile_info', $profile_data);
+      }
+
+      echo json_encode(['success' => true, 'message' => 'Interviewer updated successfully']);
   }
 
   public function generate_report($report_type = 'all_candidates')

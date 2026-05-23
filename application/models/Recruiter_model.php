@@ -16,7 +16,21 @@ class Recruiter_model extends CI_Model {
         $this->db->where('u_role', 'Recruiter');
         $this->db->order_by('u_created_at', 'DESC');
         
-        return $this->db->get('users')->result_array();
+        $recruiters = $this->db->get('users')->result_array();
+        
+        // Normalize status to handle both text and numeric values
+        foreach ($recruiters as &$recruiter) {
+            // Convert text status to numeric for JavaScript compatibility
+            if (isset($recruiter['status'])) {
+                if ($recruiter['status'] === 'Active' || $recruiter['status'] == '1' || $recruiter['status'] == 1) {
+                    $recruiter['status'] = 1;
+                } else {
+                    $recruiter['status'] = 0;
+                }
+            }
+        }
+        
+        return $recruiters;
     }
 
     /**
@@ -72,14 +86,23 @@ class Recruiter_model extends CI_Model {
         $this->db->where('u_role', 'Recruiter');
         $stats['total'] = $this->db->count_all_results('users');
         
-        // Active recruiters
+        // Active recruiters (handle both text 'Active' and numeric 1)
         $this->db->where('u_role', 'Recruiter');
-        $this->db->where('u_status', 1);
+        $this->db->group_start();
+        $this->db->where('u_status', 'Active');
+        $this->db->or_where('u_status', '1');
+        $this->db->or_where('u_status', 1);
+        $this->db->group_end();
         $stats['active'] = $this->db->count_all_results('users');
         
-        // Pending recruiters
+        // Pending recruiters (handle both text 'Pending' and numeric 0)
         $this->db->where('u_role', 'Recruiter');
-        $this->db->where('u_status', 0);
+        $this->db->group_start();
+        $this->db->where('u_status', 'Pending');
+        $this->db->or_where('u_status', '0');
+        $this->db->or_where('u_status', 0);
+        $this->db->or_where('u_status', NULL);
+        $this->db->group_end();
         $stats['pending'] = $this->db->count_all_results('users');
         
         return $stats;

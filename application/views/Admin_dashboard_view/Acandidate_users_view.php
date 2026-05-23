@@ -723,8 +723,6 @@ function deleteCandidateUser(username) {
 }
 JAVASCRIPT;
 
-// Load the footer template
-$this->load->view('templates/admin_footer');
 ?>
 
 <style>
@@ -748,6 +746,7 @@ $this->load->view('templates/admin_footer');
 }
 </style>
 
-<script>
-<?= $custom_script ?>
-</script>
+<?php
+// Load the footer template — it will output $custom_script inside <script> tags
+$this->load->view('templates/admin_footer');
+?>

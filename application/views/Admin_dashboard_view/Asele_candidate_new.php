@@ -8,11 +8,28 @@ $this->load->view('templates/admin_header', $data);
 ?>
 
 <!-- Stats Row -->
-<?php if(!isset($selected_this_month) || ($selected_this_month == 0 && $selected_this_week == 0 && $selected_today == 0)): ?>
-<div class="alert alert-info mb-4">
-    <i class="fas fa-info-circle me-2"></i>
-    <strong>Note:</strong> Time-based statistics require the <code>cd_created_at</code> column. 
-    <a href="<?= base_url('add_created_at_column.php') ?>" class="alert-link">Click here to add it</a> or all stats will show total count.
+<?php 
+// Check if cd_created_at column exists
+$fields = $this->db->list_fields('candidate_details');
+$has_created_at = in_array('cd_created_at', $fields);
+
+if(!$has_created_at): 
+?>
+<div class="alert alert-warning mb-4" style="border-left: 4px solid #f59e0b;">
+    <div class="d-flex align-items-center">
+        <i class="fas fa-exclamation-triangle me-3" style="font-size: 24px; color: #f59e0b;"></i>
+        <div class="flex-grow-1">
+            <strong>Database Update Required:</strong> Time-based statistics require the <code>cd_created_at</code> column.
+            <div class="mt-2">
+                <a href="<?= base_url('database_migration/add_created_at_column') ?>" class="btn btn-sm btn-warning">
+                    <i class="fas fa-database me-1"></i>Add Column Now
+                </a>
+                <a href="<?= base_url('database_migration/check_structure') ?>" class="btn btn-sm btn-outline-secondary ms-2">
+                    <i class="fas fa-search me-1"></i>Check Database
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
 <?php endif; ?>
 
