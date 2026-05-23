@@ -281,9 +281,21 @@ function loadInterviewers() {
                 
                 if (response.data && response.data.length > 0) {
                     response.data.forEach(function(interviewer, index) {
-                        const actions = '<button class=\"btn btn-sm btn-info\" onclick=\"viewInterviewer(' + \"'\" + interviewer.username + \"'\" + ')\" title=\"View\"><i class=\"fas fa-eye\"></i></button> ' +
-                            '<button class=\"btn btn-sm\" onclick=\"editInterviewer(' + \"'\" + interviewer.username + \"'\" + ')\" title=\"Edit\" style=\"background:linear-gradient(135deg,#f59e0b,#f97316);border:none;color:#fff;\"><i class=\"fas fa-edit\"></i></button> ' +
-                            '<button class=\"btn btn-sm btn-danger\" onclick=\"deleteInterviewer(' + \"'\" + interviewer.username + \"'\" + ')\" title=\"Delete\"><i class=\"fas fa-trash\"></i></button>';
+                        let actions = '';
+                        
+                        if (interviewer.status == 1) {
+                            // Active interviewer - show green check, orange edit, red delete, yellow deactivate
+                            actions = '<button class=\"btn btn-sm btn-success\" onclick=\"toggleInterviewerStatus(' + \"'\" + interviewer.username + \"'\" + ', 1)\" title=\"Active\" disabled style=\"opacity:0.6;\"><i class=\"fas fa-check\"></i></button> ' +
+                                '<button class=\"btn btn-sm\" onclick=\"editInterviewer(' + \"'\" + interviewer.username + \"'\" + ')\" title=\"Edit\" style=\"background:#dc3545;border:none;color:#fff;\"><i class=\"fas fa-edit\"></i></button> ' +
+                                '<button class=\"btn btn-sm btn-danger\" onclick=\"deleteInterviewer(' + \"'\" + interviewer.username + \"'\" + ')\" title=\"Delete\"><i class=\"fas fa-trash\"></i></button> ' +
+                                '<button class=\"btn btn-sm btn-warning\" onclick=\"toggleInterviewerStatus(' + \"'\" + interviewer.username + \"'\" + ', 0)\" title=\"Deactivate\"><i class=\"fas fa-ban\"></i></button>';
+                        } else {
+                            // Inactive interviewer - show yellow activate, orange edit, red delete, gray deactivate
+                            actions = '<button class=\"btn btn-sm btn-warning\" onclick=\"toggleInterviewerStatus(' + \"'\" + interviewer.username + \"'\" + ', 1)\" title=\"Activate\"><i class=\"fas fa-check\"></i></button> ' +
+                                '<button class=\"btn btn-sm\" onclick=\"editInterviewer(' + \"'\" + interviewer.username + \"'\" + ')\" title=\"Edit\" style=\"background:#dc3545;border:none;color:#fff;\"><i class=\"fas fa-edit\"></i></button> ' +
+                                '<button class=\"btn btn-sm btn-danger\" onclick=\"deleteInterviewer(' + \"'\" + interviewer.username + \"'\" + ')\" title=\"Delete\"><i class=\"fas fa-trash\"></i></button> ' +
+                                '<button class=\"btn btn-sm btn-secondary\" onclick=\"toggleInterviewerStatus(' + \"'\" + interviewer.username + \"'\" + ', 0)\" title=\"Deactivated\" disabled style=\"opacity:0.6;\"><i class=\"fas fa-ban\"></i></button>';
+                        }
                         
                         interviewersTable.row.add([
                             index + 1,
@@ -440,10 +452,39 @@ function saveEditInterviewer() {
     });
 }
 
+function toggleInterviewerStatus(username, newStatus) {
+    const action = newStatus == 1 ? 'activate' : 'deactivate';
+    const actionText = newStatus == 1 ? 'Activate' : 'Deactivate';
+    
+    showConfirm(
+        actionText + ' Interviewer',
+        'Are you sure you want to ' + action + ' ' + username + '?',
+        function() {
+            $.ajax({
+                url: '" . base_url('A_dashboard/toggle_interviewer_status') . "',
+                type: 'POST',
+                data: { username: username, status: newStatus },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        showToast(response.message, 'success');
+                        loadInterviewers();
+                    } else {
+                        showToast(response.message, 'error');
+                    }
+                },
+                error: function() {
+                    showToast('Failed to update interviewer status', 'error');
+                }
+            });
+        }
+    );
+}
+
 function deleteInterviewer(username) {
     showConfirm(
         'Delete Interviewer',
-        'Are you sure you want to delete ' + username + '? This action cannot be undone.',
+        'Are you sure you want to delete ' + username + '? This action cannot be undone and will remove all associated data.',
         function() {
             $.ajax({
                 url: '" . base_url('A_dashboard/delete_interviewer') . "',
@@ -504,6 +545,7 @@ window.saveInterviewer = saveInterviewer;
 window.viewInterviewer = viewInterviewer;
 window.editInterviewer = editInterviewer;
 window.saveEditInterviewer = saveEditInterviewer;
+window.toggleInterviewerStatus = toggleInterviewerStatus;
 window.deleteInterviewer = deleteInterviewer;
 
 })(); // End IIFE

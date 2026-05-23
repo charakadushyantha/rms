@@ -781,6 +781,131 @@ class A_dashboard extends CI_Controller
       }
   }
 
+  public function get_all_candidate_users()
+  {
+      if (!$this->session->userdata('authenticated')) {
+          echo json_encode(['success' => false, 'message' => 'Not authenticated']);
+          return;
+      }
+
+      // Get all candidate users - use MAX to get one record per username
+      $this->db->select('u.u_username as username, u.u_email as email, u.u_status as user_status, MAX(cd.cd_name) as name, MAX(cd.cd_phone) as phone, MAX(cd.cd_status) as application_status, MAX(cd.cd_rec_username) as recruiter, MAX(cd.cd_job_title) as job_title');
+      $this->db->from('users u');
+      $this->db->join('candidate_details cd', 'u.u_email = cd.cd_email', 'left');
+      $this->db->where('u.u_role', 'Candidate');
+      $this->db->group_by('u.u_username, u.u_email, u.u_status');
+      $this->db->order_by('u.u_username', 'ASC');
+      $candidates = $this->db->get()->result_array();
+
+      // Normalize status values (handle both text and numeric)
+      foreach ($candidates as &$candidate) {
+          if ($candidate['user_status'] === 'Active' || $candidate['user_status'] == 1) {
+              $candidate['user_status'] = 1;
+          } else {
+              $candidate['user_status'] = 0;
+          }
+          
+          // Set default application status if null
+          if (empty($candidate['application_status'])) {
+              $candidate['application_status'] = 'No Application';
+          }
+      }
+
+      // Get statistics
+      $total = count($candidates);
+      $selected = 0;
+      $in_process = 0;
+      $no_application = 0;
+      
+      foreach ($candidates as $candidate) {
+          $status = $candidate['application_status'];
+          if ($status === 'Selected') {
+              $selected++;
+          } elseif ($status === 'In Process') {
+              $in_process++;
+          } elseif ($status === 'No Application' || empty($status)) {
+              $no_application++;
+          }
+      }
+
+      echo json_encode([
+          'success' => true,
+          'data' => $candidates,
+          'stats' => [
+              'total' => $total,
+              'selected' => $selected,
+              'in_process' => $in_process,
+              'no_application' => $no_application
+          ]
+      ]);
+  }
+
+  public function get_recruiters_list()
+  {
+      if (!$this->session->userdata('authenticated')) {
+          echo json_encode(['success' => false, 'message' => 'Not authenticated']);
+          return;
+      }
+
+      $this->db->select('u_username as username');
+      $this->db->from('users');
+      $this->db->where('u_role', 'Recruiter');
+      $this->db->order_by('u_username', 'ASC');
+      $recruiters = $this->db->get()->result_array();
+
+      echo json_encode(['success' => true, 'data' => $recruiters]);
+  }
+
+  public function get_job_titles_list()
+  {
+      if (!$this->session->userdata('authenticated')) {
+          echo json_encode(['success' => false, 'message' => 'Not authenticated']);
+          return;
+      }
+
+      $this->db->distinct();
+      $this->db->select('cd_job_title');
+      $this->db->from('candidate_details');
+      $this->db->where('cd_job_title IS NOT NULL');
+      $this->db->where('cd_job_title !=', '');
+      $this->db->order_by('cd_job_title', 'ASC');
+      $result = $this->db->get()->result_array();
+
+      $job_titles = array_column($result, 'cd_job_title');
+
+      echo json_encode(['success' => true, 'data' => $job_titles]);
+  }
+
+  public function toggle_candidate_status()
+  {
+      if (!$this->session->userdata('authenticated')) {
+          echo json_encode(['success' => false, 'message' => 'Not authenticated']);
+          return;
+      }
+
+      $username = $this->input->post('username');
+      $new_status = $this->input->post('status'); // 1 for Active, 0 for Inactive
+
+      if (empty($username)) {
+          echo json_encode(['success' => false, 'message' => 'Username is required']);
+          return;
+      }
+
+      // Convert numeric status to text for database
+      $status_text = ($new_status == 1) ? 'Active' : 'Pending';
+
+      $this->db->where('u_username', $username);
+      $this->db->where('u_role', 'Candidate');
+      $this->db->update('users', array('u_status' => $status_text));
+
+      if ($this->db->affected_rows() > 0) {
+          $action = ($new_status == 1) ? 'activated' : 'deactivated';
+          echo json_encode(['success' => true, 'message' => 'Candidate ' . $action . ' successfully']);
+      } else {
+          echo json_encode(['success' => false, 'message' => 'Failed to update candidate status']);
+      }
+  }
+
   public function get_interviewer_details()
   {
       if (!$this->session->userdata('authenticated')) {
@@ -828,13 +953,24 @@ class A_dashboard extends CI_Controller
           return;
       }
 
-      // Get all interviewers
-      $this->db->select('u.u_username as username, u.u_email as email, p.pi_phone as phone, p.pi_gender as gender');
+      // Get all interviewers with DISTINCT to avoid duplicates
+      $this->db->distinct();
+      $this->db->select('u.u_username as username, u.u_email as email, u.u_status as status, p.pi_phone as phone, p.pi_gender as gender');
       $this->db->from('users u');
       $this->db->join('profile_info p', 'u.u_username = p.pi_username', 'left');
       $this->db->where('u.u_role', 'Interviewer');
+      $this->db->group_by('u.u_username');
       $this->db->order_by('u.u_username', 'ASC');
       $interviewers = $this->db->get()->result_array();
+
+      // Normalize status values (handle both text and numeric)
+      foreach ($interviewers as &$interviewer) {
+          if ($interviewer['status'] === 'Active' || $interviewer['status'] == 1) {
+              $interviewer['status'] = 1;
+          } else {
+              $interviewer['status'] = 0;
+          }
+      }
 
       // Get statistics
       $total = count($interviewers);
@@ -913,6 +1049,36 @@ class A_dashboard extends CI_Controller
       }
 
       echo json_encode(['success' => true, 'message' => 'Interviewer updated successfully']);
+  }
+
+  public function toggle_interviewer_status()
+  {
+      if (!$this->session->userdata('authenticated')) {
+          echo json_encode(['success' => false, 'message' => 'Not authenticated']);
+          return;
+      }
+
+      $username = $this->input->post('username');
+      $new_status = $this->input->post('status'); // 1 for Active, 0 for Inactive
+
+      if (empty($username)) {
+          echo json_encode(['success' => false, 'message' => 'Username is required']);
+          return;
+      }
+
+      // Convert numeric status to text for database
+      $status_text = ($new_status == 1) ? 'Active' : 'Pending';
+
+      $this->db->where('u_username', $username);
+      $this->db->where('u_role', 'Interviewer');
+      $this->db->update('users', array('u_status' => $status_text));
+
+      if ($this->db->affected_rows() > 0) {
+          $action = ($new_status == 1) ? 'activated' : 'deactivated';
+          echo json_encode(['success' => true, 'message' => 'Interviewer ' . $action . ' successfully']);
+      } else {
+          echo json_encode(['success' => false, 'message' => 'Failed to update interviewer status']);
+      }
   }
 
   public function generate_report($report_type = 'all_candidates')
