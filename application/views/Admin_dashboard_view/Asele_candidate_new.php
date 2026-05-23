@@ -577,10 +577,8 @@ function exportFilteredData() {
 
 JAVASCRIPT;
 
-// Load the footer template
-$this->load->view('templates/admin_footer');
-?>
+$data['custom_script'] = $custom_script;
 
-<script>
-<?= $custom_script ?>
-</script>
+// Load the footer template
+$this->load->view('templates/admin_footer', $data);
+?>

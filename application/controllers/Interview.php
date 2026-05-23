@@ -222,6 +222,90 @@ class Interview extends CI_Controller {
         $data['uname'] = $this->session->userdata('username');
         $data['flows'] = $this->Interview_flow_model->get_active();
         
+        // UNIFIED APPROACH: Combine candidates from both sources
+        $this->load->model('Candidate_model');
+        
+        // Get candidates from candidate_details with user account status using raw query
+        $sql = "SELECT 
+                    cd.cd_id, 
+                    cd.cd_name, 
+                    cd.cd_email, 
+                    cd.cd_phone, 
+                    cd.cd_job_title, 
+                    cd.cd_status, 
+                    u.u_id, 
+                    u.u_status as user_status, 
+                    u.u_role,
+                    CASE WHEN u.u_id IS NOT NULL THEN 1 ELSE 0 END as has_account
+                FROM candidate_details cd
+                LEFT JOIN users u ON cd.cd_email = u.u_email AND u.u_role = 'candidate'
+                WHERE cd.cd_email IS NOT NULL 
+                AND cd.cd_email != ''
+                GROUP BY cd.cd_email
+                ORDER BY cd.cd_name ASC";
+        
+        $query = $this->db->query($sql);
+        $candidates_from_details = $query->result_array();
+        
+        // Get registered candidate users NOT in candidate_details
+        $sql2 = "SELECT 
+                    u.u_id, 
+                    u.u_username as cd_name, 
+                    u.u_email as cd_email, 
+                    '' as cd_phone, 
+                    '' as cd_job_title, 
+                    u.u_status as cd_status, 
+                    u.u_id, 
+                    u.u_status as user_status, 
+                    u.u_role, 
+                    1 as has_account
+                FROM users u
+                WHERE u.u_role = 'candidate'
+                AND u.u_email NOT IN (
+                    SELECT cd_email 
+                    FROM candidate_details 
+                    WHERE cd_email IS NOT NULL 
+                    AND cd_email != ''
+                )
+                ORDER BY u.u_username ASC";
+        
+        $query2 = $this->db->query($sql2);
+        $candidates_from_users = $query2->result_array();
+        
+        // Combine both sources
+        $data['candidates'] = array_merge($candidates_from_details, $candidates_from_users);
+        
+        // Add source indicator and ensure has_account is set for all
+        foreach ($data['candidates'] as &$candidate) {
+            if (isset($candidate['cd_id']) && $candidate['cd_id']) {
+                $candidate['source'] = 'candidate_details';
+            } else {
+                $candidate['source'] = 'users_only';
+            }
+            // Ensure has_account is always set
+            if (!isset($candidate['has_account'])) {
+                $candidate['has_account'] = 0;
+            }
+        }
+        
+        // Get interviewers list
+        $sql_interviewers = "SELECT u_id, u_username, u_email 
+                            FROM users 
+                            WHERE u_role = 'interviewer' 
+                            AND (u_status = 'Active' OR u_status = '1')
+                            ORDER BY u_username ASC";
+        $query_interviewers = $this->db->query($sql_interviewers);
+        $data['interviewers'] = $query_interviewers->result_array();
+        
+        // Get job positions
+        $sql_positions = "SELECT DISTINCT cd_job_title 
+                         FROM candidate_details 
+                         WHERE cd_job_title IS NOT NULL 
+                         AND cd_job_title != '' 
+                         ORDER BY cd_job_title ASC";
+        $query_positions = $this->db->query($sql_positions);
+        $data['job_positions'] = $query_positions->result_array();
+        
         if ($this->input->post()) {
             $token = bin2hex(random_bytes(32));
             
@@ -230,6 +314,37 @@ class Interview extends CI_Controller {
                 'candidate_name' => $this->input->post('candidate_name'),
                 'candidate_email' => $this->input->post('candidate_email'),
                 'candidate_phone' => $this->input->post('candidate_phone'),
+                
+                // Interview Schedule
+                'interview_date' => $this->input->post('interview_date'),
+                'interview_start_time' => $this->input->post('interview_start_time'),
+                'interview_end_time' => $this->input->post('interview_end_time'),
+                'interview_duration' => $this->input->post('interview_duration') ?: 60,
+                'interview_round' => $this->input->post('interview_round') ?: 'Round 1',
+                
+                // Interview Type & Details
+                'interview_type' => $this->input->post('interview_type') ?: 'online',
+                'online_platform' => $this->input->post('online_platform'),
+                'meeting_link' => $this->input->post('meeting_link'),
+                'meeting_id' => $this->input->post('meeting_id'),
+                'meeting_password' => $this->input->post('meeting_password'),
+                'venue_location' => $this->input->post('venue_location'),
+                'venue_room' => $this->input->post('venue_room'),
+                'phone_number' => $this->input->post('phone_number'),
+                
+                // Assignment
+                'assigned_interviewer' => $this->input->post('assigned_interviewer'),
+                'job_position' => $this->input->post('job_position'),
+                
+                // Notes
+                'interview_notes' => $this->input->post('interview_notes'),
+                'internal_notes' => $this->input->post('internal_notes'),
+                
+                // Notifications
+                'send_whatsapp' => $this->input->post('send_whatsapp') ? 1 : 0,
+                'timezone' => 'Asia/Colombo',
+                
+                // Existing fields
                 'token' => $token,
                 'status' => 'pending',
                 'expires_at' => date('Y-m-d H:i:s', strtotime('+7 days')),
@@ -246,16 +361,16 @@ class Interview extends CI_Controller {
                     $this->send_interview_email($interview_data, $interview_link);
                 }
                 
-                $this->session->set_flashdata('success', 'Interview created successfully!');
+                $this->session->set_flashdata('success', 'Interview scheduled successfully!');
                 $this->session->set_flashdata('interview_link', $interview_link);
                 redirect('interview/view/' . $interview_id);
             } else {
-                $this->session->set_flashdata('error', 'Failed to create interview.');
+                $this->session->set_flashdata('error', 'Failed to schedule interview.');
             }
         }
         
         $this->load->view('templates/admin_header', $data);
-        $this->load->view('interview/create_interview', $data);
+        $this->load->view('interview/create_interview_enhanced', $data);
         $this->load->view('templates/admin_footer');
     }
 
