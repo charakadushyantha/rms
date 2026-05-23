@@ -467,8 +467,10 @@ class Login extends CI_Controller {
 		));
 
 		if ($this->db->affected_rows() > 0) {
-			$this->session->set_flashdata('msgup', 'Your password has been changed successfully. Please log in.');
-			redirect(LOGIN_URL);
+			$data['greeting'] = $this->get_time_based_greeting('Asia/Kolkata');
+			$data['success']  = 'Your password has been changed successfully.';
+			$data['login_url'] = LOGIN_URL;
+			$this->load->view('resetpassword_new', $data);
 		} else {
 			$data['semail']   = $email;
 			$data['token']    = $token;
