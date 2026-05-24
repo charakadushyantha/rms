@@ -31,12 +31,19 @@ $this->load->view('templates/candidate_header', $data);
     background: #f9fafb;
     border-radius: 8px;
     margin-bottom: 1rem;
+    transition: all 0.3s;
+}
+
+.document-item:hover {
+    background: #e5e7eb;
+    transform: translateX(5px);
 }
 
 .document-info {
     display: flex;
     align-items: center;
     gap: 1rem;
+    flex: 1;
 }
 
 .document-icon {
@@ -49,6 +56,21 @@ $this->load->view('templates/candidate_header', $data);
     justify-content: center;
     color: white;
     font-size: 1.5rem;
+}
+
+.document-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.document-actions .btn {
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.document-actions .btn:hover {
+    transform: scale(1.1);
 }
 
 .btn-upload {
@@ -94,7 +116,15 @@ $this->load->view('templates/candidate_header', $data);
                 <div class="document-item">
                     <div class="document-info">
                         <div class="document-icon">
-                            <i class="fas fa-file-pdf"></i>
+                            <?php
+                            $ext = strtolower(pathinfo($doc['file_name'], PATHINFO_EXTENSION));
+                            $icon_class = 'fa-file';
+                            if ($ext == 'pdf') $icon_class = 'fa-file-pdf';
+                            elseif (in_array($ext, ['doc', 'docx'])) $icon_class = 'fa-file-word';
+                            elseif (in_array($ext, ['jpg', 'jpeg', 'png'])) $icon_class = 'fa-file-image';
+                            elseif ($ext == 'txt') $icon_class = 'fa-file-alt';
+                            ?>
+                            <i class="fas <?php echo $icon_class; ?>"></i>
                         </div>
                         <div>
                             <div class="fw-bold"><?php echo htmlspecialchars($doc['file_name']); ?></div>
@@ -104,9 +134,19 @@ $this->load->view('templates/candidate_header', $data);
                             </small>
                         </div>
                     </div>
-                    <button class="btn btn-sm btn-danger" onclick="deleteDocument(<?php echo $doc['id']; ?>)">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                    <div class="document-actions">
+                        <a href="<?php echo base_url('C_dashboard/download_document/' . $doc['id']); ?>" 
+                           class="btn btn-sm btn-primary" title="Download">
+                            <i class="fas fa-download"></i>
+                        </a>
+                        <a href="<?php echo base_url('C_dashboard/view_document/' . $doc['id']); ?>" 
+                           class="btn btn-sm btn-info" target="_blank" title="View">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <button class="btn btn-sm btn-danger" onclick="deleteDocument(<?php echo $doc['id']; ?>)" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
                 </div>
             <?php endforeach; ?>
         <?php else: ?>
@@ -119,19 +159,46 @@ $this->load->view('templates/candidate_header', $data);
 $custom_script = "
 document.getElementById('uploadForm').addEventListener('submit', function(e) {
     e.preventDefault();
+    
+    // Show loading
+    Swal.fire({
+        title: 'Uploading...',
+        text: 'Please wait',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+    
     const formData = new FormData(this);
     
     fetch('" . base_url('C_dashboard/upload_document') . "', {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.text().then(text => {
+            console.log('Response text:', text);
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                console.error('JSON parse error:', e);
+                throw new Error('Invalid response from server: ' + text);
+            }
+        });
+    })
     .then(data => {
+        console.log('Parsed data:', data);
         if (data.success) {
             Swal.fire('Success!', data.message, 'success').then(() => location.reload());
         } else {
-            Swal.fire('Error', data.message, 'error');
+            Swal.fire('Error', data.message || 'Upload failed', 'error');
         }
+    })
+    .catch(error => {
+        console.error('Upload error:', error);
+        Swal.fire('Error', error.message || 'Failed to upload document', 'error');
     });
 });
 

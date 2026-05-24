@@ -1,0 +1,140 @@
+╔═══════════════════════════════════════════════════════════════╗
+║                                                               ║
+║     DOCUMENT UPLOAD/VIEW/DOWNLOAD - QUICK TEST GUIDE         ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
+
+┌───────────────────────────────────────────────────────────────┐
+│ STEP 1: CLEAR CACHE                                           │
+└───────────────────────────────────────────────────────────────┘
+Press: Ctrl + Shift + R (or Ctrl + F5)
+
+┌───────────────────────────────────────────────────────────────┐
+│ STEP 2: OPEN DOCUMENTS PAGE                                   │
+└───────────────────────────────────────────────────────────────┘
+URL: http://localhost/rms/C_dashboard/documents
+
+Expected: Page loads without errors ✅
+
+┌───────────────────────────────────────────────────────────────┐
+│ STEP 3: UPLOAD A FILE                                         │
+└───────────────────────────────────────────────────────────────┘
+1. Select document type: "Resume"
+2. Choose a PDF file
+3. Click "Upload Document"
+
+Expected: Success message + page reloads ✅
+
+┌───────────────────────────────────────────────────────────────┐
+│ STEP 4: VIEW THE DOCUMENT                                     │
+└───────────────────────────────────────────────────────────────┘
+Click the BLUE EYE ICON (👁️)
+
+Expected: Opens in new tab ✅
+
+┌───────────────────────────────────────────────────────────────┐
+│ STEP 5: DOWNLOAD THE DOCUMENT                                 │
+└───────────────────────────────────────────────────────────────┘
+Click the BLUE DOWNLOAD ICON (⬇️)
+
+Expected: File downloads to your computer ✅
+
+┌───────────────────────────────────────────────────────────────┐
+│ STEP 6: DELETE THE DOCUMENT                                   │
+└───────────────────────────────────────────────────────────────┘
+Click the RED TRASH ICON (🗑️)
+Click "Yes, delete it" in confirmation
+
+Expected: Document removed from list ✅
+
+╔═══════════════════════════════════════════════════════════════╗
+║                      ISSUES FIXED                             ║
+╚═══════════════════════════════════════════════════════════════╝
+
+✅ Cannot redeclare error - FIXED
+✅ Unknown column error - FIXED
+✅ File type not allowed - FIXED
+✅ View functionality - ADDED
+✅ Download functionality - ADDED
+
+╔═══════════════════════════════════════════════════════════════╗
+║                   ALLOWED FILE TYPES                          ║
+╚═══════════════════════════════════════════════════════════════╝
+
+✅ PDF (.pdf)
+✅ Word (.doc, .docx)
+✅ Images (.jpg, .jpeg, .png)
+✅ Text (.txt)
+
+❌ Other types will be rejected
+
+╔═══════════════════════════════════════════════════════════════╗
+║                    BUTTON REFERENCE                           ║
+╚═══════════════════════════════════════════════════════════════╝
+
+👁️  VIEW BUTTON (Blue Eye Icon)
+   → Opens document in new browser tab
+   → PDF and images display inline
+   → Word docs may download
+
+⬇️  DOWNLOAD BUTTON (Blue Download Icon)
+   → Forces file download
+   → Saves to Downloads folder
+   → Works for all file types
+
+🗑️  DELETE BUTTON (Red Trash Icon)
+   → Shows confirmation modal
+   → Deletes file from server
+   → Removes from database
+
+╔═══════════════════════════════════════════════════════════════╗
+║                  TROUBLESHOOTING                              ║
+╚═══════════════════════════════════════════════════════════════╝
+
+Problem: Page shows error
+Solution: Clear cache (Ctrl + Shift + R)
+
+Problem: Upload fails
+Solution: Check file type is allowed
+
+Problem: View/Download doesn't work
+Solution: Check file exists in uploads/candidate_documents/
+
+Problem: Still having issues
+Solution: Check browser console (F12) for errors
+
+╔═══════════════════════════════════════════════════════════════╗
+║                    FILES MODIFIED                             ║
+╚═══════════════════════════════════════════════════════════════╝
+
+📄 application/controllers/C_dashboard.php
+   - Fixed upload_document()
+   - Added view_document()
+   - Added download_document()
+   - Removed duplicate delete_document()
+
+📄 application/views/Candidate_dashboard_view/documents.php
+   - Added view button
+   - Added download button
+   - Added file type icons
+
+╔═══════════════════════════════════════════════════════════════╗
+║                      STATUS                                   ║
+╚═══════════════════════════════════════════════════════════════╝
+
+✅ All issues fixed
+✅ All functionality added
+✅ Ready for testing
+✅ Ready for viva demonstration
+
+╔═══════════════════════════════════════════════════════════════╗
+║              NEED MORE DETAILS?                               ║
+╚═══════════════════════════════════════════════════════════════╝
+
+📖 Read: DOCUMENT_UPLOAD_FIXED.md
+📋 Read: TESTING_CHECKLIST.txt
+📝 Read: FIXES_SUMMARY.md
+
+═══════════════════════════════════════════════════════════════
+                    READY TO TEST! 🚀
+═══════════════════════════════════════════════════════════════

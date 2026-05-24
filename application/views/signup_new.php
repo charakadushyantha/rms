@@ -466,9 +466,10 @@
         <span>or</span>
       </div>
 
-      <button class="btn-google" onclick="alert('Google signup not configured yet')">
+      <a href="<?php echo base_url('Login/google_login'); ?>" class="btn-google">
         <i class="fab fa-google"></i>
         Sign up with Google
+      </a>
       </button>
 
       <div class="login-link">

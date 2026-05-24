@@ -1,0 +1,194 @@
+═══════════════════════════════════════════════════════════════
+  DOCUMENT UPLOAD/VIEW/DOWNLOAD - TESTING CHECKLIST
+═══════════════════════════════════════════════════════════════
+
+📋 PRE-TESTING STEPS
+═══════════════════════════════════════════════════════════════
+☐ Clear browser cache (Ctrl + Shift + R)
+☐ Ensure Apache and MySQL are running in XAMPP
+☐ Login to system as Candidate user
+
+═══════════════════════════════════════════════════════════════
+🧪 TEST 1: PAGE LOADS WITHOUT ERRORS
+═══════════════════════════════════════════════════════════════
+URL: http://localhost/rms/C_dashboard/documents
+
+Expected Result:
+☐ Page loads successfully
+☐ No "Cannot redeclare" error
+☐ No "Unknown column" error
+☐ Upload form is visible
+☐ Document list is visible (may be empty)
+
+═══════════════════════════════════════════════════════════════
+🧪 TEST 2: UPLOAD PDF FILE
+═══════════════════════════════════════════════════════════════
+Steps:
+1. Select "Resume" from document type dropdown
+2. Choose a PDF file from your computer
+3. Click "Upload Document" button
+
+Expected Result:
+☐ Shows "Uploading..." loading message
+☐ Shows "Success!" message
+☐ Page reloads automatically
+☐ New document appears in the list
+☐ Document shows PDF icon (red)
+
+═══════════════════════════════════════════════════════════════
+🧪 TEST 3: UPLOAD WORD FILE
+═══════════════════════════════════════════════════════════════
+Steps:
+1. Select "Cover Letter" from document type dropdown
+2. Choose a DOC or DOCX file
+3. Click "Upload Document" button
+
+Expected Result:
+☐ Upload succeeds
+☐ Document shows Word icon (blue)
+
+═══════════════════════════════════════════════════════════════
+🧪 TEST 4: UPLOAD IMAGE FILE
+═══════════════════════════════════════════════════════════════
+Steps:
+1. Select "Certificate" from document type dropdown
+2. Choose a JPG or PNG file
+3. Click "Upload Document" button
+
+Expected Result:
+☐ Upload succeeds
+☐ Document shows image icon
+
+═══════════════════════════════════════════════════════════════
+🧪 TEST 5: VIEW DOCUMENT (EYE ICON)
+═══════════════════════════════════════════════════════════════
+Steps:
+1. Find any uploaded document in the list
+2. Click the blue EYE icon button
+
+Expected Result:
+☐ Opens document in NEW browser tab
+☐ PDF files display inline in browser
+☐ Images display inline in browser
+☐ Word files may download (browser limitation)
+
+═══════════════════════════════════════════════════════════════
+🧪 TEST 6: DOWNLOAD DOCUMENT (DOWNLOAD ICON)
+═══════════════════════════════════════════════════════════════
+Steps:
+1. Find any uploaded document in the list
+2. Click the blue DOWNLOAD icon button
+
+Expected Result:
+☐ File downloads to your Downloads folder
+☐ Filename matches the one shown in the list
+☐ File opens correctly when you open it
+
+═══════════════════════════════════════════════════════════════
+🧪 TEST 7: DELETE DOCUMENT (TRASH ICON)
+═══════════════════════════════════════════════════════════════
+Steps:
+1. Find any uploaded document in the list
+2. Click the red TRASH icon button
+3. Confirmation modal appears
+4. Click "Yes, delete it"
+
+Expected Result:
+☐ Shows confirmation modal
+☐ Shows "Deleted!" success message
+☐ Page reloads automatically
+☐ Document is removed from the list
+☐ File is deleted from server
+
+═══════════════════════════════════════════════════════════════
+🧪 TEST 8: INVALID FILE TYPE
+═══════════════════════════════════════════════════════════════
+Steps:
+1. Try to upload an EXE, ZIP, or other non-allowed file type
+
+Expected Result:
+☐ Shows error message
+☐ Says "Invalid file type"
+☐ Lists allowed file types
+☐ File is NOT uploaded
+
+═══════════════════════════════════════════════════════════════
+🧪 TEST 9: ACCESS CONTROL (OPTIONAL)
+═══════════════════════════════════════════════════════════════
+Steps:
+1. Login as Candidate A, upload a document
+2. Logout, login as Candidate B
+3. Go to documents page
+
+Expected Result:
+☐ Candidate B cannot see Candidate A's documents
+☐ Each candidate sees only their own documents
+
+Steps:
+1. Login as Admin/Recruiter/Interviewer
+2. Go to documents page (if accessible)
+
+Expected Result:
+☐ Admin/Recruiter/Interviewer can see all documents
+☐ Can view/download any candidate's documents
+
+═══════════════════════════════════════════════════════════════
+🧪 TEST 10: MULTIPLE UPLOADS
+═══════════════════════════════════════════════════════════════
+Steps:
+1. Upload 3-5 different documents
+2. Verify all appear in the list
+3. Test view/download on each
+
+Expected Result:
+☐ All documents upload successfully
+☐ All documents display in the list
+☐ All documents can be viewed
+☐ All documents can be downloaded
+☐ All documents can be deleted
+
+═══════════════════════════════════════════════════════════════
+✅ ALL TESTS PASSED?
+═══════════════════════════════════════════════════════════════
+
+If YES:
+✅ Document upload/view/download is fully functional
+✅ Ready for viva demonstration
+✅ Move to next feature
+
+If NO:
+❌ Note which test failed
+❌ Check browser console (F12) for errors
+❌ Check PHP error logs
+❌ Report the specific error message
+
+═══════════════════════════════════════════════════════════════
+📞 TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════
+
+Problem: Page shows "Cannot redeclare" error
+Solution: Clear browser cache, restart Apache
+
+Problem: Upload fails with "Unknown column" error
+Solution: Verify database has correct columns (see DOCUMENT_UPLOAD_FIXED.md)
+
+Problem: View button doesn't work
+Solution: Check if file exists in uploads/candidate_documents/
+
+Problem: Download button doesn't work
+Solution: Check file permissions on uploads folder
+
+Problem: Delete button doesn't work
+Solution: Check browser console for JavaScript errors
+
+═══════════════════════════════════════════════════════════════
+📁 FILES TO CHECK IF ISSUES OCCUR
+═══════════════════════════════════════════════════════════════
+
+Controller: application/controllers/C_dashboard.php
+View: application/views/Candidate_dashboard_view/documents.php
+Model: application/models/Candidate_model.php
+Upload Directory: uploads/candidate_documents/
+Error Logs: xampp/apache/logs/error.log
+
+═══════════════════════════════════════════════════════════════

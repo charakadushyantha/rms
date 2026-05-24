@@ -143,19 +143,36 @@
       position: relative;
     }
 
-    .input-wrapper i {
+    .input-wrapper i.field-icon-left {
       position: absolute;
       left: 16px;
       top: 50%;
       transform: translateY(-50%);
       color: #999;
       font-size: 16px;
+      pointer-events: none;
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #999;
+      font-size: 15px;
+      cursor: pointer;
+      padding: 4px;
+      transition: color 0.2s;
+    }
+
+    .toggle-password:hover {
+      color: #667eea;
     }
 
     input[type="text"],
     input[type="password"] {
       width: 100%;
-      padding: 14px 16px 14px 45px;
+      padding: 14px 44px 14px 45px;
       border: 2px solid #e0e0e0;
       border-radius: 10px;
       font-size: 15px;
@@ -347,17 +364,16 @@
       <p class="subtitle">Please enter your credentials to continue</p>
 
       <?php
-        if($this->session->flashdata('msgad')) {
-          echo '<div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i>'.$this->session->flashdata('msgad').'</div>';
-        }
-        if($this->session->flashdata('msgup')) {
-          echo '<div class="alert alert-info"><i class="fas fa-info-circle"></i>'.$this->session->flashdata('msgup').'</div>';
-        }
-        if($this->session->flashdata('msgpw')) {
-          echo '<div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i>'.$this->session->flashdata('msgpw').'</div>';
-        }
+        // Show only ONE flash message — most recent action takes priority
         if($this->session->flashdata('msgupw')) {
+          // Invalid username/password
           echo '<div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i>'.$this->session->flashdata('msgupw').'</div>';
+        } elseif($this->session->flashdata('msgpw')) {
+          // Wrong password
+          echo '<div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i>'.$this->session->flashdata('msgpw').'</div>';
+        } elseif($this->session->flashdata('msgad')) {
+          // Google/account error
+          echo '<div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i>'.$this->session->flashdata('msgad').'</div>';
         }
       ?>
 
@@ -365,7 +381,7 @@
         <div class="form-group">
           <label for="username">Username</label>
           <div class="input-wrapper">
-            <i class="fas fa-user"></i>
+            <i class="fas fa-user field-icon-left"></i>
             <input type="text" name="username" id="username" placeholder="Enter your username" required>
           </div>
         </div>
@@ -373,8 +389,9 @@
         <div class="form-group">
           <label for="password">Password</label>
           <div class="input-wrapper">
-            <i class="fas fa-lock"></i>
+            <i class="fas fa-lock field-icon-left"></i>
             <input type="password" name="userpass" id="password" placeholder="Enter your password" required>
+            <i class="fas fa-eye toggle-password" id="togglePassword"></i>
           </div>
         </div>
 
@@ -442,5 +459,21 @@
       </ul>
     </div>
   </div>
+
+<script>
+  document.getElementById('togglePassword').addEventListener('click', function() {
+    var pwd = document.getElementById('password');
+    var icon = this;
+    if (pwd.type === 'password') {
+      pwd.type = 'text';
+      icon.classList.remove('fa-eye');
+      icon.classList.add('fa-eye-slash');
+    } else {
+      pwd.type = 'password';
+      icon.classList.remove('fa-eye-slash');
+      icon.classList.add('fa-eye');
+    }
+  });
+</script>
 </body>
 </html>

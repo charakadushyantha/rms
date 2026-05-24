@@ -66,16 +66,64 @@ class A_dashboard extends CI_Controller
   public function Acalendar_view()
   {
     $data['uname'] = $this->session->userdata('username');
-    $this->load->view('Admin_dashboard_view/Acalendar_modern',$data); // Using modern compact UI
-    // To use new design: $this->load->view('Admin_dashboard_view/Acalendar_new',$data);
-    // To use old design: $this->load->view('Admin_dashboard_view/Acalendar',$data);
+    
+    // Get all interviews from calendar_events table
+    $this->db->select('ce.*, cd.cd_name, cd.cd_email, cd.cd_phone, cd.cd_job_title');
+    $this->db->from('calendar_events ce');
+    $this->db->join('candidate_details cd', 'ce.ce_can_name = cd.cd_name', 'left');
+    $this->db->order_by('ce.ce_start_date', 'ASC');
+    $data['interviews'] = $this->db->get()->result();
+    
+    // Get statistics
+    $today = date('Y-m-d');
+    $week_start = date('Y-m-d', strtotime('monday this week'));
+    $week_end = date('Y-m-d', strtotime('sunday this week'));
+    $month_start = date('Y-m-01');
+    $month_end = date('Y-m-t');
+    
+    // Today's interviews
+    $this->db->where('DATE(ce_start_date)', $today);
+    $data['today_count'] = $this->db->count_all_results('calendar_events');
+    
+    // This week's interviews
+    $this->db->where('DATE(ce_start_date) >=', $week_start);
+    $this->db->where('DATE(ce_start_date) <=', $week_end);
+    $data['week_count'] = $this->db->count_all_results('calendar_events');
+    
+    // This month's interviews
+    $this->db->where('DATE(ce_start_date) >=', $month_start);
+    $this->db->where('DATE(ce_start_date) <=', $month_end);
+    $data['month_count'] = $this->db->count_all_results('calendar_events');
+    
+    // Pending interviews (future)
+    $this->db->where('ce_start_date >', date('Y-m-d H:i:s'));
+    $data['pending_count'] = $this->db->count_all_results('calendar_events');
+    
+    // Get today's upcoming interviews
+    $this->db->select('ce.*, cd.cd_name, cd.cd_job_title');
+    $this->db->from('calendar_events ce');
+    $this->db->join('candidate_details cd', 'ce.ce_can_name = cd.cd_name', 'left');
+    $this->db->where('DATE(ce.ce_start_date)', $today);
+    $this->db->where('ce.ce_start_date >', date('Y-m-d H:i:s'));
+    $this->db->order_by('ce.ce_start_date', 'ASC');
+    $this->db->limit(5);
+    $data['today_interviews'] = $this->db->get()->result();
+    
+    // Get interviewers list for dropdown
+    $this->db->distinct();
+    $this->db->select('ce_interviewer');
+    $this->db->where('ce_interviewer IS NOT NULL');
+    $this->db->where('ce_interviewer !=', '');
+    $data['interviewers'] = $this->db->get('calendar_events')->result();
+    
+    $this->load->view('Admin_dashboard_view/Acalendar_revamped',$data);
   }
 
   public function Arecruiter_view()
   {
     $data['uname'] = $this->session->userdata('username');
-    $this->load->view('Admin_dashboard_view/Arecruiter_new',$data); // Using new modern UI
-    // To use old design: $this->load->view('Admin_dashboard_view/Arecruiter',$data);
+    $this->load->view('Admin_dashboard_view/Arecruiter',$data);
+    // Old design removed — Arecruiter.php is now the current modern UI
   }
 
   public function Aaccount_details_view()
@@ -191,7 +239,267 @@ class A_dashboard extends CI_Controller
     $data['total_recruiters'] = $this->db->where('u_role', 'Recruiter')->count_all_results('users');
     $data['total_interviewers'] = $this->db->where('u_role', 'Interviewer')->count_all_results('users');
     
+    // Calculate average time to hire (using interview dates as proxy)
+    // Since cd_updated_at doesn't exist, we'll use the interview date as the hiring milestone
+    $this->db->select('DATEDIFF(ce.ce_start_date, cd.cd_created_at) as days_to_hire');
+    $this->db->from('candidate_details cd');
+    $this->db->join('calendar_events ce', 'cd.cd_name = ce.ce_can_name', 'inner');
+    $this->db->where('cd.cd_status', 'Selected');
+    $this->db->where('cd.cd_created_at IS NOT NULL');
+    $this->db->where('ce.ce_start_date IS NOT NULL');
+    $query = $this->db->get();
+    
+    $total_days = 0;
+    $count = 0;
+    foreach ($query->result() as $row) {
+      if ($row->days_to_hire > 0) {
+        $total_days += $row->days_to_hire;
+        $count++;
+      }
+    }
+    $data['avg_time_to_hire'] = $count > 0 ? round($total_days / $count) : 0;
+    
+    // Get recruitment trend data (last 6 months)
+    $data['trend_data'] = $this->get_recruitment_trend_data(6);
+    
+    // Get weekly activity data
+    $data['weekly_activity'] = $this->get_weekly_activity_data();
+    
+    // Get monthly hiring trend (last 6 months)
+    $data['monthly_hiring'] = $this->get_monthly_hiring_data(6);
+    
+    // Get time to hire by role
+    $data['time_to_hire_by_role'] = $this->get_time_to_hire_by_role();
+    
+    // Get candidate experience survey data (if exists in database)
+    $data['candidate_experience'] = $this->get_candidate_experience_data();
+    
+    // Get interviewer calibration data
+    $data['interviewer_calibration'] = $this->get_interviewer_calibration_data();
+    
     $this->load->view('Admin_dashboard_view/reports_view', $data);
+  }
+  
+  private function get_recruitment_trend_data($months = 6)
+  {
+    $data = [
+      'labels' => [],
+      'candidates' => [],
+      'interviews' => [],
+      'selected' => []
+    ];
+    
+    for ($i = $months - 1; $i >= 0; $i--) {
+      $month = date('Y-m', strtotime("-$i months"));
+      $month_label = date('M', strtotime("-$i months"));
+      
+      $data['labels'][] = $month_label;
+      
+      // Count candidates added this month
+      $this->db->where("DATE_FORMAT(cd_created_at, '%Y-%m') =", $month);
+      $data['candidates'][] = $this->db->count_all_results('candidate_details');
+      
+      // Count interviews this month
+      $this->db->where("DATE_FORMAT(ce_start_date, '%Y-%m') =", $month);
+      $data['interviews'][] = $this->db->count_all_results('calendar_events');
+      
+      // Count selected candidates created this month with Selected status
+      $this->db->where('cd_status', 'Selected');
+      $this->db->where("DATE_FORMAT(cd_created_at, '%Y-%m') =", $month);
+      $data['selected'][] = $this->db->count_all_results('candidate_details');
+    }
+    
+    return $data;
+  }
+  
+  private function get_weekly_activity_data()
+  {
+    $data = [
+      'labels' => ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      'applications' => [],
+      'interviews' => []
+    ];
+    
+    // Get data for current week
+    for ($i = 1; $i <= 7; $i++) {
+      // Applications (candidates added)
+      $this->db->where('DAYOFWEEK(cd_created_at) =', $i + 1); // MySQL DAYOFWEEK: 1=Sunday, 2=Monday, etc.
+      $this->db->where('YEARWEEK(cd_created_at, 1) = YEARWEEK(CURDATE(), 1)', NULL, FALSE);
+      $data['applications'][] = $this->db->count_all_results('candidate_details');
+      
+      // Interviews scheduled
+      $this->db->where('DAYOFWEEK(ce_start_date) =', $i + 1);
+      $this->db->where('YEARWEEK(ce_start_date, 1) = YEARWEEK(CURDATE(), 1)', NULL, FALSE);
+      $data['interviews'][] = $this->db->count_all_results('calendar_events');
+    }
+    
+    return $data;
+  }
+  
+  private function get_monthly_hiring_data($months = 6)
+  {
+    $data = [
+      'labels' => [],
+      'candidates' => [],
+      'interviews' => [],
+      'hired' => []
+    ];
+    
+    for ($i = $months - 1; $i >= 0; $i--) {
+      $month = date('Y-m', strtotime("-$i months"));
+      $month_label = date('M', strtotime("-$i months"));
+      
+      $data['labels'][] = $month_label;
+      
+      // Count candidates
+      $this->db->where("DATE_FORMAT(cd_created_at, '%Y-%m') =", $month);
+      $data['candidates'][] = $this->db->count_all_results('candidate_details');
+      
+      // Count interviews
+      $this->db->where("DATE_FORMAT(ce_start_date, '%Y-%m') =", $month);
+      $data['interviews'][] = $this->db->count_all_results('calendar_events');
+      
+      // Count hired (selected candidates created in this month)
+      $this->db->where('cd_status', 'Selected');
+      $this->db->where("DATE_FORMAT(cd_created_at, '%Y-%m') =", $month);
+      $data['hired'][] = $this->db->count_all_results('candidate_details');
+    }
+    
+    return $data;
+  }
+  
+  private function get_time_to_hire_by_role()
+  {
+    // Calculate time to hire using interview date as milestone
+    $this->db->select('cd.cd_job_title, AVG(DATEDIFF(ce.ce_start_date, cd.cd_created_at)) as avg_days, COUNT(DISTINCT cd.cd_id) as count');
+    $this->db->from('candidate_details cd');
+    $this->db->join('calendar_events ce', 'cd.cd_name = ce.ce_can_name', 'inner');
+    $this->db->where('cd.cd_status', 'Selected');
+    $this->db->where('cd.cd_created_at IS NOT NULL');
+    $this->db->where('ce.ce_start_date IS NOT NULL');
+    $this->db->where('cd.cd_job_title IS NOT NULL');
+    $this->db->where('cd.cd_job_title !=', '');
+    $this->db->where('cd.cd_job_title !=', 'Not Specified');
+    $this->db->group_by('cd.cd_job_title');
+    $this->db->having('count >', 0);
+    $this->db->order_by('count', 'DESC');
+    $this->db->limit(6);
+    
+    $query = $this->db->get();
+    $result = [
+      'labels' => [],
+      'days' => []
+    ];
+    
+    foreach ($query->result() as $row) {
+      $result['labels'][] = $row->cd_job_title;
+      $result['days'][] = round($row->avg_days);
+    }
+    
+    // If no data, return empty arrays
+    if (empty($result['labels'])) {
+      $result['labels'] = ['No Data'];
+      $result['days'] = [0];
+    }
+    
+    return $result;
+  }
+  
+  private function get_candidate_experience_data()
+  {
+    // Check if feedback table exists
+    $tables = $this->db->list_tables();
+    if (in_array('candidate_feedback', $tables)) {
+      // Get average ratings from feedback table
+      $this->db->select('
+        AVG(communication_rating) as communication,
+        AVG(interview_process_rating) as interview_process,
+        AVG(recruiter_support_rating) as recruiter_support,
+        AVG(response_time_rating) as response_time,
+        AVG(overall_experience_rating) as overall_experience,
+        AVG(would_recommend_rating) as would_recommend
+      ');
+      $query = $this->db->get('candidate_feedback');
+      
+      if ($query->num_rows() > 0) {
+        $row = $query->row();
+        return [
+          'communication' => round($row->communication, 1),
+          'interview_process' => round($row->interview_process, 1),
+          'recruiter_support' => round($row->recruiter_support, 1),
+          'response_time' => round($row->response_time, 1),
+          'overall_experience' => round($row->overall_experience, 1),
+          'would_recommend' => round($row->would_recommend, 1)
+        ];
+      }
+    }
+    
+    // Return zeros if no data
+    return [
+      'communication' => 0,
+      'interview_process' => 0,
+      'recruiter_support' => 0,
+      'response_time' => 0,
+      'overall_experience' => 0,
+      'would_recommend' => 0
+    ];
+  }
+  
+  private function get_interviewer_calibration_data()
+  {
+    // Check if interview_ratings table exists
+    $tables = $this->db->list_tables();
+    
+    if (in_array('interview_ratings', $tables)) {
+      // Get average ratings per interviewer from ratings table
+      $this->db->select('ce.ce_interviewer, COUNT(ce.ce_id) as total_interviews, AVG(ir.rating) as avg_rating');
+      $this->db->from('calendar_events ce');
+      $this->db->join('interview_ratings ir', 'ce.ce_id = ir.interview_id', 'left');
+      $this->db->where('ce.ce_interviewer IS NOT NULL');
+      $this->db->where('ce.ce_interviewer !=', '');
+      $this->db->group_by('ce.ce_interviewer');
+      $this->db->order_by('total_interviews', 'DESC');
+      $this->db->limit(10);
+      
+      $query = $this->db->get();
+      $result = [
+        'labels' => [],
+        'interviews' => [],
+        'ratings' => []
+      ];
+      
+      foreach ($query->result() as $row) {
+        $result['labels'][] = $row->ce_interviewer;
+        $result['interviews'][] = $row->total_interviews;
+        $result['ratings'][] = $row->avg_rating ? round($row->avg_rating, 1) : 0;
+      }
+      
+      return $result;
+    }
+    
+    // If no ratings table, just return interview counts with zero ratings
+    $this->db->select('ce_interviewer, COUNT(*) as total_interviews');
+    $this->db->from('calendar_events');
+    $this->db->where('ce_interviewer IS NOT NULL');
+    $this->db->where('ce_interviewer !=', '');
+    $this->db->group_by('ce_interviewer');
+    $this->db->order_by('total_interviews', 'DESC');
+    $this->db->limit(10);
+    
+    $query = $this->db->get();
+    $result = [
+      'labels' => [],
+      'interviews' => [],
+      'ratings' => []
+    ];
+    
+    foreach ($query->result() as $row) {
+      $result['labels'][] = $row->ce_interviewer;
+      $result['interviews'][] = $row->total_interviews;
+      $result['ratings'][] = 0; // No ratings available
+    }
+    
+    return $result;
   }
 
   public function roles_permissions_view()
@@ -489,6 +797,30 @@ class A_dashboard extends CI_Controller
           echo json_encode(['success' => false, 'message' => 'Candidate not found']);
       }
   }
+  
+  public function get_candidate_interviews()
+  {
+      if (!$this->session->userdata('authenticated')) {
+          echo json_encode(['success' => false, 'message' => 'Not authenticated']);
+          return;
+      }
+
+      $candidate_name = $this->input->post('candidate_name');
+      
+      if (!$candidate_name) {
+          echo json_encode(['success' => false, 'message' => 'Candidate name is required']);
+          return;
+      }
+
+      // Get interview history for this candidate
+      $this->db->select('ce.*');
+      $this->db->from('calendar_events ce');
+      $this->db->where('ce.ce_can_name', $candidate_name);
+      $this->db->order_by('ce.ce_start_date', 'ASC');
+      $interviews = $this->db->get()->result_array();
+
+      echo json_encode(['success' => true, 'interviews' => $interviews]);
+  }
 
   public function update_candidate_user()
   {
@@ -781,6 +1113,131 @@ class A_dashboard extends CI_Controller
       }
   }
 
+  public function get_all_candidate_users()
+  {
+      if (!$this->session->userdata('authenticated')) {
+          echo json_encode(['success' => false, 'message' => 'Not authenticated']);
+          return;
+      }
+
+      // Get all candidate users - use MAX to get one record per username
+      $this->db->select('u.u_username as username, u.u_email as email, u.u_status as user_status, MAX(cd.cd_name) as name, MAX(cd.cd_phone) as phone, MAX(cd.cd_status) as application_status, MAX(cd.cd_rec_username) as recruiter, MAX(cd.cd_job_title) as job_title');
+      $this->db->from('users u');
+      $this->db->join('candidate_details cd', 'u.u_email = cd.cd_email', 'left');
+      $this->db->where('u.u_role', 'Candidate');
+      $this->db->group_by('u.u_username, u.u_email, u.u_status');
+      $this->db->order_by('u.u_username', 'ASC');
+      $candidates = $this->db->get()->result_array();
+
+      // Normalize status values (handle both text and numeric)
+      foreach ($candidates as &$candidate) {
+          if ($candidate['user_status'] === 'Active' || $candidate['user_status'] == 1) {
+              $candidate['user_status'] = 1;
+          } else {
+              $candidate['user_status'] = 0;
+          }
+          
+          // Set default application status if null
+          if (empty($candidate['application_status'])) {
+              $candidate['application_status'] = 'No Application';
+          }
+      }
+
+      // Get statistics
+      $total = count($candidates);
+      $selected = 0;
+      $in_process = 0;
+      $no_application = 0;
+      
+      foreach ($candidates as $candidate) {
+          $status = $candidate['application_status'];
+          if ($status === 'Selected') {
+              $selected++;
+          } elseif ($status === 'In Process') {
+              $in_process++;
+          } elseif ($status === 'No Application' || empty($status)) {
+              $no_application++;
+          }
+      }
+
+      echo json_encode([
+          'success' => true,
+          'data' => $candidates,
+          'stats' => [
+              'total' => $total,
+              'selected' => $selected,
+              'in_process' => $in_process,
+              'no_application' => $no_application
+          ]
+      ]);
+  }
+
+  public function get_recruiters_list()
+  {
+      if (!$this->session->userdata('authenticated')) {
+          echo json_encode(['success' => false, 'message' => 'Not authenticated']);
+          return;
+      }
+
+      $this->db->select('u_username as username');
+      $this->db->from('users');
+      $this->db->where('u_role', 'Recruiter');
+      $this->db->order_by('u_username', 'ASC');
+      $recruiters = $this->db->get()->result_array();
+
+      echo json_encode(['success' => true, 'data' => $recruiters]);
+  }
+
+  public function get_job_titles_list()
+  {
+      if (!$this->session->userdata('authenticated')) {
+          echo json_encode(['success' => false, 'message' => 'Not authenticated']);
+          return;
+      }
+
+      $this->db->distinct();
+      $this->db->select('cd_job_title');
+      $this->db->from('candidate_details');
+      $this->db->where('cd_job_title IS NOT NULL');
+      $this->db->where('cd_job_title !=', '');
+      $this->db->order_by('cd_job_title', 'ASC');
+      $result = $this->db->get()->result_array();
+
+      $job_titles = array_column($result, 'cd_job_title');
+
+      echo json_encode(['success' => true, 'data' => $job_titles]);
+  }
+
+  public function toggle_candidate_status()
+  {
+      if (!$this->session->userdata('authenticated')) {
+          echo json_encode(['success' => false, 'message' => 'Not authenticated']);
+          return;
+      }
+
+      $username = $this->input->post('username');
+      $new_status = $this->input->post('status'); // 1 for Active, 0 for Inactive
+
+      if (empty($username)) {
+          echo json_encode(['success' => false, 'message' => 'Username is required']);
+          return;
+      }
+
+      // Convert numeric status to text for database
+      $status_text = ($new_status == 1) ? 'Active' : 'Pending';
+
+      $this->db->where('u_username', $username);
+      $this->db->where('u_role', 'Candidate');
+      $this->db->update('users', array('u_status' => $status_text));
+
+      if ($this->db->affected_rows() > 0) {
+          $action = ($new_status == 1) ? 'activated' : 'deactivated';
+          echo json_encode(['success' => true, 'message' => 'Candidate ' . $action . ' successfully']);
+      } else {
+          echo json_encode(['success' => false, 'message' => 'Failed to update candidate status']);
+      }
+  }
+
   public function get_interviewer_details()
   {
       if (!$this->session->userdata('authenticated')) {
@@ -818,6 +1275,141 @@ class A_dashboard extends CI_Controller
           ]);
       } else {
           echo json_encode(['success' => false, 'message' => 'Interviewer not found']);
+      }
+  }
+
+  public function get_all_interviewers()
+  {
+      if (!$this->session->userdata('authenticated')) {
+          echo json_encode(['success' => false, 'message' => 'Not authenticated']);
+          return;
+      }
+
+      // Get all interviewers with DISTINCT to avoid duplicates
+      $this->db->distinct();
+      $this->db->select('u.u_username as username, u.u_email as email, u.u_status as status, p.pi_phone as phone, p.pi_gender as gender');
+      $this->db->from('users u');
+      $this->db->join('profile_info p', 'u.u_username = p.pi_username', 'left');
+      $this->db->where('u.u_role', 'Interviewer');
+      $this->db->group_by('u.u_username');
+      $this->db->order_by('u.u_username', 'ASC');
+      $interviewers = $this->db->get()->result_array();
+
+      // Normalize status values (handle both text and numeric)
+      foreach ($interviewers as &$interviewer) {
+          if ($interviewer['status'] === 'Active' || $interviewer['status'] == 1) {
+              $interviewer['status'] = 1;
+          } else {
+              $interviewer['status'] = 0;
+          }
+      }
+
+      // Get statistics
+      $total = count($interviewers);
+      
+      // Count active interviewers (those who have conducted interviews)
+      $this->db->select('COUNT(DISTINCT ce_interviewer) as count');
+      $this->db->from('calendar_events');
+      $this->db->where('ce_interviewer IS NOT NULL');
+      $result = $this->db->get();
+      $active = $result->row()->count;
+
+      echo json_encode([
+          'success' => true,
+          'data' => $interviewers,
+          'stats' => [
+              'total' => $total,
+              'active' => $active
+          ]
+      ]);
+  }
+
+  public function update_interviewer()
+  {
+      if (!$this->session->userdata('authenticated')) {
+          echo json_encode(['success' => false, 'message' => 'Not authenticated']);
+          return;
+      }
+
+      $username = $this->input->post('username');
+      $email = $this->input->post('email');
+      $password = $this->input->post('password');
+      $phone = $this->input->post('phone');
+      $gender = $this->input->post('gender');
+
+      if (empty($username) || empty($email)) {
+          echo json_encode(['success' => false, 'message' => 'Username and email are required']);
+          return;
+      }
+
+      // Check if email is taken by another user
+      $this->db->where('u_email', $email);
+      $this->db->where('u_username !=', $username);
+      if ($this->db->count_all_results('users') > 0) {
+          echo json_encode(['success' => false, 'message' => 'Email already in use by another account']);
+          return;
+      }
+
+      // Update users table
+      $user_data = array('u_email' => $email);
+      
+      if (!empty($password)) {
+          $user_data['u_password'] = md5($password);
+      }
+
+      $this->db->where('u_username', $username);
+      $this->db->where('u_role', 'Interviewer');
+      $this->db->update('users', $user_data);
+
+      // Update or insert profile_info
+      $this->db->where('pi_username', $username);
+      $existing_profile = $this->db->get('profile_info')->row();
+
+      $profile_data = array(
+          'pi_phone' => $phone,
+          'pi_gender' => $gender
+      );
+
+      if ($existing_profile) {
+          $this->db->where('pi_username', $username);
+          $this->db->update('profile_info', $profile_data);
+      } else {
+          $profile_data['pi_username'] = $username;
+          $profile_data['pi_email'] = $email;
+          $profile_data['pi_role'] = 'Interviewer';
+          $this->db->insert('profile_info', $profile_data);
+      }
+
+      echo json_encode(['success' => true, 'message' => 'Interviewer updated successfully']);
+  }
+
+  public function toggle_interviewer_status()
+  {
+      if (!$this->session->userdata('authenticated')) {
+          echo json_encode(['success' => false, 'message' => 'Not authenticated']);
+          return;
+      }
+
+      $username = $this->input->post('username');
+      $new_status = $this->input->post('status'); // 1 for Active, 0 for Inactive
+
+      if (empty($username)) {
+          echo json_encode(['success' => false, 'message' => 'Username is required']);
+          return;
+      }
+
+      // Convert numeric status to text for database
+      $status_text = ($new_status == 1) ? 'Active' : 'Pending';
+
+      $this->db->where('u_username', $username);
+      $this->db->where('u_role', 'Interviewer');
+      $this->db->update('users', array('u_status' => $status_text));
+
+      if ($this->db->affected_rows() > 0) {
+          $action = ($new_status == 1) ? 'activated' : 'deactivated';
+          echo json_encode(['success' => true, 'message' => 'Interviewer ' . $action . ' successfully']);
+      } else {
+          echo json_encode(['success' => false, 'message' => 'Failed to update interviewer status']);
       }
   }
 

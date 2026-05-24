@@ -304,10 +304,42 @@ class Questions_bank_model extends CI_Model {
      * Get categories
      */
     public function get_categories() {
-        $this->db->where('is_active', 1);
-        $this->db->order_by('name', 'ASC');
-        $query = $this->db->get('question_categories');
+        $this->db->select('question_categories.*, COUNT(questions_bank.id) as question_count');
+        $this->db->from('question_categories');
+        $this->db->join('questions_bank', 'questions_bank.category_id = question_categories.id AND questions_bank.is_active = 1', 'left');
+        $this->db->where('question_categories.is_active', 1);
+        $this->db->group_by('question_categories.id');
+        $this->db->order_by('question_categories.name', 'ASC');
+        $query = $this->db->get();
         return $query->result_array();
+    }
+
+    /**
+     * Create category
+     */
+    public function create_category($data) {
+        $data['is_active'] = 1;
+        $data['created_at'] = date('Y-m-d H:i:s');
+        $this->db->insert('question_categories', $data);
+        return $this->db->insert_id();
+    }
+
+    /**
+     * Update category
+     */
+    public function update_category($id, $data) {
+        $data['updated_at'] = date('Y-m-d H:i:s');
+        $this->db->where('id', $id);
+        return $this->db->update('question_categories', $data);
+    }
+
+    /**
+     * Delete category
+     */
+    public function delete_category($id) {
+        // Soft delete - set is_active to 0
+        $this->db->where('id', $id);
+        return $this->db->update('question_categories', ['is_active' => 0, 'updated_at' => date('Y-m-d H:i:s')]);
     }
 
     /**

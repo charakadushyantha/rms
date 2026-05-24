@@ -81,23 +81,28 @@
       position: relative;
     }
 
-    .input-wrapper i {
+    .input-wrapper .field-icon-left {
       position: absolute;
       left: 16px;
       top: 50%;
       transform: translateY(-50%);
       color: #999;
       font-size: 16px;
+      pointer-events: none;
+      z-index: 2;
     }
 
     .toggle-password {
       position: absolute;
-      right: 16px;
+      right: 14px;
       top: 50%;
       transform: translateY(-50%);
       color: #999;
       cursor: pointer;
-      font-size: 16px;
+      font-size: 15px;
+      z-index: 2;
+      padding: 4px;
+      transition: color 0.2s;
     }
 
     .toggle-password:hover {
@@ -108,12 +113,23 @@
     input[type="password"],
     input[type="text"] {
       width: 100%;
-      padding: 14px 45px 14px 45px;
+      padding: 14px 44px 14px 45px;
       border: 2px solid #e0e0e0;
       border-radius: 10px;
       font-size: 15px;
       transition: all 0.3s ease;
       font-family: 'Inter', sans-serif;
+      background-color: #fff !important;
+    }
+
+    /* Override browser autofill yellow background */
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus {
+      -webkit-box-shadow: 0 0 0px 1000px #fff inset !important;
+      box-shadow: 0 0 0px 1000px #fff inset !important;
+      -webkit-text-fill-color: #1a1a1a !important;
+      transition: background-color 5000s ease-in-out 0s;
     }
 
     input[type="email"]:focus,
@@ -199,6 +215,20 @@
 </head>
 <body>
   <div class="reset-container">
+    <?php if (isset($success)): ?>
+    <!-- Success State -->
+    <div class="icon-wrapper" style="background: linear-gradient(135deg, #43a047 0%, #2e7d32 100%);">
+      <i class="fas fa-check"></i>
+    </div>
+    <h1>Password Changed</h1>
+    <p class="subtitle"><?php echo $success; ?></p>
+    <div style="margin-top: 30px;">
+      <a href="<?php echo LOGIN_URL; ?>" class="btn-reset" style="display:block; text-decoration:none; text-align:center; padding:14px; border-radius:10px; font-size:16px; font-weight:600; color:white; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <i class="fas fa-sign-in-alt"></i> Go to Login
+      </a>
+    </div>
+
+    <?php else: ?>
     <div class="icon-wrapper">
       <i class="fas fa-lock"></i>
     </div>
@@ -210,13 +240,15 @@
       <div class="form-group">
         <label for="email">Email Address</label>
         <div class="input-wrapper">
-          <i class="fas fa-envelope"></i>
-          <input type="email" name="semail" id="email" value="<?php echo htmlspecialchars($semail); ?>" readonly>
+          <i class="fas fa-envelope field-icon-left"></i>
+          <input type="email" name="semail" id="email" value="<?php echo htmlspecialchars($semail); ?>" readonly autocomplete="off">
         </div>
       </div>
 
       <!-- Hidden token field for DB validation -->
       <input type="hidden" name="reset_token" value="<?php echo htmlspecialchars(isset($token) ? $token : ''); ?>">
+      <!-- Honeypot to defeat browser autofill on password fields -->
+      <input type="password" name="fake_password" style="display:none;" tabindex="-1" autocomplete="new-password">
 
       <?php if (isset($error)): ?>
         <div style="background:#fee;color:#c33;border:1px solid #fcc;padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:14px;">
@@ -227,8 +259,8 @@
       <div class="form-group">
         <label for="newpassword">New Password</label>
         <div class="input-wrapper">
-          <i class="fas fa-lock"></i>
-          <input type="password" name="newpassword" id="newpassword" placeholder="Enter new password" required minlength="6">
+          <i class="fas fa-lock field-icon-left"></i>
+          <input type="password" name="newpassword" id="newpassword" placeholder="Enter new password" required minlength="6" autocomplete="new-password">
           <i class="fas fa-eye toggle-password" data-target="newpassword"></i>
         </div>
       </div>
@@ -236,8 +268,8 @@
       <div class="form-group">
         <label for="confirmpassword">Confirm Password</label>
         <div class="input-wrapper">
-          <i class="fas fa-lock"></i>
-          <input type="password" name="confirmpassword" id="confirmpassword" placeholder="Re-enter new password" required minlength="6">
+          <i class="fas fa-lock field-icon-left"></i>
+          <input type="password" name="confirmpassword" id="confirmpassword" placeholder="Re-enter new password" required minlength="6" autocomplete="new-password">
           <i class="fas fa-eye toggle-password" data-target="confirmpassword"></i>
         </div>
         <div class="password-match" id="matchMessage"></div>
@@ -252,6 +284,7 @@
         </button>
       </div>
     </form>
+    <?php endif; ?>
   </div>
 
   <script>

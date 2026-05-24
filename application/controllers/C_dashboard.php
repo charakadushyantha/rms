@@ -115,6 +115,9 @@ class C_dashboard extends CI_Controller {
 
     // Upload Document
     public function upload_document() {
+        // Set JSON header
+        header('Content-Type: application/json');
+        
         if (!$this->session->userdata('authenticated')) {
             echo json_encode(['success' => false, 'message' => 'Not authenticated']);
             return;
@@ -122,12 +125,44 @@ class C_dashboard extends CI_Controller {
 
         $email = $this->session->userdata('email');
         $document_type = $this->input->post('document_type');
+        
+        // Debug: Check if file was uploaded
+        if (!isset($_FILES['document']) || $_FILES['document']['error'] !== UPLOAD_ERR_OK) {
+            $error_msg = 'No file uploaded';
+            if (isset($_FILES['document']['error'])) {
+                switch ($_FILES['document']['error']) {
+                    case UPLOAD_ERR_INI_SIZE:
+                    case UPLOAD_ERR_FORM_SIZE:
+                        $error_msg = 'File is too large';
+                        break;
+                    case UPLOAD_ERR_PARTIAL:
+                        $error_msg = 'File was only partially uploaded';
+                        break;
+                    case UPLOAD_ERR_NO_FILE:
+                        $error_msg = 'No file was uploaded';
+                        break;
+                    default:
+                        $error_msg = 'Upload error code: ' . $_FILES['document']['error'];
+                }
+            }
+            echo json_encode(['success' => false, 'message' => $error_msg]);
+            return;
+        }
 
         // Configure upload
         $config['upload_path'] = './uploads/candidate_documents/';
-        $config['allowed_types'] = 'pdf|doc|docx|jpg|jpeg|png';
-        $config['max_size'] = 5120; // 5MB
-        $config['file_name'] = $email . '_' . $document_type . '_' . time();
+        // TEMPORARY FIX: Allow all file types to bypass MIME checking
+        $config['allowed_types'] = '*';
+        $config['max_size'] = 10240; // 10MB
+        
+        // Get original file extension
+        $orig_name = isset($_FILES['document']['name']) ? $_FILES['document']['name'] : '';
+        $orig_ext = strtolower(pathinfo($orig_name, PATHINFO_EXTENSION));
+        
+        // Set filename WITH extension
+        $config['file_name'] = $email . '_' . $document_type . '_' . time() . '.' . $orig_ext;
+        $config['overwrite'] = FALSE;
+        $config['remove_spaces'] = TRUE;
 
         // Create directory if it doesn't exist
         if (!is_dir($config['upload_path'])) {
@@ -138,6 +173,21 @@ class C_dashboard extends CI_Controller {
 
         if ($this->upload->do_upload('document')) {
             $upload_data = $this->upload->data();
+            
+            // Manual file type validation (already extracted $orig_ext above)
+            $allowed_extensions = array('pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'txt');
+            
+            // Validate file extension
+            if (!in_array($orig_ext, $allowed_extensions)) {
+                if (file_exists($upload_data['full_path'])) {
+                    unlink($upload_data['full_path']);
+                }
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Invalid file type (' . $orig_ext . '). Only PDF, DOC, DOCX, JPG, PNG, and TXT files are allowed.'
+                ]);
+                return;
+            }
             
             $document_data = [
                 'candidate_username' => $email,
@@ -150,15 +200,24 @@ class C_dashboard extends CI_Controller {
             $result = $this->Candidate_model->save_document($document_data);
             echo json_encode($result);
         } else {
+            $error = $this->upload->display_errors('', '');
+            
+            // Log the error for debugging
+            log_message('error', 'Upload failed: ' . $error);
+            log_message('error', 'File info: ' . print_r($_FILES, true));
+            log_message('error', 'Config: ' . print_r($config, true));
+            
             echo json_encode([
                 'success' => false,
-                'message' => $this->upload->display_errors('', '')
+                'message' => $error ? $error : 'Failed to upload document. Please try again.'
             ]);
         }
     }
 
     // Delete Document
     public function delete_document() {
+        header('Content-Type: application/json');
+        
         if (!$this->session->userdata('authenticated')) {
             echo json_encode(['success' => false, 'message' => 'Not authenticated']);
             return;
@@ -167,8 +226,157 @@ class C_dashboard extends CI_Controller {
         $document_id = $this->input->post('document_id');
         $email = $this->session->userdata('email');
 
-        $result = $this->Candidate_model->delete_document($document_id, $email);
-        echo json_encode($result);
+        // Get document info first
+        $this->db->where('id', $document_id);
+        $this->db->where('candidate_username', $email);
+        $document = $this->db->get('candidate_documents')->row_array();
+
+        if ($document) {
+            // Delete file from server
+            if (file_exists($document['file_path'])) {
+                unlink($document['file_path']);
+            }
+
+            // Delete from database
+            $this->db->where('id', $document_id);
+            $this->db->where('candidate_username', $email);
+            $this->db->delete('candidate_documents');
+
+            echo json_encode(['success' => true, 'message' => 'Document deleted successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Document not found']);
+        }
+    }
+    
+    // Download Document
+    public function download_document($document_id) {
+        if (!$this->session->userdata('authenticated')) {
+            show_error('Not authenticated', 403);
+            return;
+        }
+
+        $email = $this->session->userdata('email');
+        $role = $this->session->userdata('role');
+
+        // Get document info
+        $this->db->where('id', $document_id);
+        
+        // Only candidates can access their own documents
+        // Admins, recruiters, and interviewers can access any document
+        if ($role == 'Candidate') {
+            $this->db->where('candidate_username', $email);
+        }
+        
+        $document = $this->db->get('candidate_documents')->row_array();
+
+        if (!$document) {
+            show_error('Document not found', 404);
+            return;
+        }
+
+        $file_path = $document['file_path'];
+
+        if (!file_exists($file_path)) {
+            show_error('File not found on server', 404);
+            return;
+        }
+
+        // Get file extension from the stored filename
+        $ext = strtolower(pathinfo($document['file_name'], PATHINFO_EXTENSION));
+        
+        // If no extension found, try to detect from file path
+        if (empty($ext)) {
+            $ext = strtolower(pathinfo($file_path, PATHINFO_EXTENSION));
+        }
+        
+        // Create a proper filename with extension
+        $download_filename = $document['file_name'];
+        if (!empty($ext) && strpos($download_filename, '.') === false) {
+            $download_filename .= '.' . $ext;
+        }
+
+        // Force download
+        $this->load->helper('download');
+        $data = file_get_contents($file_path);
+        force_download($download_filename, $data);
+    }
+    
+    // View Document (in browser)
+    public function view_document($document_id) {
+        if (!$this->session->userdata('authenticated')) {
+            show_error('Not authenticated', 403);
+            return;
+        }
+
+        $email = $this->session->userdata('email');
+        $role = $this->session->userdata('role');
+
+        // Get document info
+        $this->db->where('id', $document_id);
+        
+        // Only candidates can access their own documents
+        // Admins, recruiters, and interviewers can access any document
+        if ($role == 'Candidate') {
+            $this->db->where('candidate_username', $email);
+        }
+        
+        $document = $this->db->get('candidate_documents')->row_array();
+
+        if (!$document) {
+            show_error('Document not found', 404);
+            return;
+        }
+
+        $file_path = $document['file_path'];
+
+        if (!file_exists($file_path)) {
+            show_error('File not found on server', 404);
+            return;
+        }
+
+        // Get file extension from the stored filename
+        $ext = strtolower(pathinfo($document['file_name'], PATHINFO_EXTENSION));
+        
+        // If no extension found, try to detect from file path
+        if (empty($ext)) {
+            $ext = strtolower(pathinfo($file_path, PATHINFO_EXTENSION));
+        }
+        
+        // Create a proper filename with extension
+        $display_filename = $document['file_name'];
+        if (!empty($ext) && strpos($display_filename, '.') === false) {
+            $display_filename .= '.' . $ext;
+        }
+        
+        // Set appropriate content type
+        $content_types = [
+            'pdf' => 'application/pdf',
+            'doc' => 'application/msword',
+            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'txt' => 'text/plain'
+        ];
+        
+        $content_type = isset($content_types[$ext]) ? $content_types[$ext] : 'application/octet-stream';
+        
+        // Clear any previous output
+        if (ob_get_level()) {
+            ob_end_clean();
+        }
+        
+        // Output file with proper headers
+        header('Content-Type: ' . $content_type);
+        header('Content-Disposition: inline; filename="' . $display_filename . '"');
+        header('Content-Length: ' . filesize($file_path));
+        header('Cache-Control: public, must-revalidate, max-age=0');
+        header('Pragma: public');
+        header('Expires: 0');
+        
+        // Read and output file
+        readfile($file_path);
+        exit;
     }
 
     // Messages/Communication Center

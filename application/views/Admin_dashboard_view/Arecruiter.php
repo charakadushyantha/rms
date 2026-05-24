@@ -1,447 +1,520 @@
-<!doctype html>
-<html class="no-js" lang="en">
+<?php
+// Set page-specific variables
+$data['page_title'] = 'Manage Recruiters';
+$data['use_datatable'] = true;
 
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>Add Recruiter</title>
-    <meta name="description" content="">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- favicon
-    ============================================ -->
-    <link rel="shortcut icon" type="image/x-icon" href="<?php echo TAB_LOGO; ?>">
-    <!-- Google Fonts
-    ============================================ -->
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,700,700i,800" rel="stylesheet">
-    <!-- Bootstrap CSS
-    ============================================ -->
-    <link rel="stylesheet" href="<?php echo ADMIN_ASSETS_PATH; ?>/css/bootstrap.min.css">
-    <!-- Font awesome CDN
-        ============================================ -->
-    <script src="https://kit.fontawesome.com/2f33c29c83.js"></script>
-    <!-- Bootstrap CSS
-    ============================================ -->
-    <link rel="stylesheet" href="<?php echo ADMIN_ASSETS_PATH; ?>/css/font-awesome.min.css">
-    <!-- adminpro icon CSS
-    ============================================ -->
-    <link rel="stylesheet" href="<?php echo ADMIN_ASSETS_PATH; ?>/css/adminpro-custon-icon.css">
-    <!-- meanmenu icon CSS
-    ============================================ -->
-    <link rel="stylesheet" href="<?php echo ADMIN_ASSETS_PATH; ?>/css/meanmenu.min.css">
-    <!-- mCustomScrollbar CSS
-    ============================================ -->
-    <link rel="stylesheet" href="<?php echo ADMIN_ASSETS_PATH; ?>/css/jquery.mCustomScrollbar.min.css">
-    <!-- animate CSS
-    ============================================ -->
-    <link rel="stylesheet" href="<?php echo ADMIN_ASSETS_PATH; ?>/css/animate.css">
-    <!-- normalize CSS
-    ============================================ -->
-    <link rel="stylesheet" href="<?php echo ADMIN_ASSETS_PATH; ?>/css/normalize.css">
-    <!-- style CSS
-    ============================================ -->
-    <link rel="stylesheet" href="<?php echo ADMIN_ASSETS_PATH; ?>/css/form.css">
-    <!-- style CSS
-    ============================================ -->
-    <link rel="stylesheet" href="<?php echo ADMIN_ASSETS_PATH; ?>/style.css">
-    <!-- responsive CSS
-    ============================================ -->
-    <link rel="stylesheet" href="<?php echo ADMIN_ASSETS_PATH; ?>/css/responsive.css">
-    <!-- modernizr JS
-    ============================================ -->
-    <script src="<?php echo ADMIN_ASSETS_PATH; ?>/js/vendor/modernizr-2.8.3.min.js"></script>
-</head>
+// Load the header template
+$this->load->view('templates/admin_header', $data);
+?>
 
-<body>
-    <!--[if lt IE 8]>
-            <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
-        <![endif]-->
-    <!-- Header top area start-->
-    <div class="header-top-area">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-5 col-md-5 col-sm-6 col-xs-12">
-                  <div class="compnay-logo">
-                      <a href="https://cmsads24.com/"><img src="<?php echo COMPANY_LOGO; ?>" alt="Henoycomb Company Logo" /></a>
-                      <a href="https://cmsads24.com/"><img src="<?php echo COMPANY_NAME; ?>" alt="Henoycomb Company Name" /></a>
-                  </div>
-                </div>
-                <div class="col-lg-7 col-md-7 col-sm-6 col-xs-12">
-                    <div class="header-right-info">
-                        <ul class="nav navbar-nav mai-top-nav header-right-menu">
-                            <!-- ======================================================================================================= -->
-                            <!-- Starting of Account Holder's Details -->
-                            <li class="nav-item">
-                                <a href="#" data-toggle="dropdown" role="button" aria-expanded="false"
-                                    class="nav-link dropdown-toggle">
-                                    <span class="adminpro-icon adminpro-user-rounded header-riht-inf"></span>
-                                    <span class="admin-name"><?php echo $uname; ?></span>
-                                    <span class="author-project-icon adminpro-icon adminpro-down-arrow"></span>
-                                </a>
-                                <ul role="menu" class="dropdown-header-top author-log dropdown-menu animated flipInX">
-                                    <li><a href="<?php echo  A_AC_DETAILS_URL;?>"><span
-                                                class="adminpro-icon adminpro-user-rounded author-log-ic"></span>My
-                                            Profile</a>
-                                    </li>
-                                    <li><a href="<?php echo  A_LOGOUT_URL;?>"><span class="adminpro-icon adminpro-locked author-log-ic"></span>Log
-                                            Out</a>
-                                    </li>
-                                </ul>
-                            </li>
-                            <!-- End of Account Holder's Details -->
-                            <!-- ======================================================================================================== -->
-                        </ul>
-                    </div>
+<!-- Stats Row -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-title">Total Recruiters</div>
+                <div class="stat-card-icon" style="background: rgba(102, 126, 234, 0.1); color: var(--primary-color);">
+                    <i class="fas fa-users"></i>
                 </div>
             </div>
+            <div class="stat-card-value">0</div>
+            <div class="stat-card-footer">Active recruiters in system</div>
         </div>
     </div>
-    <!-- Header top area end-->
-    <!-- ===================================================================================================================================== -->
-    <!-- Main Menu area start-->
-<div class="main-menu-area mg-tb-40">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-12">
-                <ul class="nav nav-tabs custom-menu-wrap">
-                    <li><a href="<?php echo A_DASHBOARD_URL; ?>"><i class="fa fa-home"></i>Home</a>
-                    </li>
-                    <li><a href="<?php echo A_CALENDAR_URL; ?>"><i class="fa fa-calendar"></i>Calendar</a>
-                    </li>
-                    <li><a href="<?php echo A_SCANDIDATE_URL; ?>"><i class="fas fa-user-check"></i>Candidate</a>
-                    </li>
-                    <li class="active"><a href="<?php echo A_RECRUITER_URL; ?>"><i class="fas fa-user-plus"></i>Add Recruiter</a>
-                    </li>
-                </ul>
-                <div class="tab-content custom-menu-content">
-                      <!-- Starting of Home tab -->
-                      <div id="home" class="tab-pane tab-custon-menu-bg animated flipInX">
-                          <ul class="main-menu-dropdown">
-                              <li><a href="<?php echo A_DASHBOARD_URL; ?>">Dashboard</a>
-                              </li>
-                          </ul>
-                      </div>
-                      <!-- Ending of Home tab -->
-                      <!-- ============================================================== -->
-                      <!-- Starting of Calendar tab -->
-                      <div id="calendar" class="tab-pane tab-custon-menu-bg animated flipInX">
-                          <ul class="main-menu-dropdown">
-                              <li><a href="<?php echo A_CALENDAR_URL ?>" class="">Calendar</a>
-                              </li>
-                          </ul>
-                      </div>
-                      <!-- Ending of Calendar tab -->
-                      <!-- ================================================================= -->
-                      <!-- Starting of Candidate tab -->
-                      <div id="selected_candidate" class="tab-pane tab-custon-menu-bg animated flipInX">
-                          <ul class="main-menu-dropdown">
-                              <li><a href="<?php echo A_SCANDIDATE_URL; ?>">Selected Candidates</a>
-                              </li>
-                          </ul>
-                      </div>
-                      <!-- Ending of Candidate tab -->
-                      <!-- ================================================================= -->
-                      <!-- Starting of Add Recruiter tab -->
-                      <div id="add_recruiter" class="tab-pane in active tab-custon-menu-bg animated flipInX">
-                          <ul class="main-menu-dropdown">
-                              <li><a href="<?php echo A_RECRUITER_URL; ?>">Recruiter</a>
-                              </li>
-                          </ul>
-                      </div>
-                      <!-- Ending of Recruiter tab -->
-              </div>
-          </div>
-      </div>
-  </div>
+    
+    <div class="col-md-4">
+        <div class="stat-card success">
+            <div class="stat-card-header">
+                <div class="stat-card-title">Active</div>
+                <div class="stat-card-icon" style="background: rgba(28, 200, 138, 0.1); color: var(--success-color);">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+            </div>
+            <div class="stat-card-value">0</div>
+            <div class="stat-card-footer">Activated accounts</div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="stat-card warning">
+            <div class="stat-card-header">
+                <div class="stat-card-title">Pending</div>
+                <div class="stat-card-icon" style="background: rgba(246, 194, 62, 0.1); color: var(--warning-color);">
+                    <i class="fas fa-clock"></i>
+                </div>
+            </div>
+            <div class="stat-card-value">0</div>
+            <div class="stat-card-footer">Awaiting activation</div>
+        </div>
+    </div>
 </div>
-<!-- Main Menu area End-->
-<!-- ==================================================================================================================================== -->
-<!-- Mobile Menu start -->
-<div class="mobile-menu-area">
-      <div class="container">
-          <div class="row">
-              <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                  <div class="mobile-menu">
-                      <nav id="dropdown">
-                          <ul class="mobile-menu-nav">
-                                 <li><a data-toggle="collapse" data-target="#home" href="#"><i
-                                             class="fa fa-home"></i>Home
-                                         <span class="admin-project-icon adminpro-icon adminpro-down-arrow">
-                                         </span></a>
-                                     <ul id="home" class="collapse dropdown-header-top">
-                                         <li><a href="<?php echo A_DASHBOARD_URL; ?>">Dashboard</a>
-                                         </li>
-                                     </ul>
-                                 </li>
-                                 <li><a data-toggle="collapse" data-target="#calendar" href="#"><i
-                                             class="fa fa-calendar"></i>Calendar
-                                         <span
-                                             class="admin-project-icon adminpro-icon adminpro-down-arrow"></span></a>
-                                     <ul id="calendar" class="collapse dropdown-header-top">
-                                         <li><a href="<?php echo A_CALENDAR_URL; ?>">Calendar</a>
-                                         </li>
-                                     </ul>
-                                 </li>
-                                 <li><a data-toggle="collapse" data-target="#selected_candidate" href="#"><i
-                                             class="fas fa-user-check"></i>Candidate
-                                         <span
-                                             class="admin-project-icon adminpro-icon adminpro-down-arrow"></span></a>
-                                     <ul id="selected_candidate" class="collapse dropdown-header-top">
-                                         <li><a href="<?php echo A_SCANDIDATE_URL; ?>">Candidate</a>
-                                         </li>
-                                     </ul>
-                                 </li>
-                                 <li><a data-toggle="collapse" data-target="#add_recruiter" href="#"><i
-                                             class="fas fa-user-plus"></i>Add Recruiter
-                                         <span
-                                             class="admin-project-icon adminpro-icon adminpro-down-arrow"></span></a>
-                                     <ul id="add_recruiter" class="collapse dropdown-header-top">
-                                         <li><a href="<?php echo A_RECRUITER_URL; ?>">recruiter</a>
-                                         </li>
-                                     </ul>
-                                 </li>
-                          </ul>
-                      </nav>
-                  </div>
-              </div>
-          </div>
-      </div>
-  </div>
-<!-- Mobile Menu end -->
-<!-- ===================================================================================================================== -->
-    <!-- Breadcome start-->
-    <div class="breadcome-area mg-t-40 mg-b-30">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="breadcome-list shadow-reset">
-                        <div class="breadcome-heading">
-                            <h2>Add Recruiter</h2>
-                        </div>
-                        <ul class="breadcome-menu">
-                            <li><a href="<?php echo A_DASHBOARD_URL; ?>">Home</a> <span class="bread-slash">/</span>
-                            </li>
-                            <li><span class="bread-blod">Add Recruiter</span>
-                            </li>
-                        </ul>
-                    </div>
+
+<!-- Recruiters Table -->
+<div class="data-card">
+    <div class="data-card-header">
+        <h3 class="data-card-title">All Recruiters</h3>
+        <button class="btn btn-primary-modern btn-modern" data-bs-toggle="modal" data-bs-target="#addRecruiterModal">
+            <i class="fas fa-user-plus me-2"></i>Add Recruiter
+        </button>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table table-hover" id="recruitersTable">
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Joined Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Data will be loaded here -->
+                <tr>
+                    <td>1</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td><span class="badge bg-secondary">No Data</span></td>
+                    <td>-</td>
+                    <td>-</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title" id="confirmModalTitle">Confirm Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-3">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #ffc107;"></i>
                 </div>
+                <p id="confirmModalMessage" style="font-size: 16px; color: #333;"></p>
+            </div>
+            <div class="modal-footer border-0 justify-content-center">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary-modern btn-modern" id="confirmModalBtn">Confirm</button>
             </div>
         </div>
     </div>
-    <!-- Breadcome End-->
-    <!-- ADD Recruiter Form Start -->
-    <div class="basic-form-area mg-b-40">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="sparkline12-list shadow-reset mg-t-30">
-                        <div class="sparkline12-hd">
-                            <div class="main-sparkline12-hd">
-                                <h1>Add Recruiter</h1>
-                                <div class="sparkline12-outline-icon">
-                                    <span class="sparkline12-collapse-link"><i class="fa fa-chevron-up"></i></span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="sparkline12-graph">
-                            <div class="basic-login-form-ad">
-                            <?php
-                        if($this->session->flashdata('usernamenot'))
-                        {
-                          echo '<div class="container w-40"><div class="alert alert-danger container" role="alert">'.$this->session->flashdata('usernamenot').'</div></div>';
+</div>
 
-                        }
-                        if($this->session->flashdata('recsuccess'))
-                        {
-                          echo '<div class="container w-40"><div class="alert alert-success container" role="alert">'.$this->session->flashdata('recsuccess').'</div></div>';
-
-                        }
-                         ?>
-                                <div class="row">
-                                    <div class="col-lg-12">
-                                        <div class="all-form-element-inner">
-                                            <form method="post" action="add_rec" id="myform">
-                                                <div class="form-group-inner">
-                                                    <div class="row">
-                                                        <div class="col-lg-3">
-                                                            <label class="login2 pull-right pull-right-pro">Full Name</label>
-                                                        </div>
-                                                        <div class="col-lg-9">
-                                                            <input type="text" class="form-control" name="rec_name" required/>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="form-group-inner">
-                                                    <div class="row">
-                                                        <div class="col-lg-3">
-                                                            <label class="login2 pull-right pull-right-pro">Username</label>
-                                                        </div>
-                                                        <div class="col-lg-9">
-                                                            <input type="text"   class="form-control" name="rec_username" placeholder="UserName" required />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="form-group-inner">
-                                                    <div class="row">
-                                                        <div class="col-lg-3">
-                                                            <label class="login2 pull-right pull-right-pro">Email</label>
-                                                        </div>
-                                                        <div class="col-lg-9">
-                                                            <input type="email" class="form-control" name="rec_email" required/>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="form-group-inner">
-                                                    <div class="row">
-                                                        <div class="col-lg-3">
-                                                            <label class="login2 pull-right pull-right-pro">Password</label>
-                                                        </div>
-                                                        <div class="col-lg-9">
-                                                            <input type="password" class="form-control" name="rec_password" required/>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="form-group-inner">
-                                                    <div class="row">
-                                                        <div class="col-lg-3 col-md-9 col-sm-9 col-xs-9">
-                                                            <label class="login2 pull-right pull-right-pro"><span
-                                                                    class="basic-ds-n">Recruiter's</span> Gender</label>
-                                                        </div>
-                                                        <div class="col-lg-1 col-md-3 col-sm-3 col-xs-3">
-                                                            <div class="bt-df-checkbox">
-                                                                <input class="pull-left radio-checked" type="radio"
-                                                                    checked="" value="Male" id="optionsRadios1"
-                                                                    name="rec_gender"> Male <br>
-                                                                <input class="pull-left" type="radio" value="Female"
-                                                                    id="optionsRadios2" name="rec_gender"> Female
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="form-group-inner">
-                                                  <div class="row">
-                                                      <div class="col-lg-4">
-                                                          <div class="login-input-head">
-                                                              <p>Phone Number</p>
-                                                          </div>
-                                                      </div>
-                                                      <div class="col-lg-8">
-                                                          <div class="login-input-area">
-                                                              <input type="text" name="rec_phone"  required/>
-                                                              <i class="fa fa-phone login-user" aria-hidden="true"></i>
-                                                          </div>
-                                                      </div>
-                                                  </div>
-
-                                                </div>
-                                                <div class="form-group-inner">
-                                                  <div class="row">
-                                                      <div class="col-lg-3 col-md-9 col-sm-9 col-xs-9">
-                                                          <div class="login-input-head">
-                                                              <p>Job Title</p>
-                                                          </div>
-                                                      </div>
-                                                      <div class="col-lg-9 col-md-3 col-sm-3 col-xs-3">
-                                                          <div class="interested-input-area">
-                                                              <select name="rec_jobtitle" required>
-                                                                  <option value="admin" selected="" disabled="yes"> Recruiter's Job Title</option>
-                                                                  <option value="jbTitle1">Job Title 1</option>
-                                                                  <option value="jbTitle2">Job Title 2</option>
-                                                                  <option value="jbTitle3">Job Title 3</option>
-                                                                  <option value="jbTitle4">Job Title 4</option>
-                                                              </select>
-                                                          </div>
-                                                      </div>
-                                                  </div>
-                                                </div>
-                                                <div class="form-group-inner">
-                                                    <div class="login-btn-inner">
-                                                        <div class="row">
-                                                            <div class="col-lg-3"></div>
-                                                            <div class="col-lg-9">
-                                                                <div class="login-horizental cancel-wp pull-left">
-                                                                    <button class="btn btn-white"
-                                                                        type="reset">Cancel</button>
-                                                                    <button class="btn btn-sm btn-primary login-submit-cs"
-                                                                        type="submit">Save Change</button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+<!-- Edit Recruiter Modal -->
+<div class="modal fade" id="editRecruiterModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #f59e0b, #f97316); color: white;">
+                <h5 class="modal-title"><i class="fas fa-user-edit me-2"></i>Edit Recruiter</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editRecruiterForm">
+                    <input type="hidden" id="edit_rec_id" name="id">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Username</label>
+                        <input type="text" class="form-control" id="edit_rec_username" readonly
+                               style="background:#f8f9fa; color:#888;">
+                        <small class="text-muted">Username cannot be changed</small>
                     </div>
-                </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Email <span class="text-danger">*</span></label>
+                        <input type="email" class="form-control" id="edit_rec_email" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">New Password</label>
+                        <input type="password" class="form-control" id="edit_rec_password" name="password"
+                               placeholder="Leave blank to keep current password" minlength="6">
+                        <small class="text-muted">Leave blank to keep the existing password</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Status</label>
+                        <select class="form-select" id="edit_rec_status" name="status">
+                            <option value="0">Pending</option>
+                            <option value="1">Active</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" onclick="saveEditRecruiter()"
+                        style="background:linear-gradient(135deg,#f59e0b,#f97316);border:none;color:#fff;">
+                    <i class="fas fa-save me-1"></i>Save Changes
+                </button>
             </div>
         </div>
     </div>
-    <!-- Add Recruiter Form End -->
-    <!-- Footer Start-->
-    <div class="footer-copyright-area">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="footer-copy-right">
-                        <p>Copyright &#169; 2019 Charaka Creations All rights reserved.</p>
+</div>
+
+<!-- Add Recruiter Modal -->
+<div class="modal fade" id="addRecruiterModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Recruiter</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addRecruiterForm">
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" class="form-control" name="username" required>
                     </div>
-                </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-control" name="password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" name="status">
+                            <option value="0">Pending</option>
+                            <option value="1">Active</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary-modern btn-modern" onclick="saveRecruiter()">Add Recruiter</button>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Footer End-->
+<?php
+$custom_script = "
+let recruitersTable;
 
-    <!-- jquery
-		============================================ -->
-    <script src="<?php echo ADMIN_ASSETS_PATH; ?>/js/vendor/jquery-1.11.3.min.js"></script>
-    <!-- bootstrap JS
-		============================================ -->
-    <script src="<?php echo ADMIN_ASSETS_PATH; ?>/js/bootstrap.min.js"></script>
-    <!-- meanmenu JS
-		============================================ -->
-    <script src="<?php echo ADMIN_ASSETS_PATH; ?>/js/jquery.meanmenu.js"></script>
-    <!-- mCustomScrollbar JS
-		============================================ -->
-    <script src="<?php echo ADMIN_ASSETS_PATH; ?>/js/jquery.mCustomScrollbar.concat.min.js"></script>
-    <!-- sticky JS
-		============================================ -->
-    <script src="<?php echo ADMIN_ASSETS_PATH; ?>/js/jquery.sticky.js"></script>
-    <!-- scrollUp JS
-		============================================ -->
-    <script src="<?php echo ADMIN_ASSETS_PATH; ?>/js/jquery.scrollUp.min.js"></script>
-    <!-- counterup JS
-		============================================ -->
-    <script src="<?php echo ADMIN_ASSETS_PATH; ?>/js/counterup/jquery.counterup.min.js"></script>
-    <script src="<?php echo ADMIN_ASSETS_PATH; ?>/js/counterup/waypoints.min.js"></script>
-    <!-- peity JS
-		============================================ -->
-    <script src="<?php echo ADMIN_ASSETS_PATH; ?>/js/peity/jquery.peity.min.js"></script>
-    <script src="<?php echo ADMIN_ASSETS_PATH; ?>/js/peity/peity-active.js"></script>
-    <!-- sparkline JS
-		============================================ -->
-    <script src="<?php echo ADMIN_ASSETS_PATH; ?>/js/sparkline/jquery.sparkline.min.js"></script>
-    <script src="<?php echo ADMIN_ASSETS_PATH; ?>/js/sparkline/sparkline-active.js"></script>
-    <!-- data table JS
-		============================================ -->
-    <script src="<?php echo ADMIN_ASSETS_PATH; ?>/js/data-table/bootstrap-table.js"></script>
-    <script src="<?php echo ADMIN_ASSETS_PATH; ?>/js/data-table/tableExport.js"></script>
-    <script src="<?php echo ADMIN_ASSETS_PATH; ?>/js/data-table/data-table-active.js"></script>
-    <script src="<?php echo ADMIN_ASSETS_PATH; ?>/js/data-table/bootstrap-table-editable.js"></script>
-    <script src="<?php echo ADMIN_ASSETS_PATH; ?>/js/data-table/bootstrap-editable.js"></script>
-    <script src="<?php echo ADMIN_ASSETS_PATH; ?>/js/data-table/bootstrap-table-resizable.js"></script>
-    <script src="<?php echo ADMIN_ASSETS_PATH; ?>/js/data-table/colResizable-1.5.source.js"></script>
-    <script src="<?php echo ADMIN_ASSETS_PATH; ?>/js/data-table/bootstrap-table-export.js"></script>
-    <!-- main JS
-		============================================ -->
-    <script src="<?php echo ADMIN_ASSETS_PATH; ?>/js/main.js"></script>
+// Initialize DataTable and load data
+$(document).ready(function() {
+    recruitersTable = $('#recruitersTable').DataTable({
+        responsive: true,
+        pageLength: 10,
+        language: {
+            emptyTable: 'No recruiters found. Add your first recruiter!',
+            zeroRecords: 'No matching recruiters found',
+            search: '_INPUT_',
+            searchPlaceholder: 'Search recruiters...'
+        },
+        columnDefs: [
+            { orderable: false, targets: 5 } // Disable sorting on Actions column
+        ]
+    });
+    
+    loadRecruiters();
+    loadStats();
+});
 
+// Load recruiters data
+function loadRecruiters() {
+    $.ajax({
+        url: '" . base_url('recruiter_management/get_recruiters') . "',
+        type: 'GET',
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                recruitersTable.clear();
+                
+                response.data.forEach(function(recruiter, index) {
+                    // Handle both text ('Active'/'Pending') and numeric (1/0) status values
+                    const isActive = (recruiter.status == 1 || recruiter.status == '1' || recruiter.status === 'Active');
+                    
+                    const statusBadge = isActive
+                        ? '<span class=\"badge bg-success\">Active</span>' 
+                        : '<span class=\"badge bg-warning\">Pending</span>';
+                    
+                    let statusButton = '';
+                    if (isActive) {
+                        statusButton = '<button class=\"btn btn-sm btn-warning\" onclick=\"deactivateRecruiter(' + recruiter.id + ')\" title=\"Deactivate\">' +
+                            '<i class=\"fas fa-ban\"></i>' +
+                            '</button>';
+                    } else {
+                        statusButton = '<button class=\"btn btn-sm btn-success\" onclick=\"activateRecruiter(' + recruiter.id + ')\" title=\"Activate\">' +
+                            '<i class=\"fas fa-check\"></i>' +
+                            '</button>';
+                    }
+                    
+                    const actions = statusButton +
+                        '<button class=\"btn btn-sm\" onclick=\"editRecruiter(' + recruiter.id + ')\" title=\"Edit\" style=\"background:linear-gradient(135deg,#f59e0b,#f97316);border:none;color:#fff;\">' +
+                            '<i class=\"fas fa-edit\"></i>' +
+                        '</button>' +
+                        '<button class=\"btn btn-sm btn-danger\" onclick=\"deleteRecruiter(' + recruiter.id + ')\" title=\"Delete\">' +
+                            '<i class=\"fas fa-trash\"></i>' +
+                        '</button>';
+                    
+                    recruitersTable.row.add([
+                        index + 1,
+                        recruiter.username,
+                        recruiter.email,
+                        statusBadge,
+                        recruiter.created_at ? new Date(recruiter.created_at).toLocaleDateString() : '-',
+                        actions
+                    ]);
+                });
+                
+                recruitersTable.draw();
+            }
+        },
+        error: function() {
+            alert('Failed to load recruiters');
+        }
+    });
+}
 
-</body>
+// Load statistics
+function loadStats() {
+    $.ajax({
+        url: '" . base_url('recruiter_management/get_stats') . "',
+        type: 'GET',
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                $('.stat-card:eq(0) .stat-card-value').text(response.stats.total);
+                $('.stat-card:eq(1) .stat-card-value').text(response.stats.active);
+                $('.stat-card:eq(2) .stat-card-value').text(response.stats.pending);
+            }
+        }
+    });
+}
 
-</html>
+// Save recruiter
+function saveRecruiter() {
+    const form = $('#addRecruiterForm');
+    const data = {
+        username: form.find('[name=\"username\"]').val(),
+        email: form.find('[name=\"email\"]').val(),
+        password: form.find('[name=\"password\"]').val(),
+        status: form.find('[name=\"status\"]').val()
+    };
+    
+    $.ajax({
+        url: '" . base_url('recruiter_management/add_recruiter') . "',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                showToast(response.message, 'success');
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addRecruiterModal'));
+                if (modal) modal.hide();
+                form[0].reset();
+                loadRecruiters();
+                loadStats();
+            } else {
+                showToast(response.message, 'error');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error:', xhr.responseText);
+            showToast('Failed to add recruiter: ' + (xhr.responseJSON ? xhr.responseJSON.message : error), 'error');
+        }
+    });
+}
+
+// Custom confirm dialog (Bootstrap 5 compatible)
+function showConfirm(title, message, callback) {
+    $('#confirmModalTitle').text(title);
+    $('#confirmModalMessage').text(message);
+    
+    // Remove old click handlers
+    $('#confirmModalBtn').off('click');
+    
+    // Add new click handler
+    $('#confirmModalBtn').on('click', function() {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('confirmModal'));
+        if (modal) modal.hide();
+        callback();
+    });
+    
+    // Show modal using Bootstrap 5 syntax
+    const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    confirmModal.show();
+}
+
+// Show toast notification
+function showToast(message, type = 'success') {
+    const bgColor = type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#ffc107';
+    const icon = type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle';
+    
+    const toast = $('<div class=\"toast-notification\" style=\"position: fixed; top: 20px; right: 20px; background: ' + bgColor + '; color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 9999; display: flex; align-items: center; gap: 10px; min-width: 300px;\">' +
+            '<i class=\"fas fa-' + icon + '\" style=\"font-size: 20px;\"></i>' +
+            '<span>' + message + '</span>' +
+        '</div>');
+    
+    $('body').append(toast);
+    
+    setTimeout(function() {
+        toast.fadeOut(300, function() {
+            $(this).remove();
+        });
+    }, 3000);
+}
+
+// Activate recruiter
+function activateRecruiter(id) {
+    showConfirm(
+        'Activate Recruiter',
+        'Are you sure you want to activate this recruiter?',
+        function() {
+            $.ajax({
+            url: '" . base_url('recruiter_management/update_status') . "',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ id: id, status: 1 }),
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    showToast(response.message, 'success');
+                    loadRecruiters();
+                    loadStats();
+                } else {
+                    showToast(response.message, 'error');
+                }
+            },
+            error: function() {
+                showToast('Failed to activate recruiter', 'error');
+            }
+        });
+        }
+    );
+}
+
+// Deactivate recruiter
+function deactivateRecruiter(id) {
+    showConfirm(
+        'Deactivate Recruiter',
+        'Are you sure you want to deactivate this recruiter?',
+        function() {
+            $.ajax({
+            url: '" . base_url('recruiter_management/update_status') . "',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ id: id, status: 0 }),
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    showToast('Recruiter deactivated successfully', 'success');
+                    loadRecruiters();
+                    loadStats();
+                } else {
+                    showToast(response.message, 'error');
+                }
+            },
+            error: function() {
+                showToast('Failed to deactivate recruiter', 'error');
+            }
+        });
+        }
+    );
+}
+
+// Delete recruiter
+function deleteRecruiter(id) {
+    showConfirm(
+        'Delete Recruiter',
+        'Are you sure you want to delete this recruiter? This action cannot be undone.',
+        function() {
+            $.ajax({
+            url: '" . base_url('recruiter_management/delete_recruiter') . "',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ id: id }),
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    showToast(response.message, 'success');
+                    loadRecruiters();
+                    loadStats();
+                } else {
+                    showToast(response.message, 'error');
+                }
+            },
+            error: function() {
+                showToast('Failed to delete recruiter', 'error');
+            }
+        });
+        }
+    );
+}
+// Edit recruiter - load data into modal
+function editRecruiter(id) {
+    $.ajax({
+        url: '" . base_url('recruiter_management/get_recruiter') . "',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ id: id }),
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                var r = response.data;
+                $('#edit_rec_id').val(r.id);
+                $('#edit_rec_username').val(r.username);
+                $('#edit_rec_email').val(r.email);
+                $('#edit_rec_password').val('');
+                $('#edit_rec_status').val(r.status);
+                const modal = new bootstrap.Modal(document.getElementById('editRecruiterModal'));
+                modal.show();
+            } else {
+                showToast(response.message || 'Failed to load recruiter', 'error');
+            }
+        },
+        error: function() {
+            showToast('Failed to load recruiter details', 'error');
+        }
+    });
+}
+
+// Save edited recruiter
+function saveEditRecruiter() {
+    var id       = $('#edit_rec_id').val();
+    var email    = $('#edit_rec_email').val().trim();
+    var password = $('#edit_rec_password').val();
+    var status   = $('#edit_rec_status').val();
+
+    if (!email) {
+        showToast('Email is required', 'error');
+        return;
+    }
+
+    $.ajax({
+        url: '" . base_url('recruiter_management/update_recruiter') . "',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ id: id, email: email, password: password, status: status }),
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                showToast(response.message, 'success');
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editRecruiterModal'));
+                if (modal) modal.hide();
+                loadRecruiters();
+                loadStats();
+            } else {
+                showToast(response.message || 'Failed to update recruiter', 'error');
+            }
+        },
+        error: function() {
+            showToast('Failed to update recruiter', 'error');
+        }
+    });
+}
+";
+
+$data['custom_script'] = $custom_script;
+
+// Load the footer template
+$this->load->view('templates/admin_footer', $data);
+?>

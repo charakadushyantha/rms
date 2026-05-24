@@ -645,6 +645,238 @@ class Setup extends CI_Controller
         $this->load->view('Admin_dashboard_view/Setup/email_configuration', $data);
     }
 
+    // Interview Configuration
+    public function interview_configuration()
+    {
+        $data['uname'] = $this->session->userdata('username');
+        $data['page_title'] = 'Interview Configuration';
+        
+        // Check if interview_config table exists, if not create it
+        if (!$this->db->table_exists('interview_config')) {
+            $this->create_interview_config_table();
+        }
+        
+        // Get interview configuration
+        $config = $this->db->get('interview_config')->row();
+        $data['config'] = $config ? $config : $this->get_default_interview_config();
+        
+        // Get interview rounds
+        $data['rounds'] = $this->db->order_by('display_order', 'ASC')->get('interview_rounds')->result();
+        
+        // Get meeting platforms
+        $data['platforms'] = $this->db->where('is_active', 1)->get('meeting_platforms')->result();
+        
+        // Get duration presets
+        $data['durations'] = $this->db->order_by('duration_minutes', 'ASC')->get('interview_duration_presets')->result();
+        
+        // Get interview locations
+        $data['locations'] = $this->db->where('is_active', 1)->get('interview_locations')->result();
+        
+        $this->load->view('Admin_dashboard_view/Setup/interview_configuration', $data);
+    }
+
+    private function create_interview_config_table()
+    {
+        // Main configuration table
+        $sql = "CREATE TABLE IF NOT EXISTS `interview_config` (
+            `id` INT(11) NOT NULL AUTO_INCREMENT,
+            `default_duration` INT(11) DEFAULT 60 COMMENT 'Default interview duration in minutes',
+            `default_interview_type` ENUM('online','in_person','phone') DEFAULT 'online',
+            `default_platform` VARCHAR(50) DEFAULT 'Zoom',
+            `auto_generate_links` TINYINT(1) DEFAULT 0 COMMENT 'Auto-generate meeting links',
+            `enable_calendar_sync` TINYINT(1) DEFAULT 1,
+            `enable_whatsapp_notifications` TINYINT(1) DEFAULT 1,
+            `enable_email_notifications` TINYINT(1) DEFAULT 1,
+            `enable_sms_notifications` TINYINT(1) DEFAULT 0,
+            `reminder_hours_before` INT(11) DEFAULT 24 COMMENT 'Send reminder X hours before',
+            `enable_conflict_detection` TINYINT(1) DEFAULT 1,
+            `buffer_time_minutes` INT(11) DEFAULT 15 COMMENT 'Buffer between interviews',
+            `working_hours_start` TIME DEFAULT '09:00:00',
+            `working_hours_end` TIME DEFAULT '18:00:00',
+            `timezone` VARCHAR(50) DEFAULT 'Asia/Colombo',
+            `allow_multiple_interviewers` TINYINT(1) DEFAULT 0 COMMENT 'Allow multiple interviewers per interview',
+            `max_interviewers` INT(11) DEFAULT 3 COMMENT 'Maximum number of interviewers',
+            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+        $this->db->query($sql);
+        
+        // Insert default configuration
+        $default_config = [
+            'default_duration' => 60,
+            'default_interview_type' => 'online',
+            'default_platform' => 'Zoom',
+            'enable_calendar_sync' => 1,
+            'enable_whatsapp_notifications' => 1,
+            'enable_email_notifications' => 1,
+            'reminder_hours_before' => 24,
+            'enable_conflict_detection' => 1,
+            'buffer_time_minutes' => 15,
+            'working_hours_start' => '09:00:00',
+            'working_hours_end' => '18:00:00',
+            'timezone' => 'Asia/Colombo',
+            'allow_multiple_interviewers' => 0,
+            'max_interviewers' => 3
+        ];
+        $this->db->insert('interview_config', $default_config);
+        
+        // Interview rounds table
+        $sql = "CREATE TABLE IF NOT EXISTS `interview_rounds` (
+            `id` INT(11) NOT NULL AUTO_INCREMENT,
+            `round_name` VARCHAR(100) NOT NULL,
+            `round_type` VARCHAR(50) NOT NULL COMMENT 'screening, technical, hr, final, etc',
+            `default_duration` INT(11) DEFAULT 60,
+            `description` TEXT NULL,
+            `display_order` INT(11) DEFAULT 0,
+            `is_active` TINYINT(1) DEFAULT 1,
+            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+        $this->db->query($sql);
+        
+        // Insert default rounds
+        $default_rounds = [
+            ['round_name' => 'Round 1 - Initial Screening', 'round_type' => 'screening', 'default_duration' => 30, 'display_order' => 1],
+            ['round_name' => 'Round 2 - Second Interview', 'round_type' => 'second', 'default_duration' => 60, 'display_order' => 2],
+            ['round_name' => 'Technical Round', 'round_type' => 'technical', 'default_duration' => 90, 'display_order' => 3],
+            ['round_name' => 'HR Round', 'round_type' => 'hr', 'default_duration' => 45, 'display_order' => 4],
+            ['round_name' => 'Final Round', 'round_type' => 'final', 'default_duration' => 60, 'display_order' => 5],
+            ['round_name' => 'Panel Interview', 'round_type' => 'panel', 'default_duration' => 120, 'display_order' => 6]
+        ];
+        foreach ($default_rounds as $round) {
+            $this->db->insert('interview_rounds', $round);
+        }
+        
+        // Meeting platforms table
+        $sql = "CREATE TABLE IF NOT EXISTS `meeting_platforms` (
+            `id` INT(11) NOT NULL AUTO_INCREMENT,
+            `platform_name` VARCHAR(50) NOT NULL,
+            `platform_type` VARCHAR(20) NOT NULL COMMENT 'video, phone, in_person',
+            `api_enabled` TINYINT(1) DEFAULT 0,
+            `api_key` VARCHAR(255) NULL,
+            `api_secret` VARCHAR(255) NULL,
+            `webhook_url` VARCHAR(255) NULL,
+            `is_active` TINYINT(1) DEFAULT 1,
+            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+        $this->db->query($sql);
+        
+        // Insert default platforms
+        $default_platforms = [
+            ['platform_name' => 'Zoom', 'platform_type' => 'video', 'is_active' => 1],
+            ['platform_name' => 'Google Meet', 'platform_type' => 'video', 'is_active' => 1],
+            ['platform_name' => 'Microsoft Teams', 'platform_type' => 'video', 'is_active' => 1],
+            ['platform_name' => 'Skype', 'platform_type' => 'video', 'is_active' => 1],
+            ['platform_name' => 'Phone Call', 'platform_type' => 'phone', 'is_active' => 1],
+            ['platform_name' => 'In-Person', 'platform_type' => 'in_person', 'is_active' => 1]
+        ];
+        foreach ($default_platforms as $platform) {
+            $this->db->insert('meeting_platforms', $platform);
+        }
+        
+        // Duration presets table
+        $sql = "CREATE TABLE IF NOT EXISTS `interview_duration_presets` (
+            `id` INT(11) NOT NULL AUTO_INCREMENT,
+            `preset_name` VARCHAR(50) NOT NULL,
+            `duration_minutes` INT(11) NOT NULL,
+            `is_default` TINYINT(1) DEFAULT 0,
+            `display_order` INT(11) DEFAULT 0,
+            PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+        $this->db->query($sql);
+        
+        // Insert default durations
+        $default_durations = [
+            ['preset_name' => '30 minutes', 'duration_minutes' => 30, 'display_order' => 1],
+            ['preset_name' => '1 hour', 'duration_minutes' => 60, 'is_default' => 1, 'display_order' => 2],
+            ['preset_name' => '1.5 hours', 'duration_minutes' => 90, 'display_order' => 3],
+            ['preset_name' => '2 hours', 'duration_minutes' => 120, 'display_order' => 4]
+        ];
+        foreach ($default_durations as $duration) {
+            $this->db->insert('interview_duration_presets', $duration);
+        }
+        
+        // Interview locations table
+        $sql = "CREATE TABLE IF NOT EXISTS `interview_locations` (
+            `id` INT(11) NOT NULL AUTO_INCREMENT,
+            `location_name` VARCHAR(100) NOT NULL,
+            `address` TEXT NOT NULL,
+            `city` VARCHAR(50) NULL,
+            `postal_code` VARCHAR(20) NULL,
+            `room_number` VARCHAR(50) NULL,
+            `capacity` INT(11) NULL,
+            `facilities` TEXT NULL COMMENT 'Projector, Whiteboard, etc',
+            `is_active` TINYINT(1) DEFAULT 1,
+            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+        $this->db->query($sql);
+    }
+
+    private function get_default_interview_config()
+    {
+        return (object)[
+            'default_duration' => 60,
+            'default_interview_type' => 'online',
+            'default_platform' => 'Zoom',
+            'auto_generate_links' => 0,
+            'enable_calendar_sync' => 1,
+            'enable_whatsapp_notifications' => 1,
+            'enable_email_notifications' => 1,
+            'enable_sms_notifications' => 0,
+            'reminder_hours_before' => 24,
+            'enable_conflict_detection' => 1,
+            'buffer_time_minutes' => 15,
+            'working_hours_start' => '09:00:00',
+            'working_hours_end' => '18:00:00',
+            'timezone' => 'Asia/Colombo',
+            'allow_multiple_interviewers' => 0,
+            'max_interviewers' => 3
+        ];
+    }
+
+    public function save_interview_configuration()
+    {
+        $data = [
+            'default_duration' => $this->input->post('default_duration'),
+            'default_interview_type' => $this->input->post('default_interview_type'),
+            'default_platform' => $this->input->post('default_platform'),
+            'auto_generate_links' => $this->input->post('auto_generate_links') ? 1 : 0,
+            'enable_calendar_sync' => $this->input->post('enable_calendar_sync') ? 1 : 0,
+            'enable_whatsapp_notifications' => $this->input->post('enable_whatsapp_notifications') ? 1 : 0,
+            'enable_email_notifications' => $this->input->post('enable_email_notifications') ? 1 : 0,
+            'enable_sms_notifications' => $this->input->post('enable_sms_notifications') ? 1 : 0,
+            'reminder_hours_before' => $this->input->post('reminder_hours_before'),
+            'enable_conflict_detection' => $this->input->post('enable_conflict_detection') ? 1 : 0,
+            'buffer_time_minutes' => $this->input->post('buffer_time_minutes'),
+            'working_hours_start' => $this->input->post('working_hours_start'),
+            'working_hours_end' => $this->input->post('working_hours_end'),
+            'timezone' => $this->input->post('timezone'),
+            'allow_multiple_interviewers' => $this->input->post('allow_multiple_interviewers') ? 1 : 0,
+            'max_interviewers' => $this->input->post('max_interviewers') ?: 3
+        ];
+        
+        // Check if config exists
+        $exists = $this->db->get('interview_config')->num_rows();
+        
+        if ($exists > 0) {
+            $this->db->where('id', 1);
+            $result = $this->db->update('interview_config', $data);
+        } else {
+            $result = $this->db->insert('interview_config', $data);
+        }
+        
+        if ($result) {
+            $this->session->set_flashdata('success_msg', 'Interview configuration saved successfully!');
+        } else {
+            $this->session->set_flashdata('error_msg', 'Failed to save configuration.');
+        }
+        
+        redirect('Setup/interview_configuration');
+    }
+
     // Create email tables automatically
     private function create_email_tables()
     {
@@ -1763,4 +1995,51 @@ class Setup extends CI_Controller
         echo json_encode($result);
     }
 
+    // Interview Rounds Management
+    public function interview_rounds()
+    {
+        $data['uname'] = $this->session->userdata('username');
+        $data['page_title'] = 'Manage Interview Rounds';
+        
+        // Get all interview rounds
+        $data['rounds'] = $this->db->order_by('display_order', 'ASC')->get('interview_rounds')->result();
+        
+        $this->load->view('Admin_dashboard_view/Setup/interview_rounds', $data);
+    }
+
+    // Meeting Platforms Configuration
+    public function meeting_platforms()
+    {
+        $data['uname'] = $this->session->userdata('username');
+        $data['page_title'] = 'Configure Meeting Platforms';
+        
+        // Get all meeting platforms
+        $data['platforms'] = $this->db->get('meeting_platforms')->result();
+        
+        $this->load->view('Admin_dashboard_view/Setup/meeting_platforms', $data);
+    }
+
+    // Interview Locations Management
+    public function interview_locations()
+    {
+        $data['uname'] = $this->session->userdata('username');
+        $data['page_title'] = 'Manage Interview Locations';
+        
+        // Get all interview locations
+        $data['locations'] = $this->db->get('interview_locations')->result();
+        
+        $this->load->view('Admin_dashboard_view/Setup/interview_locations', $data);
+    }
+
+    // Email Templates Management
+    public function interview_templates()
+    {
+        $data['uname'] = $this->session->userdata('username');
+        $data['page_title'] = 'Email Templates';
+        
+        // Placeholder for email templates
+        $data['templates'] = [];
+        
+        $this->load->view('Admin_dashboard_view/Setup/interview_templates', $data);
+    }
 }

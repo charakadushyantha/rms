@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Recruiter AJAX</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        #results {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Recruiter AJAX Test Page</h1>
+    
+    <div class="test-section">
+        <h2>Test Endpoints</h2>
+        <p>Click the buttons below to test each AJAX endpoint:</p>
+        
+        <button onclick="testGetRecruiters()">Test Get Recruiters</button>
+        <button onclick="testGetStats()">Test Get Stats</button>
+        <button onclick="testGetRecruiter()">Test Get Single Recruiter (ID: 1)</button>
+        
+        <div id="results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Console Log</h2>
+        <p>Open browser console (F12) to see detailed logs</p>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://localhost/rms/';
+        
+        function showResult(title, data, isError = false) {
+            const resultsDiv = document.getElementById('results');
+            const className = isError ? 'error' : 'success';
+            resultsDiv.innerHTML = `<div class="${className}">
+                <strong>${title}</strong>
+                <pre>${JSON.stringify(data, null, 2)}</pre>
+            </div>`;
+        }
+        
+        function testGetRecruiters() {
+            console.log('Testing get_recruiters endpoint...');
+            
+            fetch(BASE_URL + 'recruiter_management/get_recruiters', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'include'
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                showResult('✓ Get Recruiters Success', data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showResult('✗ Get Recruiters Failed', { error: error.message }, true);
+            });
+        }
+        
+        function testGetStats() {
+            console.log('Testing get_stats endpoint...');
+            
+            fetch(BASE_URL + 'recruiter_management/get_stats', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'include'
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                showResult('✓ Get Stats Success', data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showResult('✗ Get Stats Failed', { error: error.message }, true);
+            });
+        }
+        
+        function testGetRecruiter() {
+            console.log('Testing get_recruiter endpoint...');
+            
+            fetch(BASE_URL + 'recruiter_management/get_recruiter', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'include',
+                body: JSON.stringify({ id: 1 })
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                showResult('✓ Get Recruiter Success', data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showResult('✗ Get Recruiter Failed', { error: error.message }, true);
+            });
+        }
+    </script>
+</body>
+</html>

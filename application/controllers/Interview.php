@@ -215,12 +215,139 @@ class Interview extends CI_Controller {
     }
 
     /**
+     * Schedule Interview (Alias for create_interview)
+     */
+    public function schedule() {
+        // Redirect to create_interview method
+        $this->create_interview();
+    }
+
+    /**
      * Create Interview
      */
     public function create_interview() {
         $data['title'] = 'Create Interview';
         $data['uname'] = $this->session->userdata('username');
         $data['flows'] = $this->Interview_flow_model->get_active();
+        
+        // Load interview configuration settings
+        $config_query = $this->db->get('interview_config');
+        if ($config_query->num_rows() > 0) {
+            $data['interview_config'] = $config_query->row();
+        } else {
+            // Default configuration if not set
+            $data['interview_config'] = (object)[
+                'default_duration' => 60,
+                'default_interview_type' => 'online',
+                'default_platform' => 'Zoom',
+                'enable_whatsapp_notifications' => 1,
+                'enable_email_notifications' => 1,
+                'enable_calendar_sync' => 1,
+                'working_hours_start' => '09:00:00',
+                'working_hours_end' => '18:00:00',
+                'timezone' => 'Asia/Colombo'
+            ];
+        }
+        
+        // Load interview rounds from configuration
+        $rounds_query = $this->db->where('is_active', 1)->order_by('display_order', 'ASC')->get('interview_rounds');
+        $data['interview_rounds'] = $rounds_query->result_array();
+        
+        // Load meeting platforms from configuration
+        $platforms_query = $this->db->where('is_active', 1)->get('meeting_platforms');
+        $data['meeting_platforms'] = $platforms_query->result_array();
+        
+        // Load duration presets from configuration
+        $durations_query = $this->db->order_by('duration_minutes', 'ASC')->get('interview_duration_presets');
+        $data['duration_presets'] = $durations_query->result_array();
+        
+        // Load interview locations from configuration
+        $locations_query = $this->db->where('is_active', 1)->get('interview_locations');
+        $data['interview_locations'] = $locations_query->result_array();
+        
+        // UNIFIED APPROACH: Combine candidates from both sources
+        $this->load->model('Candidate_model');
+        
+        // Get candidates from candidate_details with user account status using raw query
+        $sql = "SELECT 
+                    cd.cd_id, 
+                    cd.cd_name, 
+                    cd.cd_email, 
+                    cd.cd_phone, 
+                    cd.cd_job_title, 
+                    cd.cd_status, 
+                    u.u_id, 
+                    u.u_status as user_status, 
+                    u.u_role,
+                    CASE WHEN u.u_id IS NOT NULL THEN 1 ELSE 0 END as has_account
+                FROM candidate_details cd
+                LEFT JOIN users u ON cd.cd_email = u.u_email AND u.u_role = 'candidate'
+                WHERE cd.cd_email IS NOT NULL 
+                AND cd.cd_email != ''
+                GROUP BY cd.cd_email
+                ORDER BY cd.cd_name ASC";
+        
+        $query = $this->db->query($sql);
+        $candidates_from_details = $query->result_array();
+        
+        // Get registered candidate users NOT in candidate_details
+        $sql2 = "SELECT 
+                    u.u_id, 
+                    u.u_username as cd_name, 
+                    u.u_email as cd_email, 
+                    '' as cd_phone, 
+                    '' as cd_job_title, 
+                    u.u_status as cd_status, 
+                    u.u_id, 
+                    u.u_status as user_status, 
+                    u.u_role, 
+                    1 as has_account
+                FROM users u
+                WHERE u.u_role = 'candidate'
+                AND u.u_email NOT IN (
+                    SELECT cd_email 
+                    FROM candidate_details 
+                    WHERE cd_email IS NOT NULL 
+                    AND cd_email != ''
+                )
+                ORDER BY u.u_username ASC";
+        
+        $query2 = $this->db->query($sql2);
+        $candidates_from_users = $query2->result_array();
+        
+        // Combine both sources
+        $data['candidates'] = array_merge($candidates_from_details, $candidates_from_users);
+        
+        // Add source indicator and ensure has_account is set for all
+        foreach ($data['candidates'] as &$candidate) {
+            if (isset($candidate['cd_id']) && $candidate['cd_id']) {
+                $candidate['source'] = 'candidate_details';
+            } else {
+                $candidate['source'] = 'users_only';
+            }
+            // Ensure has_account is always set
+            if (!isset($candidate['has_account'])) {
+                $candidate['has_account'] = 0;
+            }
+        }
+        
+        // Get interviewers list
+        $sql_interviewers = "SELECT u_id, u_username, u_email 
+                            FROM users 
+                            WHERE u_role = 'interviewer' 
+                            AND (u_status = 'Active' OR u_status = '1')
+                            ORDER BY u_username ASC";
+        $query_interviewers = $this->db->query($sql_interviewers);
+        $data['interviewers'] = $query_interviewers->result_array();
+        
+        // Get job positions
+        $sql_positions = "SELECT DISTINCT cd_job_title 
+                         FROM candidate_details 
+                         WHERE cd_job_title IS NOT NULL 
+                         AND cd_job_title != '' 
+                         ORDER BY cd_job_title ASC";
+        $query_positions = $this->db->query($sql_positions);
+        $data['job_positions'] = $query_positions->result_array();
         
         if ($this->input->post()) {
             $token = bin2hex(random_bytes(32));
@@ -230,11 +357,54 @@ class Interview extends CI_Controller {
                 'candidate_name' => $this->input->post('candidate_name'),
                 'candidate_email' => $this->input->post('candidate_email'),
                 'candidate_phone' => $this->input->post('candidate_phone'),
+                
+                // Interview Schedule
+                'interview_date' => $this->input->post('interview_date'),
+                'interview_start_time' => $this->input->post('interview_start_time'),
+                'interview_end_time' => $this->input->post('interview_end_time'),
+                'interview_duration' => $this->input->post('interview_duration') ?: 60,
+                'interview_round' => $this->input->post('interview_round') ?: 'Round 1',
+                
+                // Interview Type & Details
+                'interview_type' => $this->input->post('interview_type') ?: 'online',
+                'online_platform' => $this->input->post('online_platform'),
+                'meeting_link' => $this->input->post('meeting_link'),
+                'meeting_id' => $this->input->post('meeting_id'),
+                'meeting_password' => $this->input->post('meeting_password'),
+                'venue_location' => $this->input->post('venue_location'),
+                'venue_room' => $this->input->post('venue_room'),
+                'phone_number' => $this->input->post('phone_number'),
+                
+                // Assignment
+                'assigned_interviewer' => null, // Will be set below
+                'job_position' => $this->input->post('job_position'),
+                
+                // Notes
+                'interview_notes' => $this->input->post('interview_notes'),
+                'internal_notes' => $this->input->post('internal_notes'),
+                
+                // Notifications
+                'send_whatsapp' => $this->input->post('send_whatsapp') ? 1 : 0,
+                'send_sms' => $this->input->post('send_sms') ? 1 : 0,
+                'timezone' => 'Asia/Colombo',
+                
+                // Existing fields
                 'token' => $token,
                 'status' => 'pending',
                 'expires_at' => date('Y-m-d H:i:s', strtotime('+7 days')),
                 'created_at' => date('Y-m-d H:i:s')
             ];
+            
+            // Handle interviewer assignment (single or multiple)
+            $assigned_interviewers_array = $this->input->post('assigned_interviewers');
+            if ($assigned_interviewers_array && is_array($assigned_interviewers_array)) {
+                // Multiple interviewers mode
+                $assigned_interviewers_array = array_filter($assigned_interviewers_array); // Remove empty values
+                $interview_data['assigned_interviewer'] = implode(',', $assigned_interviewers_array);
+            } else {
+                // Single interviewer mode
+                $interview_data['assigned_interviewer'] = $this->input->post('assigned_interviewer');
+            }
             
             $interview_id = $this->Interview_model->create($interview_data);
             
@@ -246,16 +416,16 @@ class Interview extends CI_Controller {
                     $this->send_interview_email($interview_data, $interview_link);
                 }
                 
-                $this->session->set_flashdata('success', 'Interview created successfully!');
+                $this->session->set_flashdata('success', 'Interview scheduled successfully!');
                 $this->session->set_flashdata('interview_link', $interview_link);
                 redirect('interview/view/' . $interview_id);
             } else {
-                $this->session->set_flashdata('error', 'Failed to create interview.');
+                $this->session->set_flashdata('error', 'Failed to schedule interview.');
             }
         }
         
         $this->load->view('templates/admin_header', $data);
-        $this->load->view('interview/create_interview', $data);
+        $this->load->view('interview/create_interview_enhanced', $data);
         $this->load->view('templates/admin_footer');
     }
 
@@ -394,5 +564,248 @@ class Interview extends CI_Controller {
         
         $this->email->message($message);
         return $this->email->send();
+    }
+    
+    /**
+     * Cancel Interview (AJAX)
+     */
+    public function cancel_interview_ajax() {
+        header('Content-Type: application/json');
+        
+        $interview_id = $this->input->post('interview_id');
+        
+        if (!$interview_id) {
+            echo json_encode(['success' => false, 'message' => 'Interview ID is required']);
+            return;
+        }
+        
+        $result = $this->Interview_model->cancel_interview($interview_id);
+        
+        if ($result) {
+            echo json_encode(['success' => true, 'message' => 'Interview cancelled successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to cancel interview']);
+        }
+    }
+    
+    /**
+     * Send Reminder (AJAX)
+     */
+    public function send_reminder_ajax() {
+        header('Content-Type: application/json');
+        
+        $interview_id = $this->input->post('interview_id');
+        
+        if (!$interview_id) {
+            echo json_encode(['success' => false, 'message' => 'Interview ID is required']);
+            return;
+        }
+        
+        $interview = $this->Interview_model->get_by_id($interview_id);
+        
+        if (!$interview) {
+            echo json_encode(['success' => false, 'message' => 'Interview not found']);
+            return;
+        }
+        
+        // Send reminder email
+        $interview_link = base_url("interview/take/" . $interview['token']);
+        $this->send_interview_email($interview, $interview_link);
+        
+        echo json_encode(['success' => true, 'message' => 'Reminder sent successfully']);
+    }
+    
+    /**
+     * Get Calendar Data (AJAX)
+     */
+    public function get_calendar_data() {
+        header('Content-Type: application/json');
+        
+        $month = $this->input->get('month');
+        $year = $this->input->get('year');
+        
+        if (!$month || !$year) {
+            echo json_encode(['success' => false, 'message' => 'Month and year are required']);
+            return;
+        }
+        
+        $dates = $this->Interview_model->get_interview_dates($month, $year);
+        
+        echo json_encode(['success' => true, 'dates' => $dates]);
+    }
+    
+    /**
+     * View Calendar Event Interview
+     */
+    public function view_calendar($id) {
+        $data['title'] = 'Interview Details';
+        $data['uname'] = $this->session->userdata('username');
+        
+        // Get interview from calendar_events table
+        $this->db->select('ce.*, cd.cd_name, cd.cd_email, cd.cd_phone, cd.cd_job_title, cd.cd_status');
+        $this->db->from('calendar_events ce');
+        $this->db->join('candidate_details cd', 'ce.ce_can_name = cd.cd_name', 'left');
+        $this->db->where('ce.ce_id', $id);
+        $interview = $this->db->get()->row_array();
+        
+        if (!$interview) {
+            show_404();
+        }
+        
+        $data['interview'] = $interview;
+        
+        $this->load->view('templates/admin_header', $data);
+        $this->load->view('interview/view_calendar_interview', $data);
+        $this->load->view('templates/admin_footer');
+    }
+    
+    /**
+     * Edit Calendar Event Interview
+     */
+    public function edit($id) {
+        $data['title'] = 'Edit Interview';
+        $data['uname'] = $this->session->userdata('username');
+        
+        // Get interview from calendar_events table
+        $this->db->select('ce.*, cd.cd_email, cd.cd_phone');
+        $this->db->from('calendar_events ce');
+        $this->db->join('candidate_details cd', 'ce.ce_can_name = cd.cd_name', 'left');
+        $this->db->where('ce.ce_id', $id);
+        $interview = $this->db->get()->row_array();
+        
+        if (!$interview) {
+            show_404();
+        }
+        
+        $data['interview'] = $interview;
+        
+        // Get interviewers list
+        $this->db->select('u_username');
+        $this->db->from('users');
+        $this->db->where('u_role', 'Interviewer');
+        $this->db->order_by('u_username', 'ASC');
+        $data['interviewers'] = $this->db->get()->result_array();
+        
+        // Get candidates list
+        $this->db->select('cd_name, cd_email, cd_phone, cd_job_title');
+        $this->db->from('candidate_details');
+        $this->db->order_by('cd_name', 'ASC');
+        $data['candidates'] = $this->db->get()->result_array();
+        
+        // Handle form submission
+        if ($this->input->post()) {
+            $update_data = [
+                'ce_can_name' => $this->input->post('candidate_name'),
+                'ce_interviewer' => $this->input->post('interviewer'),
+                'ce_start_date' => $this->input->post('start_date'),
+                'ce_end_date' => $this->input->post('end_date'),
+                'ce_interview_round' => $this->input->post('interview_round')
+            ];
+            
+            $this->db->where('ce_id', $id);
+            if ($this->db->update('calendar_events', $update_data)) {
+                $this->session->set_flashdata('success', 'Interview updated successfully!');
+                redirect('A_dashboard/Acalendar_view');
+            } else {
+                $this->session->set_flashdata('error', 'Failed to update interview.');
+            }
+        }
+        
+        $this->load->view('templates/admin_header', $data);
+        $this->load->view('interview/edit_calendar_interview', $data);
+        $this->load->view('templates/admin_footer');
+    }
+    
+    /**
+     * Delete Calendar Event Interview
+     */
+    public function delete($id) {
+        // Get interview details first
+        $this->db->where('ce_id', $id);
+        $interview = $this->db->get('calendar_events')->row_array();
+        
+        if (!$interview) {
+            $this->session->set_flashdata('error', 'Interview not found.');
+            redirect('A_dashboard/Acalendar_view');
+            return;
+        }
+        
+        // Delete the interview
+        $this->db->where('ce_id', $id);
+        if ($this->db->delete('calendar_events')) {
+            $this->session->set_flashdata('success', 'Interview deleted successfully!');
+        } else {
+            $this->session->set_flashdata('error', 'Failed to delete interview.');
+        }
+        
+        redirect('A_dashboard/Acalendar_view');
+    }
+    
+    /**
+     * Export Report
+     */
+    public function export_report() {
+        // Get all interviews
+        $interviews = $this->Interview_model->get_all(null, null, 1000, 0);
+        
+        // Set headers for CSV download
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename="interviews_report_' . date('Y-m-d') . '.csv"');
+        
+        $output = fopen('php://output', 'w');
+        
+        // CSV headers
+        fputcsv($output, [
+            'ID',
+            'Candidate Name',
+            'Candidate Email',
+            'Candidate Phone',
+            'Job Position',
+            'Interview Date',
+            'Interview Time',
+            'Duration (min)',
+            'Round',
+            'Type',
+            'Platform/Location',
+            'Assigned Interviewer',
+            'Status',
+            'Created At',
+            'Started At',
+            'Completed At'
+        ]);
+        
+        // CSV data
+        foreach ($interviews as $interview) {
+            $platform_location = '';
+            if ($interview['interview_type'] === 'online') {
+                $platform_location = $interview['online_platform'] ?? '';
+            } elseif ($interview['interview_type'] === 'in_person') {
+                $platform_location = $interview['venue_location'] ?? '';
+            } elseif ($interview['interview_type'] === 'phone') {
+                $platform_location = $interview['phone_number'] ?? '';
+            }
+            
+            fputcsv($output, [
+                $interview['id'],
+                $interview['candidate_name'] ?? '',
+                $interview['candidate_email'] ?? '',
+                $interview['candidate_phone'] ?? '',
+                $interview['job_title'] ?? '',
+                $interview['interview_date'] ?? '',
+                $interview['interview_start_time'] ?? '',
+                $interview['interview_duration'] ?? '',
+                $interview['interview_round'] ?? '',
+                ucfirst($interview['interview_type'] ?? ''),
+                $platform_location,
+                $interview['assigned_interviewer'] ?? '',
+                ucfirst($interview['status'] ?? ''),
+                $interview['created_at'] ?? '',
+                $interview['started_at'] ?? '',
+                $interview['completed_at'] ?? ''
+            ]);
+        }
+        
+        fclose($output);
+        exit;
     }
 }

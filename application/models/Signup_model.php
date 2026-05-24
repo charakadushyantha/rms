@@ -99,6 +99,25 @@ class Signup_model extends CI_Model {
       }
 
       $insert = $this->db->insert(TBL_USERS,$new_member_insert_data);
+      
+      // ✅ FIX: If role is Candidate, also add to candidate_details table
+      if ($insert && $role == 'Candidate') {
+        $candidate_data = array(
+          'cd_name' => $this->input->post('username'),
+          'cd_email' => $this->input->post('useremail'),
+          'cd_phone' => $this->input->post('phone') ? $this->input->post('phone') : '',
+          'cd_status' => 'Interested',
+          'cd_rec_username' => 'self_registration',
+          'cd_created_at' => date('Y-m-d H:i:s'),
+          'cd_gender' => 'Not Specified',
+          'cd_source' => 'Self Registration',
+          'cd_description' => 'Registered through candidate portal'
+        );
+        
+        // Insert into candidate_details table
+        $this->db->insert('candidate_details', $candidate_data);
+      }
+      
       return $insert;
       
     } catch (Exception $e) {

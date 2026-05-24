@@ -779,8 +779,10 @@
             }
             
             // Helper function to check visibility
-            function is_module_visible($key, $visibility_array) {
-                return !isset($visibility_array[$key]) || $visibility_array[$key] == 1;
+            if (!function_exists('is_module_visible')) {
+                function is_module_visible($key, $visibility_array) {
+                    return !isset($visibility_array[$key]) || $visibility_array[$key] == 1;
+                }
             }
             ?>
             
@@ -832,7 +834,6 @@
                 <a href="<?php echo base_url('interview'); ?>" class="<?= $this->uri->segment(1) == 'interview' && $this->uri->segment(2) != 'management' ? 'active' : '' ?>" style="background: linear-gradient(90deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2)); border-left: 4px solid #667eea;">
                     <i class="fas fa-video" style="color: #667eea;"></i>
                     <span style="font-weight: 600;">Interviews</span>
-                    <span class="badge" style="background: linear-gradient(90deg, #667eea, #764ba2); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto;">NEW</span>
                 </a>
             </li>
             
@@ -841,7 +842,6 @@
                 <a href="<?php echo base_url('interview/management'); ?>" class="<?= ($this->uri->segment(1) == 'interview' && $this->uri->segment(2) == 'management') ? 'active' : '' ?>" style="background: linear-gradient(90deg, rgba(56, 178, 172, 0.2), rgba(72, 187, 120, 0.2)); border-left: 4px solid #38b2ac;">
                     <i class="fas fa-calendar-check" style="color: #38b2ac;"></i>
                     <span style="font-weight: 600;">IMS</span>
-                    <span class="badge" style="background: linear-gradient(90deg, #38b2ac, #48bb78); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto;">PRO</span>
                 </a>
             </li>
             
@@ -850,7 +850,6 @@
                 <a href="<?php echo base_url('questions_bank'); ?>" class="<?= $this->uri->segment(1) == 'questions_bank' ? 'active' : '' ?>" style="background: linear-gradient(90deg, rgba(251, 146, 60, 0.2), rgba(249, 115, 22, 0.2)); border-left: 4px solid #fb923c;">
                     <i class="fas fa-question-circle" style="color: #fb923c;"></i>
                     <span style="font-weight: 600;">Questions Bank</span>
-                    <span class="badge" style="background: linear-gradient(90deg, #fb923c, #f97316); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto;">NEW</span>
                 </a>
             </li>
             
@@ -859,7 +858,6 @@
                 <a href="<?php echo base_url('realtime_dashboard'); ?>" class="<?= $this->uri->segment(1) == 'realtime_dashboard' ? 'active' : '' ?>" style="background: linear-gradient(90deg, rgba(76, 222, 128, 0.2), rgba(59, 130, 246, 0.2)); border-left: 4px solid #4ade80;">
                     <i class="fas fa-chart-line" style="color: #4ade80;"></i>
                     <span style="font-weight: 600;">Analytics</span>
-                    <span class="badge" style="background: linear-gradient(90deg, #4ade80, #3b82f6); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto;">NEW</span>
                 </a>
             </li>
             <?php endif; ?>
@@ -874,7 +872,6 @@
                 <a href="<?php echo base_url('Job_posting'); ?>" class="<?= $this->uri->segment(1) == 'Job_posting' ? 'active' : '' ?>">
                     <i class="fas fa-briefcase"></i>
                     <span>Job Postings</span>
-                    <span class="badge" style="background: linear-gradient(90deg, #f093fb, #f5576c); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto;">NEW</span>
                 </a>
             </li>
             <li>
@@ -900,14 +897,12 @@
                 <a href="<?php echo base_url('Sales_marketing'); ?>" class="<?= $this->uri->segment(1) == 'Sales_marketing' ? 'active' : '' ?>" style="background: linear-gradient(90deg, rgba(255, 107, 107, 0.2), rgba(255, 193, 7, 0.2)); border-left: 4px solid #ff6b6b;">
                     <i class="fas fa-bullhorn" style="color: #ff6b6b;"></i>
                     <span style="font-weight: 600;">Marketing Hub</span>
-                    <span class="badge" style="background: linear-gradient(90deg, #ff6b6b, #ffc107); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto;">HUB</span>
                 </a>
             </li>
             <li>
                 <a href="<?php echo base_url('Candidate_sourcing'); ?>" class="<?= $this->uri->segment(1) == 'Candidate_sourcing' ? 'active' : '' ?>">
                     <i class="fas fa-search"></i>
                     <span>Candidate Sourcing</span>
-                    <span class="badge" style="background: linear-gradient(90deg, #ffecd2, #fcb69f); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto;">NEW</span>
                 </a>
             </li>
             <li>
@@ -1002,9 +997,6 @@
                         <a href="<?= base_url($module['url']) ?>" class="<?= $this->uri->segment(2) == basename($module['url']) ? 'active' : '' ?>">
                             <i class="<?= $module['icon'] ?>"></i>
                             <span><?= $module['name'] ?></span>
-                            <?php if ($module['show_badge']): ?>
-                            <span class="badge" style="background: linear-gradient(90deg, #4ade80, #3b82f6); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto;"><?= $module['badge_text'] ?></span>
-                            <?php endif; ?>
                         </a>
                     </li>
                     <?php endforeach; ?>
@@ -1045,7 +1037,6 @@
                 <a href="<?php echo base_url('Signup_controller'); ?>" class="<?= $this->uri->segment(1) == 'Signup_controller' ? 'active' : '' ?>" style="background: linear-gradient(90deg, rgba(34, 197, 94, 0.2), rgba(59, 130, 246, 0.2)); border-left: 4px solid #22c55e;">
                     <i class="fas fa-user-cog" style="color: #22c55e;"></i>
                     <span style="font-weight: 600;">Signup Controller</span>
-                    <span class="badge" style="background: linear-gradient(90deg, #22c55e, #3b82f6); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto;">NEW</span>
                 </a>
             </li>
             

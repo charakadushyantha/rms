@@ -189,4 +189,13 @@ class Job_posting_model extends CI_Model
         $this->db->limit($limit);
         return $this->db->get()->result();
     }
+
+    // Check if job was already posted to a platform
+    public function check_platform_posted($job_id, $platform_id)
+    {
+        $this->db->where('jp_id', $job_id);
+        $this->db->where('platform_id', $platform_id);
+        $this->db->where('status', 'Posted');
+        return $this->db->get('job_posting_history')->num_rows() > 0;
+    }
 }
