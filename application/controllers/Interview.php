@@ -215,6 +215,14 @@ class Interview extends CI_Controller {
     }
 
     /**
+     * Schedule Interview (Alias for create_interview)
+     */
+    public function schedule() {
+        // Redirect to create_interview method
+        $this->create_interview();
+    }
+
+    /**
      * Create Interview
      */
     public function create_interview() {
@@ -624,6 +632,113 @@ class Interview extends CI_Controller {
         $dates = $this->Interview_model->get_interview_dates($month, $year);
         
         echo json_encode(['success' => true, 'dates' => $dates]);
+    }
+    
+    /**
+     * View Calendar Event Interview
+     */
+    public function view_calendar($id) {
+        $data['title'] = 'Interview Details';
+        $data['uname'] = $this->session->userdata('username');
+        
+        // Get interview from calendar_events table
+        $this->db->select('ce.*, cd.cd_name, cd.cd_email, cd.cd_phone, cd.cd_job_title, cd.cd_status');
+        $this->db->from('calendar_events ce');
+        $this->db->join('candidate_details cd', 'ce.ce_can_name = cd.cd_name', 'left');
+        $this->db->where('ce.ce_id', $id);
+        $interview = $this->db->get()->row_array();
+        
+        if (!$interview) {
+            show_404();
+        }
+        
+        $data['interview'] = $interview;
+        
+        $this->load->view('templates/admin_header', $data);
+        $this->load->view('interview/view_calendar_interview', $data);
+        $this->load->view('templates/admin_footer');
+    }
+    
+    /**
+     * Edit Calendar Event Interview
+     */
+    public function edit($id) {
+        $data['title'] = 'Edit Interview';
+        $data['uname'] = $this->session->userdata('username');
+        
+        // Get interview from calendar_events table
+        $this->db->select('ce.*, cd.cd_email, cd.cd_phone');
+        $this->db->from('calendar_events ce');
+        $this->db->join('candidate_details cd', 'ce.ce_can_name = cd.cd_name', 'left');
+        $this->db->where('ce.ce_id', $id);
+        $interview = $this->db->get()->row_array();
+        
+        if (!$interview) {
+            show_404();
+        }
+        
+        $data['interview'] = $interview;
+        
+        // Get interviewers list
+        $this->db->select('u_username');
+        $this->db->from('users');
+        $this->db->where('u_role', 'Interviewer');
+        $this->db->order_by('u_username', 'ASC');
+        $data['interviewers'] = $this->db->get()->result_array();
+        
+        // Get candidates list
+        $this->db->select('cd_name, cd_email, cd_phone, cd_job_title');
+        $this->db->from('candidate_details');
+        $this->db->order_by('cd_name', 'ASC');
+        $data['candidates'] = $this->db->get()->result_array();
+        
+        // Handle form submission
+        if ($this->input->post()) {
+            $update_data = [
+                'ce_can_name' => $this->input->post('candidate_name'),
+                'ce_interviewer' => $this->input->post('interviewer'),
+                'ce_start_date' => $this->input->post('start_date'),
+                'ce_end_date' => $this->input->post('end_date'),
+                'ce_interview_round' => $this->input->post('interview_round')
+            ];
+            
+            $this->db->where('ce_id', $id);
+            if ($this->db->update('calendar_events', $update_data)) {
+                $this->session->set_flashdata('success', 'Interview updated successfully!');
+                redirect('A_dashboard/Acalendar_view');
+            } else {
+                $this->session->set_flashdata('error', 'Failed to update interview.');
+            }
+        }
+        
+        $this->load->view('templates/admin_header', $data);
+        $this->load->view('interview/edit_calendar_interview', $data);
+        $this->load->view('templates/admin_footer');
+    }
+    
+    /**
+     * Delete Calendar Event Interview
+     */
+    public function delete($id) {
+        // Get interview details first
+        $this->db->where('ce_id', $id);
+        $interview = $this->db->get('calendar_events')->row_array();
+        
+        if (!$interview) {
+            $this->session->set_flashdata('error', 'Interview not found.');
+            redirect('A_dashboard/Acalendar_view');
+            return;
+        }
+        
+        // Delete the interview
+        $this->db->where('ce_id', $id);
+        if ($this->db->delete('calendar_events')) {
+            $this->session->set_flashdata('success', 'Interview deleted successfully!');
+        } else {
+            $this->session->set_flashdata('error', 'Failed to delete interview.');
+        }
+        
+        redirect('A_dashboard/Acalendar_view');
     }
     
     /**

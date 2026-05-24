@@ -66,9 +66,57 @@ class A_dashboard extends CI_Controller
   public function Acalendar_view()
   {
     $data['uname'] = $this->session->userdata('username');
-    $this->load->view('Admin_dashboard_view/Acalendar_modern',$data); // Using modern compact UI
-    // To use new design: $this->load->view('Admin_dashboard_view/Acalendar_new',$data);
-    // To use old design: $this->load->view('Admin_dashboard_view/Acalendar',$data);
+    
+    // Get all interviews from calendar_events table
+    $this->db->select('ce.*, cd.cd_name, cd.cd_email, cd.cd_phone, cd.cd_job_title');
+    $this->db->from('calendar_events ce');
+    $this->db->join('candidate_details cd', 'ce.ce_can_name = cd.cd_name', 'left');
+    $this->db->order_by('ce.ce_start_date', 'ASC');
+    $data['interviews'] = $this->db->get()->result();
+    
+    // Get statistics
+    $today = date('Y-m-d');
+    $week_start = date('Y-m-d', strtotime('monday this week'));
+    $week_end = date('Y-m-d', strtotime('sunday this week'));
+    $month_start = date('Y-m-01');
+    $month_end = date('Y-m-t');
+    
+    // Today's interviews
+    $this->db->where('DATE(ce_start_date)', $today);
+    $data['today_count'] = $this->db->count_all_results('calendar_events');
+    
+    // This week's interviews
+    $this->db->where('DATE(ce_start_date) >=', $week_start);
+    $this->db->where('DATE(ce_start_date) <=', $week_end);
+    $data['week_count'] = $this->db->count_all_results('calendar_events');
+    
+    // This month's interviews
+    $this->db->where('DATE(ce_start_date) >=', $month_start);
+    $this->db->where('DATE(ce_start_date) <=', $month_end);
+    $data['month_count'] = $this->db->count_all_results('calendar_events');
+    
+    // Pending interviews (future)
+    $this->db->where('ce_start_date >', date('Y-m-d H:i:s'));
+    $data['pending_count'] = $this->db->count_all_results('calendar_events');
+    
+    // Get today's upcoming interviews
+    $this->db->select('ce.*, cd.cd_name, cd.cd_job_title');
+    $this->db->from('calendar_events ce');
+    $this->db->join('candidate_details cd', 'ce.ce_can_name = cd.cd_name', 'left');
+    $this->db->where('DATE(ce.ce_start_date)', $today);
+    $this->db->where('ce.ce_start_date >', date('Y-m-d H:i:s'));
+    $this->db->order_by('ce.ce_start_date', 'ASC');
+    $this->db->limit(5);
+    $data['today_interviews'] = $this->db->get()->result();
+    
+    // Get interviewers list for dropdown
+    $this->db->distinct();
+    $this->db->select('ce_interviewer');
+    $this->db->where('ce_interviewer IS NOT NULL');
+    $this->db->where('ce_interviewer !=', '');
+    $data['interviewers'] = $this->db->get('calendar_events')->result();
+    
+    $this->load->view('Admin_dashboard_view/Acalendar_revamped',$data);
   }
 
   public function Arecruiter_view()

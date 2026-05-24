@@ -7,18 +7,6 @@ $data['use_datatable'] = true;
 $this->load->view('templates/admin_header', $data);
 ?>
 
-<!-- Page Load Indicator -->
-<div class="alert alert-success alert-dismissible fade show mb-3" role="alert" style="border-left: 4px solid #22c55e;">
-    <div class="d-flex align-items-center">
-        <i class="fas fa-check-circle me-3" style="font-size: 24px; color: #22c55e;"></i>
-        <div>
-            <strong>Page Loaded Successfully!</strong> Enhanced v2.1 - Build: <?= date('Y-m-d H:i:s') ?>
-            <br><small class="text-muted">If you see old data, press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> to hard refresh</small>
-        </div>
-    </div>
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-</div>
-
 <!-- Stats Row -->
 <?php 
 // Check if cd_created_at column exists
@@ -105,7 +93,6 @@ if(!$has_created_at):
         <h3 class="data-card-title">
             All Candidates 
             <span class="badge bg-success ms-2" style="font-size: 11px;">Enhanced v2.1</span>
-            <span class="badge bg-info ms-1" style="font-size: 10px;">Build: <?= date('Y-m-d H:i:s') ?></span>
         </h3>
         <div>
             <button class="btn btn-primary-modern btn-modern" onclick="exportFilteredData()">

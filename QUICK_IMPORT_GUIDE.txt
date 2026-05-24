@@ -1,0 +1,153 @@
+╔══════════════════════════════════════════════════════════════════╗
+║          QUICK IMPORT GUIDE - 10 VIVA QUESTIONS                  ║
+║                      May 24, 2026                                ║
+╚══════════════════════════════════════════════════════════════════╝
+
+📁 FILE: add_viva_questions.sql
+📊 QUESTIONS: 10 real viva questions
+📂 CATEGORIES: 4 (Technical, Behavioral, Problem Solving, Communication)
+✅ STATUS: Ready to import
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚡ FASTEST METHOD: Using phpMyAdmin
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Open phpMyAdmin:
+   http://localhost/phpmyadmin
+
+2. Select database:
+   Click "cmsadver_rmsdb" in left sidebar
+
+3. Click "Import" tab at the top
+
+4. Click "Choose File" button
+
+5. Navigate to:
+   D:\dev\new-servers\xampp\htdocs\rms\add_viva_questions.sql
+
+6. Click "Go" button at bottom
+
+7. Wait for success message:
+   "Import has been successfully finished"
+
+8. Done! ✅
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ VERIFY IMPORT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Go to Questions Bank:
+   http://localhost/rms/questions_bank
+
+2. Check statistics:
+   ✓ Total Questions: Should show 10
+   ✓ Categories: Should show 4 or more
+
+3. Scroll down to see questions table:
+   ✓ 10 questions should be listed
+   ✓ Different categories
+   ✓ Different difficulty levels
+
+4. Click "Categories" button:
+   ✓ Should see 4 categories
+   ✓ Each with question count
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 WHAT YOU'RE IMPORTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TECHNICAL SKILLS (5 questions):
+1. OOP vs Functional Programming
+2. Database Normalization
+3. RESTful APIs
+4. SQL Injection Prevention
+5. (See full list in documentation)
+
+BEHAVIORAL (3 questions):
+1. Handling Difficult Team Members
+2. Leadership Experience
+3. Learning Agility
+
+PROBLEM SOLVING (2 questions):
+1. Project Crisis Management
+2. Debugging Approach
+
+COMMUNICATION (1 question):
+1. Technical Communication
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚠️ IMPORTANT NOTES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ All questions are REAL - no dummy data
+✓ All questions are DESCRIPTIVE type (open-ended)
+✓ All questions are suitable for VIVA interviews
+✓ Categories are created automatically
+✓ Questions are marked as ACTIVE
+✓ Questions are NOT mandatory (can be changed later)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔧 ALTERNATIVE METHOD: MySQL Command Line
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Open Command Prompt (CMD)
+
+2. Navigate to project folder:
+   cd D:\dev\new-servers\xampp\htdocs\rms
+
+3. Run MySQL command:
+   D:\dev\new-servers\xampp\mysql\bin\mysql -u root -p cmsadver_rmsdb < add_viva_questions.sql
+
+4. Enter password when prompted (usually empty, just press Enter)
+
+5. Done! ✅
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❓ TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Problem: Import fails
+Solution: Check if database name is correct (cmsadver_rmsdb)
+
+Problem: Questions don't appear
+Solution: Clear browser cache (Ctrl+Shift+R) and refresh
+
+Problem: Categories not showing
+Solution: They're created automatically, check database
+
+Problem: Wrong count
+Solution: Check if questions were already imported before
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📚 DOCUMENTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+For detailed information, see:
+- VIVA_QUESTIONS_ADDED.md (Complete documentation)
+- add_viva_questions.sql (SQL file to import)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ READY TO IMPORT!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Just follow the steps above and you'll have 10 professional
+viva questions ready to use in your interviews!
+
+Questions are:
+✓ Real and professional
+✓ Industry-standard
+✓ Properly categorized
+✓ Difficulty-rated
+✓ Point-weighted
+✓ Time-limited
+✓ Ready to use immediately
+
+Import now and start interviewing! 🚀

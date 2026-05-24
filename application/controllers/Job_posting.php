@@ -60,6 +60,36 @@ class Job_posting extends CI_Controller
 
 
 
+    // Edit job posting
+    public function edit($job_id)
+    {
+        $data['uname'] = $this->session->userdata('username');
+        $data['display_name'] = $this->session->userdata('full_name') 
+            ? $this->session->userdata('full_name') 
+            : $this->session->userdata('username');
+        $data['page_title'] = 'Edit Job Posting';
+        
+        // Get job details
+        $data['job'] = $this->Job_posting_model->get_job($job_id);
+        
+        if (!$data['job']) {
+            $this->session->set_flashdata('error_msg', 'Job not found');
+            redirect('Job_posting');
+        }
+        
+        // Get platforms for selection
+        $data['platforms'] = $this->Job_platform_model->get_active_platforms();
+        
+        // Get categories and positions
+        $data['categories'] = $this->db->get('job_categories')->result();
+        $data['positions'] = $this->db->get('job_positions')->result();
+        
+        // Get posting history to show which platforms this job was posted to
+        $data['posting_history'] = $this->Job_posting_model->get_posting_history($job_id);
+        
+        $this->load->view('Job_posting_view/edit', $data);
+    }
+
     // Save job posting
     public function save()
     {
@@ -98,6 +128,51 @@ class Job_posting extends CI_Controller
             $this->session->set_flashdata('success_msg', 'Job posted successfully!');
         } else {
             $this->session->set_flashdata('error_msg', 'Failed to create job posting');
+        }
+
+        redirect('Job_posting');
+    }
+
+    // Update job posting
+    public function update($job_id)
+    {
+        $job_data = [
+            'jp_title' => $this->input->post('jp_title'),
+            'jp_description' => $this->input->post('jp_description'),
+            'jp_requirements' => $this->input->post('jp_requirements'),
+            'jp_responsibilities' => $this->input->post('jp_responsibilities'),
+            'jp_location' => $this->input->post('jp_location'),
+            'jp_employment_type' => $this->input->post('jp_employment_type'),
+            'jp_salary_min' => $this->input->post('jp_salary_min'),
+            'jp_salary_max' => $this->input->post('jp_salary_max'),
+            'jp_category_id' => $this->input->post('jp_category_id'),
+            'jp_position_id' => $this->input->post('jp_position_id'),
+            'jp_department' => $this->input->post('jp_department'),
+            'jp_experience_min' => $this->input->post('jp_experience_min'),
+            'jp_experience_max' => $this->input->post('jp_experience_max'),
+            'jp_status' => $this->input->post('jp_status'),
+            'jp_expires_at' => $this->input->post('jp_expires_at'),
+            'jp_updated_at' => date('Y-m-d H:i:s')
+        ];
+
+        if ($this->Job_posting_model->update_job($job_id, $job_data)) {
+            // Get selected platforms
+            $platforms = $this->input->post('platforms');
+            
+            if ($platforms && is_array($platforms)) {
+                // Post to selected platforms (only new ones)
+                foreach ($platforms as $platform_id) {
+                    // Check if already posted to this platform
+                    $already_posted = $this->Job_posting_model->check_platform_posted($job_id, $platform_id);
+                    if (!$already_posted) {
+                        $this->post_to_platform($job_id, $platform_id);
+                    }
+                }
+            }
+
+            $this->session->set_flashdata('success_msg', 'Job updated successfully!');
+        } else {
+            $this->session->set_flashdata('error_msg', 'Failed to update job posting');
         }
 
         redirect('Job_posting');
@@ -224,5 +299,23 @@ class Job_posting extends CI_Controller
             $this->session->set_flashdata('error_msg', 'Failed to delete job');
         }
         redirect('Job_posting');
+    }
+
+    // Change job status
+    public function change_status($job_id)
+    {
+        $new_status = $this->input->post('status');
+        
+        if (in_array($new_status, ['Draft', 'Active', 'Closed'])) {
+            if ($this->Job_posting_model->update_job_status($job_id, $new_status)) {
+                $this->session->set_flashdata('success_msg', 'Job status updated to ' . $new_status);
+            } else {
+                $this->session->set_flashdata('error_msg', 'Failed to update job status');
+            }
+        } else {
+            $this->session->set_flashdata('error_msg', 'Invalid status');
+        }
+        
+        redirect('Job_posting/view/' . $job_id);
     }
 }

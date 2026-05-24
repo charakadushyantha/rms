@@ -779,8 +779,10 @@
             }
             
             // Helper function to check visibility
-            function is_module_visible($key, $visibility_array) {
-                return !isset($visibility_array[$key]) || $visibility_array[$key] == 1;
+            if (!function_exists('is_module_visible')) {
+                function is_module_visible($key, $visibility_array) {
+                    return !isset($visibility_array[$key]) || $visibility_array[$key] == 1;
+                }
             }
             ?>
             

@@ -222,6 +222,48 @@ class Questions_bank extends CI_Controller {
     }
 
     /**
+     * Save Category (Add or Update)
+     */
+    public function save_category() {
+        $category_id = $this->input->post('category_id');
+        $category_data = [
+            'name' => $this->input->post('category_name'),
+            'description' => $this->input->post('category_description')
+        ];
+
+        if ($category_id) {
+            // Update existing category
+            if ($this->Questions_bank_model->update_category($category_id, $category_data)) {
+                $this->session->set_flashdata('success', 'Category updated successfully');
+            } else {
+                $this->session->set_flashdata('error', 'Failed to update category');
+            }
+        } else {
+            // Create new category
+            if ($this->Questions_bank_model->create_category($category_data)) {
+                $this->session->set_flashdata('success', 'Category added successfully');
+            } else {
+                $this->session->set_flashdata('error', 'Failed to add category');
+            }
+        }
+
+        redirect('questions_bank/categories');
+    }
+
+    /**
+     * Delete Category
+     */
+    public function delete_category($id) {
+        if ($this->Questions_bank_model->delete_category($id)) {
+            $this->session->set_flashdata('success', 'Category deleted successfully');
+        } else {
+            $this->session->set_flashdata('error', 'Failed to delete category');
+        }
+
+        redirect('questions_bank/categories');
+    }
+
+    /**
      * Roles Management
      */
     public function roles() {
