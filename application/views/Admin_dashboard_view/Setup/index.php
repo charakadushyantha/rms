@@ -386,6 +386,105 @@ $this->load->view('templates/admin_header', array('page_title' => 'System Setup'
     </div>
 </div>
 
+<!-- Interview Management -->
+<div class="setup-category">
+    <div class="category-header" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+        <h4><i class="fas fa-video me-2"></i>Interview Management <span class="badge-new">NEW</span></h4>
+    </div>
+    <div class="category-cards">
+        <div class="row g-3">
+            <div class="col-md-6 col-lg-3">
+                <a href="<?= base_url('Setup/interview_configuration') ?>" class="setup-card">
+                    <div class="setup-card-inner">
+                        <div class="setup-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                            <i class="fas fa-cog"></i>
+                        </div>
+                        <h5>Interview Configuration</h5>
+                        <p>General interview settings</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <a href="<?= base_url('Setup/interview_rounds') ?>" class="setup-card">
+                    <div class="setup-card-inner">
+                        <div class="setup-icon" style="background: linear-gradient(135deg, #1cc88a, #13855c);">
+                            <i class="fas fa-layer-group"></i>
+                        </div>
+                        <h5>Interview Rounds</h5>
+                        <p>Configure round types</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <a href="<?= base_url('Setup/meeting_platforms') ?>" class="setup-card">
+                    <div class="setup-card-inner">
+                        <div class="setup-icon" style="background: linear-gradient(135deg, #36b9cc, #258391);">
+                            <i class="fas fa-video"></i>
+                        </div>
+                        <h5>Meeting Platforms</h5>
+                        <p>Zoom, Teams, Google Meet</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <a href="<?= base_url('Setup/interview_templates') ?>" class="setup-card">
+                    <div class="setup-card-inner">
+                        <div class="setup-icon" style="background: linear-gradient(135deg, #f093fb, #f5576c);">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <h5>Email Templates</h5>
+                        <p>Interview invitation templates</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <a href="<?= base_url('Setup/interview_duration_presets') ?>" class="setup-card">
+                    <div class="setup-card-inner">
+                        <div class="setup-icon" style="background: linear-gradient(135deg, #f6c23e, #dda20a);">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <h5>Duration Presets</h5>
+                        <p>Default interview durations</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <a href="<?= base_url('Setup/interview_locations') ?>" class="setup-card">
+                    <div class="setup-card-inner">
+                        <div class="setup-icon" style="background: linear-gradient(135deg, #e74a3b, #c92a2a);">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <h5>Interview Locations</h5>
+                        <p>Manage venue addresses</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <a href="<?= base_url('Setup/interviewer_availability') ?>" class="setup-card">
+                    <div class="setup-card-inner">
+                        <div class="setup-icon" style="background: linear-gradient(135deg, #858796, #60616f);">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <h5>Interviewer Availability</h5>
+                        <p>Set working hours & holidays</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <a href="<?= base_url('Setup/interview_reminders') ?>" class="setup-card">
+                    <div class="setup-card-inner">
+                        <div class="setup-icon" style="background: linear-gradient(135deg, #4e73df, #224abe);">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                        <h5>Reminder Settings</h5>
+                        <p>Auto-reminder configuration</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Compliance (Sri Lankan Specific) -->
 <div class="setup-category">
     <div class="category-header" style="background: linear-gradient(135deg, #f6c23e, #dda20a);">

@@ -462,4 +462,7 @@ $(document).ready(function() {
 JAVASCRIPT;
 
 $this->load->view('templates/admin_footer');
+
+// Output the custom script AFTER footer (which loads jQuery)
+echo '<script>' . $custom_script . '</script>';
 ?>

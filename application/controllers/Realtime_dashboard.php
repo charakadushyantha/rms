@@ -10,6 +10,13 @@ class Realtime_dashboard extends CI_Controller {
         
         // Check authentication
         if (!$this->session->userdata('authenticated')) {
+            // For AJAX requests, return JSON error instead of redirecting
+            if ($this->input->is_ajax_request() || 
+                strpos($this->input->server('HTTP_ACCEPT'), 'application/json') !== false) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'error' => 'Not authenticated', 'redirect' => base_url('login')]);
+                exit;
+            }
             redirect('login');
         }
     }

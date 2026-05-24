@@ -90,7 +90,10 @@ if(!$has_created_at):
 <!-- Selected Candidates Table -->
 <div class="data-card">
     <div class="data-card-header">
-        <h3 class="data-card-title">All Candidates</h3>
+        <h3 class="data-card-title">
+            All Candidates 
+            <span class="badge bg-success ms-2" style="font-size: 11px;">Enhanced v2.0</span>
+        </h3>
         <div>
             <button class="btn btn-primary-modern btn-modern" onclick="exportFilteredData()">
                 <i class="fas fa-download me-2"></i>Export Data
@@ -230,15 +233,41 @@ if(!$has_created_at):
                             <td><?= $row['cd_email'] ?></td>
                             <td><?= $row['cd_phone'] ?></td>
                             <td>
+                                <?php
+                                // Get actual interview rounds for this candidate
+                                $this->db->where('ce_can_name', $row['cd_name']);
+                                $interview_count = $this->db->count_all_results('calendar_events');
+                                
+                                // Calculate progress (assuming max 4 rounds)
+                                $max_rounds = 4;
+                                $progress_percent = $interview_count > 0 ? min(($interview_count / $max_rounds) * 100, 100) : 0;
+                                
+                                // Determine progress bar color
+                                $progress_color = 'bg-danger';
+                                if($progress_percent >= 75) $progress_color = 'bg-success';
+                                elseif($progress_percent >= 50) $progress_color = 'bg-info';
+                                elseif($progress_percent >= 25) $progress_color = 'bg-warning';
+                                ?>
                                 <div class="progress" style="height: 8px;">
-                                    <div class="progress-bar bg-success" role="progressbar" style="width: 100%"></div>
+                                    <div class="progress-bar <?= $progress_color ?>" role="progressbar" style="width: <?= $progress_percent ?>%"></div>
                                 </div>
-                                <small style="color: #999;">4/4 Completed</small>
+                                <small style="color: #999;"><?= $interview_count ?>/<?= $max_rounds ?> Completed</small>
                             </td>
                             <td>
-                                <span class="badge bg-success">
-                                    <i class="fas fa-check me-1"></i>Selected
-                                </span>
+                                <?php
+                                // Determine status badge based on interview count and status
+                                if($row['cd_status'] == 'Selected') {
+                                    echo '<span class="badge bg-success"><i class="fas fa-check me-1"></i>Selected</span>';
+                                } elseif($interview_count >= 4) {
+                                    echo '<span class="badge bg-info"><i class="fas fa-hourglass-half me-1"></i>Final Review</span>';
+                                } elseif($interview_count >= 2) {
+                                    echo '<span class="badge bg-warning"><i class="fas fa-tasks me-1"></i>In Progress</span>';
+                                } elseif($interview_count >= 1) {
+                                    echo '<span class="badge bg-primary"><i class="fas fa-play me-1"></i>Round ' . $interview_count . '</span>';
+                                } else {
+                                    echo '<span class="badge bg-secondary"><i class="fas fa-clock me-1"></i>Pending</span>';
+                                }
+                                ?>
                             </td>
                             <td>
                                 <button class="btn btn-sm btn-primary-modern btn-modern view-candidate-btn" data-candidate-id="<?= $row['cd_id'] ?>">
@@ -274,13 +303,13 @@ $base_url = base_url();
 $custom_script = <<<JAVASCRIPT
 // Initialize DataTable
 $(document).ready(function() {
-    console.log('=== SCRIPT LOADED SUCCESSFULLY ===');
+    console.log('=== ENHANCED SCRIPT v2.0 LOADED ===');
     console.log('jQuery version:', $.fn.jquery);
     console.log('Initializing DataTable and event handlers...');
     
-    // Add a visible indicator that script loaded
-    $('body').append('<div id="script-loaded-indicator" style="position:fixed;top:10px;right:10px;background:green;color:white;padding:5px 10px;border-radius:5px;z-index:9999;">Script Loaded ✓</div>');
-    setTimeout(function() { $('#script-loaded-indicator').fadeOut(); }, 3000);
+    // Add a visible indicator that enhanced version loaded
+    $('body').append('<div id="enhanced-indicator" style="position:fixed;bottom:10px;right:10px;background:#22c55e;color:white;padding:8px 15px;border-radius:8px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.2);"><i class="fas fa-check-circle me-2"></i>Enhanced v2.0 Active</div>');
+    setTimeout(function() { $('#enhanced-indicator').fadeOut(); }, 5000);
     
     var table = $('#candidatesTable').DataTable({
         responsive: true,
@@ -398,90 +427,48 @@ function viewDetails(id) {
             console.log('Response received:', response);
             if(response.success) {
                 const candidate = response.candidate;
-                let modalContent = `
-                    <div class=\"modal fade\" id=\"candidateModal\" tabindex=\"-1\">
-                        <div class=\"modal-dialog modal-lg\">
-                            <div class=\"modal-content\">
-                                <div class=\"modal-header\" style=\"background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white;\">
-                                    <h5 class=\"modal-title\"><i class=\"fas fa-user-circle me-2\"></i>Candidate Details</h5>
-                                    <button type=\"button\" class=\"btn-close btn-close-white\" data-bs-dismiss=\"modal\"></button>
-                                </div>
-                                <div class=\"modal-body\">
-                                    <div class=\"row g-3\">
-                                        <div class=\"col-md-6\">
-                                            <div class=\"detail-item\">
-                                                <label><i class=\"fas fa-user me-2\"></i>Full Name</label>
-                                                <p>\${candidate.cd_name || 'N/A'}</p>
-                                            </div>
-                                        </div>
-                                        <div class=\"col-md-6\">
-                                            <div class=\"detail-item\">
-                                                <label><i class=\"fas fa-briefcase me-2\"></i>Job Title</label>
-                                                <p>\${candidate.cd_job_title || 'N/A'}</p>
-                                            </div>
-                                        </div>
-                                        <div class=\"col-md-6\">
-                                            <div class=\"detail-item\">
-                                                <label><i class=\"fas fa-envelope me-2\"></i>Email</label>
-                                                <p>\${candidate.cd_email || 'N/A'}</p>
-                                            </div>
-                                        </div>
-                                        <div class=\"col-md-6\">
-                                            <div class=\"detail-item\">
-                                                <label><i class=\"fas fa-phone me-2\"></i>Phone</label>
-                                                <p>\${candidate.cd_phone || 'N/A'}</p>
-                                            </div>
-                                        </div>
-                                        <div class=\"col-md-6\">
-                                            <div class=\"detail-item\">
-                                                <label><i class=\"fas fa-venus-mars me-2\"></i>Gender</label>
-                                                <p>\${candidate.cd_gender || 'N/A'}</p>
-                                            </div>
-                                        </div>
-                                        <div class=\"col-md-6\">
-                                            <div class=\"detail-item\">
-                                                <label><i class=\"fas fa-user-tie me-2\"></i>Recruiter</label>
-                                                <p>\${candidate.cd_rec_username || 'N/A'}</p>
-                                            </div>
-                                        </div>
-                                        <div class=\"col-md-6\">
-                                            <div class=\"detail-item\">
-                                                <label><i class=\"fas fa-info-circle me-2\"></i>Status</label>
-                                                <p><span class=\"badge bg-success\">\${candidate.cd_status || 'N/A'}</span></p>
-                                            </div>
-                                        </div>
-                                        <div class=\"col-md-6\">
-                                            <div class=\"detail-item\">
-                                                <label><i class=\"fas fa-calendar me-2\"></i>Interview Status</label>
-                                                <p>\${candidate.cd_interview_status == 1 ? '<span class=\"badge bg-info\">Scheduled</span>' : '<span class=\"badge bg-secondary\">Not Scheduled</span>'}</p>
-                                            </div>
-                                        </div>
-                                        <div class=\"col-12\">
-                                            <div class=\"detail-item\">
-                                                <label><i class=\"fas fa-align-left me-2\"></i>Description</label>
-                                                <p>\${candidate.cd_description || 'No description available'}</p>
+                
+                // Fetch interview history
+                $.ajax({
+                    url: '{$base_url}A_dashboard/get_candidate_interviews',
+                    type: 'POST',
+                    data: { candidate_name: candidate.cd_name },
+                    dataType: 'json',
+                    success: function(interviewResponse) {
+                        let interviewsHtml = '';
+                        if(interviewResponse.success && interviewResponse.interviews && interviewResponse.interviews.length > 0) {
+                            interviewsHtml = '<div class="mt-3"><h6 class="mb-3"><i class="fas fa-calendar-alt me-2"></i>Interview History</h6><div class="timeline">';
+                            interviewResponse.interviews.forEach(function(interview, index) {
+                                const interviewDate = new Date(interview.ce_start_date);
+                                const formattedDate = interviewDate.toLocaleDateString('en-US', { 
+                                    year: 'numeric', month: 'short', day: 'numeric', 
+                                    hour: '2-digit', minute: '2-digit' 
+                                });
+                                interviewsHtml += `
+                                    <div class="timeline-item">
+                                        <div class="timeline-marker bg-primary"></div>
+                                        <div class="timeline-content">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div>
+                                                    <strong>Round \${index + 1}</strong>
+                                                    <div class="text-muted small">\${formattedDate}</div>
+                                                </div>
+                                                <span class="badge bg-info">\${interview.ce_interviewer || 'TBD'}</span>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class=\"modal-footer\">
-                                    <button type=\"button\" class=\"btn btn-secondary\" data-bs-dismiss=\"modal\">Close</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                // Remove existing modal if any
-                $('#candidateModal').remove();
-                
-                // Append and show modal
-                $('body').append(modalContent);
-                $('#candidateModal').modal('show');
-                
-                // Clean up modal after it's hidden
-                $('#candidateModal').on('hidden.bs.modal', function() {
-                    $(this).remove();
+                                `;
+                            });
+                            interviewsHtml += '</div></div>';
+                        } else {
+                            interviewsHtml = '<div class="mt-3 alert alert-info"><i class="fas fa-info-circle me-2"></i>No interview history available</div>';
+                        }
+                        
+                        showCandidateModal(candidate, interviewsHtml);
+                    },
+                    error: function() {
+                        showCandidateModal(candidate, '<div class="mt-3 alert alert-warning"><i class="fas fa-exclamation-triangle me-2"></i>Could not load interview history</div>');
+                    }
                 });
             } else {
                 Swal.fire({
@@ -508,7 +495,101 @@ function viewDetails(id) {
     });
 }
 
-// Add CSS for detail items
+function showCandidateModal(candidate, interviewsHtml) {
+    let modalContent = `
+        <div class=\"modal fade\" id=\"candidateModal\" tabindex=\"-1\">
+            <div class=\"modal-dialog modal-lg\">
+                <div class=\"modal-content\">
+                    <div class=\"modal-header\" style=\"background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white;\">
+                        <h5 class=\"modal-title\"><i class=\"fas fa-user-circle me-2\"></i>Candidate Details</h5>
+                        <button type=\"button\" class=\"btn-close btn-close-white\" data-bs-dismiss=\"modal\"></button>
+                    </div>
+                    <div class=\"modal-body\">
+                        <div class=\"row g-3\">
+                            <div class=\"col-md-6\">
+                                <div class=\"detail-item\">
+                                    <label><i class=\"fas fa-user me-2\"></i>Full Name</label>
+                                    <p>\${candidate.cd_name || 'N/A'}</p>
+                                </div>
+                            </div>
+                            <div class=\"col-md-6\">
+                                <div class=\"detail-item\">
+                                    <label><i class=\"fas fa-briefcase me-2\"></i>Job Title</label>
+                                    <p>\${candidate.cd_job_title || 'N/A'}</p>
+                                </div>
+                            </div>
+                            <div class=\"col-md-6\">
+                                <div class=\"detail-item\">
+                                    <label><i class=\"fas fa-envelope me-2\"></i>Email</label>
+                                    <p><a href=\"mailto:\${candidate.cd_email}\">\${candidate.cd_email || 'N/A'}</a></p>
+                                </div>
+                            </div>
+                            <div class=\"col-md-6\">
+                                <div class=\"detail-item\">
+                                    <label><i class=\"fas fa-phone me-2\"></i>Phone</label>
+                                    <p><a href=\"tel:\${candidate.cd_phone}\">\${candidate.cd_phone || 'N/A'}</a></p>
+                                </div>
+                            </div>
+                            <div class=\"col-md-6\">
+                                <div class=\"detail-item\">
+                                    <label><i class=\"fas fa-venus-mars me-2\"></i>Gender</label>
+                                    <p>\${candidate.cd_gender || 'N/A'}</p>
+                                </div>
+                            </div>
+                            <div class=\"col-md-6\">
+                                <div class=\"detail-item\">
+                                    <label><i class=\"fas fa-user-tie me-2\"></i>Recruiter</label>
+                                    <p>\${candidate.cd_rec_username || 'N/A'}</p>
+                                </div>
+                            </div>
+                            <div class=\"col-md-6\">
+                                <div class=\"detail-item\">
+                                    <label><i class=\"fas fa-info-circle me-2\"></i>Status</label>
+                                    <p><span class=\"badge bg-success\">\${candidate.cd_status || 'N/A'}</span></p>
+                                </div>
+                            </div>
+                            <div class=\"col-md-6\">
+                                <div class=\"detail-item\">
+                                    <label><i class=\"fas fa-source me-2\"></i>Source</label>
+                                    <p>\${candidate.cd_source || 'N/A'}</p>
+                                </div>
+                            </div>
+                            <div class=\"col-12\">
+                                <div class=\"detail-item\">
+                                    <label><i class=\"fas fa-align-left me-2\"></i>Description</label>
+                                    <p>\${candidate.cd_description || 'No description available'}</p>
+                                </div>
+                            </div>
+                            <div class=\"col-12\">
+                                \${interviewsHtml}
+                            </div>
+                        </div>
+                    </div>
+                    <div class=\"modal-footer\">
+                        <button type=\"button\" class=\"btn btn-secondary\" data-bs-dismiss=\"modal\">Close</button>
+                        <a href=\"{$base_url}A_dashboard/Acalendar_view\" class=\"btn btn-primary\">
+                            <i class=\"fas fa-calendar-plus me-1\"></i>Schedule Interview
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove existing modal if any
+    $('#candidateModal').remove();
+    
+    // Append and show modal
+    $('body').append(modalContent);
+    $('#candidateModal').modal('show');
+    
+    // Clean up modal after it's hidden
+    $('#candidateModal').on('hidden.bs.modal', function() {
+        $(this).remove();
+    });
+}
+
+// Add CSS for detail items and timeline
 const style = document.createElement('style');
 style.textContent = `
     .detail-item {
@@ -528,6 +609,39 @@ style.textContent = `
         margin: 0;
         color: #333;
         font-size: 14px;
+    }
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 8px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #e0e0e0;
+    }
+    .timeline-item {
+        position: relative;
+        margin-bottom: 20px;
+    }
+    .timeline-marker {
+        position: absolute;
+        left: -26px;
+        top: 5px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 3px solid white;
+        box-shadow: 0 0 0 2px #667eea;
+    }
+    .timeline-content {
+        background: #f8f9fa;
+        padding: 12px;
+        border-radius: 8px;
+        border-left: 3px solid #667eea;
     }
 `;
 document.head.appendChild(style);

@@ -304,9 +304,9 @@ canvas {
                         <div>
                             <div class="text-muted small mb-1">Avg. Time to Hire</div>
                             <h3 class="mb-0" style="color: #36b9cc;">
-                                <?= rand(25, 35) ?> <small style="font-size: 14px;">days</small>
+                                <?= $avg_time_to_hire > 0 ? $avg_time_to_hire : 'N/A' ?> <?php if($avg_time_to_hire > 0): ?><small style="font-size: 14px;">days</small><?php endif; ?>
                             </h3>
-                            <small class="text-info"><i class="fas fa-clock"></i> Industry avg: 42d</small>
+                            <small class="text-info"><i class="fas fa-clock"></i> <?= $avg_time_to_hire > 0 ? 'Industry avg: 42d' : 'No data available' ?></small>
                         </div>
                         <div class="report-icon" style="background: rgba(54, 185, 204, 0.1); color: #36b9cc;">
                             <i class="fas fa-hourglass-half"></i>
@@ -714,6 +714,9 @@ canvas {
                     <div class="chart-title">
                         <i class="fas fa-star text-warning"></i>
                         Candidate Experience Survey Results
+                        <?php if($candidate_experience['communication'] == 0): ?>
+                        <span class="badge bg-secondary ms-2" style="font-size: 10px;">No Survey Data</span>
+                        <?php endif; ?>
                     </div>
                     <canvas id="candidateExperienceChart" style="max-height: 250px;"></canvas>
                 </div>
@@ -726,6 +729,9 @@ canvas {
                     <div class="chart-title">
                         <i class="fas fa-balance-scale text-info"></i>
                         Interviewer Calibration Analysis
+                        <?php if(empty($interviewer_calibration['labels']) || (isset($interviewer_calibration['ratings'][0]) && $interviewer_calibration['ratings'][0] == 0)): ?>
+                        <span class="badge bg-secondary ms-2" style="font-size: 10px;">No Rating Data</span>
+                        <?php endif; ?>
                     </div>
                     <canvas id="interviewerCalibrationChart" style="max-height: 300px;"></canvas>
                 </div>
@@ -1042,15 +1048,15 @@ new Chart(sourceCtx, {
     }
 });
 
-// Recruitment Trend Chart (Enhanced)
+// Recruitment Trend Chart (Enhanced) - Real Data
 const trendCtx = document.getElementById('recruitmentTrendChart').getContext('2d');
 new Chart(trendCtx, {
     type: 'line',
     data: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+        labels: <?= json_encode($trend_data['labels']) ?>,
         datasets: [{
             label: 'Candidates Added',
-            data: [<?= rand(10,30) ?>, <?= rand(15,35) ?>, <?= rand(20,40) ?>, <?= rand(25,45) ?>, <?= rand(30,50) ?>, <?= rand(35,55) ?>],
+            data: <?= json_encode($trend_data['candidates']) ?>,
             borderColor: '#667eea',
             backgroundColor: 'rgba(102, 126, 234, 0.1)',
             tension: 0.4,
@@ -1063,7 +1069,7 @@ new Chart(trendCtx, {
             pointBorderWidth: 2
         }, {
             label: 'Interviews',
-            data: [<?= rand(8,25) ?>, <?= rand(12,30) ?>, <?= rand(15,35) ?>, <?= rand(18,38) ?>, <?= rand(22,42) ?>, <?= rand(25,45) ?>],
+            data: <?= json_encode($trend_data['interviews']) ?>,
             borderColor: '#36b9cc',
             backgroundColor: 'rgba(54, 185, 204, 0.1)',
             tension: 0.4,
@@ -1076,7 +1082,7 @@ new Chart(trendCtx, {
             pointBorderWidth: 2
         }, {
             label: 'Selected',
-            data: [<?= rand(2,8) ?>, <?= rand(3,10) ?>, <?= rand(4,12) ?>, <?= rand(5,14) ?>, <?= rand(6,16) ?>, <?= rand(7,18) ?>],
+            data: <?= json_encode($trend_data['selected']) ?>,
             borderColor: '#1cc88a',
             backgroundColor: 'rgba(28, 200, 138, 0.1)',
             tension: 0.4,
@@ -1183,20 +1189,20 @@ new Chart(pipelineStatusCtx, {
     }
 });
 
-// Weekly Activity Chart (New)
+// Weekly Activity Chart - Real Data
 const weeklyActivityCtx = document.getElementById('weeklyActivityChart').getContext('2d');
 new Chart(weeklyActivityCtx, {
     type: 'bar',
     data: {
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        labels: <?= json_encode($weekly_activity['labels']) ?>,
         datasets: [{
             label: 'Applications',
-            data: [<?= rand(5,15) ?>, <?= rand(8,18) ?>, <?= rand(10,20) ?>, <?= rand(12,22) ?>, <?= rand(8,18) ?>, <?= rand(3,8) ?>, <?= rand(2,6) ?>],
+            data: <?= json_encode($weekly_activity['applications']) ?>,
             backgroundColor: 'rgba(102, 126, 234, 0.8)',
             borderRadius: 6
         }, {
             label: 'Interviews',
-            data: [<?= rand(3,10) ?>, <?= rand(5,12) ?>, <?= rand(6,14) ?>, <?= rand(7,15) ?>, <?= rand(5,12) ?>, <?= rand(1,5) ?>, <?= rand(0,3) ?>],
+            data: <?= json_encode($weekly_activity['interviews']) ?>,
             backgroundColor: 'rgba(54, 185, 204, 0.8)',
             borderRadius: 6
         }]
@@ -1485,19 +1491,19 @@ new Chart(recruiterSuccessCtx, {
     }
 });
 
-// Recruitment Funnel Chart
+// Recruitment Funnel Chart - Real Data
 const funnelCtx = document.getElementById('recruitmentFunnelChart').getContext('2d');
 new Chart(funnelCtx, {
     type: 'bar',
     data: {
-        labels: ['Applied', 'Screening', 'Interview', 'Offer', 'Selected'],
+        labels: ['Applied', 'Shortlisted', 'Interview', 'In Process', 'Selected'],
         datasets: [{
             label: 'Candidates',
             data: [
                 <?= $total_candidates ?? 0 ?>,
-                <?= round(($total_candidates ?? 0) * 0.7) ?>,
+                <?= $this->db->where('cd_status', 'Shortlisted')->count_all_results('candidate_details') ?>,
                 <?= $total_interviews ?? 0 ?>,
-                <?= round(($total_candidates ?? 0) * 0.15) ?>,
+                <?= $this->db->where('cd_status', 'In Process')->count_all_results('candidate_details') ?>,
                 <?= $this->db->where('cd_status', 'Selected')->count_all_results('candidate_details') ?>
             ],
             backgroundColor: [
@@ -1542,15 +1548,15 @@ new Chart(funnelCtx, {
     }
 });
 
-// Monthly Hiring Trend Chart
+// Monthly Hiring Trend Chart - Real Data
 const monthlyHiringCtx = document.getElementById('monthlyHiringChart').getContext('2d');
 new Chart(monthlyHiringCtx, {
     type: 'line',
     data: {
-        labels: ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        labels: <?= json_encode($monthly_hiring['labels']) ?>,
         datasets: [{
             label: 'Candidates',
-            data: [<?= rand(20,40) ?>, <?= rand(25,45) ?>, <?= rand(30,50) ?>, <?= rand(35,55) ?>, <?= rand(40,60) ?>, <?= rand(45,65) ?>],
+            data: <?= json_encode($monthly_hiring['candidates']) ?>,
             borderColor: '#667eea',
             backgroundColor: 'rgba(102, 126, 234, 0.1)',
             tension: 0.4,
@@ -1558,7 +1564,7 @@ new Chart(monthlyHiringCtx, {
             borderWidth: 3
         }, {
             label: 'Interviews',
-            data: [<?= rand(15,30) ?>, <?= rand(18,35) ?>, <?= rand(20,40) ?>, <?= rand(25,45) ?>, <?= rand(28,50) ?>, <?= rand(30,55) ?>],
+            data: <?= json_encode($monthly_hiring['interviews']) ?>,
             borderColor: '#36b9cc',
             backgroundColor: 'rgba(54, 185, 204, 0.1)',
             tension: 0.4,
@@ -1566,7 +1572,7 @@ new Chart(monthlyHiringCtx, {
             borderWidth: 3
         }, {
             label: 'Hired',
-            data: [<?= rand(5,12) ?>, <?= rand(6,14) ?>, <?= rand(8,16) ?>, <?= rand(10,18) ?>, <?= rand(12,20) ?>, <?= rand(14,22) ?>],
+            data: <?= json_encode($monthly_hiring['hired']) ?>,
             borderColor: '#1cc88a',
             backgroundColor: 'rgba(28, 200, 138, 0.1)',
             tension: 0.4,
@@ -1673,22 +1679,15 @@ new Chart(pipelineChartCtx, {
     }
 });
 
-// Time to Hire Chart (Average days by role)
+// Time to Hire Chart (Average days by role) - Real Data
 const timeToHireCtx = document.getElementById('timeToHireChart').getContext('2d');
 new Chart(timeToHireCtx, {
     type: 'bar',
     data: {
-        labels: <?= json_encode(array_column($time_to_hire_roles, 'cd_job_title')) ?>,
+        labels: <?= json_encode($time_to_hire_by_role['labels']) ?>,
         datasets: [{
             label: 'Average Days to Hire',
-            data: [
-                <?php 
-                // Simulate time to hire data (15-45 days range)
-                foreach($time_to_hire_roles as $role) {
-                    echo rand(15, 45) . ',';
-                }
-                ?>
-            ],
+            data: <?= json_encode($time_to_hire_by_role['days']) ?>,
             backgroundColor: 'rgba(246, 194, 62, 0.8)',
             borderRadius: 6
         }]
@@ -1935,7 +1934,7 @@ new Chart(diversityCtx, {
     }
 });
 
-// Candidate Experience Survey Results Chart
+// Candidate Experience Survey Results Chart - Real Data
 const candidateExperienceCtx = document.getElementById('candidateExperienceChart').getContext('2d');
 new Chart(candidateExperienceCtx, {
     type: 'radar',
@@ -1950,7 +1949,14 @@ new Chart(candidateExperienceCtx, {
         ],
         datasets: [{
             label: 'Average Rating (out of 5)',
-            data: [4.2, 4.5, 4.3, 3.8, 4.1, 4.4], // Simulated survey data
+            data: [
+                <?= $candidate_experience['communication'] ?>,
+                <?= $candidate_experience['interview_process'] ?>,
+                <?= $candidate_experience['recruiter_support'] ?>,
+                <?= $candidate_experience['response_time'] ?>,
+                <?= $candidate_experience['overall_experience'] ?>,
+                <?= $candidate_experience['would_recommend'] ?>
+            ],
             backgroundColor: 'rgba(102, 126, 234, 0.2)',
             borderColor: 'rgba(102, 126, 234, 1)',
             borderWidth: 2,
@@ -2003,28 +2009,21 @@ new Chart(candidateExperienceCtx, {
     }
 });
 
-// Interviewer Calibration Chart
+// Interviewer Calibration Chart - Real Data
 const interviewerCalibrationCtx = document.getElementById('interviewerCalibrationChart').getContext('2d');
 new Chart(interviewerCalibrationCtx, {
     type: 'bar',
     data: {
-        labels: <?= json_encode(array_column($interviewer_calibration, 'ce_interviewer')) ?>,
+        labels: <?= json_encode($interviewer_calibration['labels']) ?>,
         datasets: [{
             label: 'Total Interviews Conducted',
-            data: <?= json_encode(array_column($interviewer_calibration, 'total_interviews')) ?>,
+            data: <?= json_encode($interviewer_calibration['interviews']) ?>,
             backgroundColor: 'rgba(54, 185, 204, 0.6)',
             borderRadius: 6,
             yAxisID: 'y'
         }, {
             label: 'Average Rating Given',
-            data: [
-                <?php 
-                // Simulate average ratings (3.5-4.5 range) for each interviewer
-                foreach($interviewer_calibration as $interviewer) {
-                    echo (rand(35, 45) / 10) . ',';
-                }
-                ?>
-            ],
+            data: <?= json_encode($interviewer_calibration['ratings']) ?>,
             backgroundColor: 'rgba(246, 194, 62, 0.8)',
             borderRadius: 6,
             yAxisID: 'y1',

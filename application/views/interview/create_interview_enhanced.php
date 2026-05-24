@@ -502,12 +502,25 @@ textarea.form-control {
                     <div class="form-group">
                         <label for="interview_round">Interview Round <span class="required">*</span></label>
                         <select class="form-control" id="interview_round" name="interview_round" required>
-                            <option value="Round 1">Round 1 - Initial Screening</option>
-                            <option value="Round 2">Round 2 - Second Interview</option>
-                            <option value="Technical Round">Technical Round</option>
-                            <option value="HR Round">HR Round</option>
-                            <option value="Final Round">Final Round</option>
-                            <option value="Panel Interview">Panel Interview</option>
+                            <?php if (isset($interview_rounds) && !empty($interview_rounds)): ?>
+                                <?php foreach ($interview_rounds as $round): ?>
+                                <option value="<?= htmlspecialchars($round['round_name']) ?>" 
+                                        data-duration="<?= $round['default_duration'] ?>">
+                                    <?= htmlspecialchars($round['round_name']) ?>
+                                    <?php if ($round['default_duration']): ?>
+                                        (<?= $round['default_duration'] ?> min)
+                                    <?php endif; ?>
+                                </option>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <!-- Fallback if configuration not set -->
+                                <option value="Round 1">Round 1 - Initial Screening</option>
+                                <option value="Round 2">Round 2 - Second Interview</option>
+                                <option value="Technical Round">Technical Round</option>
+                                <option value="HR Round">HR Round</option>
+                                <option value="Final Round">Final Round</option>
+                                <option value="Panel Interview">Panel Interview</option>
+                            <?php endif; ?>
                         </select>
                     </div>
                 </div>
@@ -541,15 +554,26 @@ textarea.form-control {
                     <div class="form-group">
                         <label>Duration <span class="required">*</span></label>
                         <div class="duration-options">
-                            <button type="button" class="duration-btn" onclick="setDuration(30)">30 min</button>
-                            <button type="button" class="duration-btn active" onclick="setDuration(60)">1 hour</button>
-                            <button type="button" class="duration-btn" onclick="setDuration(90)">1.5 hrs</button>
-                            <button type="button" class="duration-btn" onclick="setDuration(120)">2 hours</button>
+                            <?php if (isset($duration_presets) && !empty($duration_presets)): ?>
+                                <?php foreach ($duration_presets as $preset): ?>
+                                <button type="button" class="duration-btn <?= $preset['is_default'] ? 'active' : '' ?>" 
+                                        onclick="setDuration(<?= $preset['duration_minutes'] ?>)">
+                                    <?= htmlspecialchars($preset['preset_name']) ?>
+                                </button>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <!-- Fallback if configuration not set -->
+                                <button type="button" class="duration-btn" onclick="setDuration(30)">30 min</button>
+                                <button type="button" class="duration-btn active" onclick="setDuration(60)">1 hour</button>
+                                <button type="button" class="duration-btn" onclick="setDuration(90)">1.5 hrs</button>
+                                <button type="button" class="duration-btn" onclick="setDuration(120)">2 hours</button>
+                            <?php endif; ?>
                             <button type="button" class="duration-btn" onclick="setDuration('custom')">Custom</button>
                         </div>
                         <input type="number" class="form-control" id="custom_duration" name="custom_duration" 
                                min="15" max="480" placeholder="Minutes" style="display: none; margin-top: 10px;">
-                        <input type="hidden" id="interview_duration" name="interview_duration" value="60">
+                        <input type="hidden" id="interview_duration" name="interview_duration" 
+                               value="<?= isset($interview_config) ? $interview_config->default_duration : 60 ?>">
                     </div>
                 </div>
 
@@ -574,24 +598,27 @@ textarea.form-control {
                 <div class="form-group">
                     <label>Interview Type <span class="required">*</span></label>
                     <div class="interview-type-options">
-                        <div class="type-option selected" onclick="selectInterviewType('online')">
-                            <input type="radio" name="interview_type" value="online" id="type_online" checked>
+                        <?php 
+                        $default_type = isset($interview_config) ? $interview_config->default_interview_type : 'online';
+                        ?>
+                        <div class="type-option <?= $default_type == 'online' ? 'selected' : '' ?>" onclick="selectInterviewType('online')">
+                            <input type="radio" name="interview_type" value="online" id="type_online" <?= $default_type == 'online' ? 'checked' : '' ?>>
                             <label for="type_online">
                                 <i class="fas fa-video"></i>
                                 Online
                                 <div class="type-desc">Video conference</div>
                             </label>
                         </div>
-                        <div class="type-option" onclick="selectInterviewType('in_person')">
-                            <input type="radio" name="interview_type" value="in_person" id="type_in_person">
+                        <div class="type-option <?= $default_type == 'in_person' ? 'selected' : '' ?>" onclick="selectInterviewType('in_person')">
+                            <input type="radio" name="interview_type" value="in_person" id="type_in_person" <?= $default_type == 'in_person' ? 'checked' : '' ?>>
                             <label for="type_in_person">
                                 <i class="fas fa-building"></i>
                                 In-Person
                                 <div class="type-desc">Physical location</div>
                             </label>
                         </div>
-                        <div class="type-option" onclick="selectInterviewType('phone')">
-                            <input type="radio" name="interview_type" value="phone" id="type_phone">
+                        <div class="type-option <?= $default_type == 'phone' ? 'selected' : '' ?>" onclick="selectInterviewType('phone')">
+                            <input type="radio" name="interview_type" value="phone" id="type_phone" <?= $default_type == 'phone' ? 'checked' : '' ?>>
                             <label for="type_phone">
                                 <i class="fas fa-phone"></i>
                                 Phone
@@ -610,10 +637,27 @@ textarea.form-control {
                             <label for="online_platform">Platform <span class="required">*</span></label>
                             <select class="form-control" id="online_platform" name="online_platform">
                                 <option value="">Select platform...</option>
-                                <option value="Zoom">Zoom</option>
-                                <option value="Google Meet">Google Meet</option>
-                                <option value="Microsoft Teams">Microsoft Teams</option>
-                                <option value="Skype">Skype</option>
+                                <?php if (isset($meeting_platforms) && !empty($meeting_platforms)): ?>
+                                    <?php 
+                                    $default_platform = isset($interview_config) ? $interview_config->default_platform : 'Zoom';
+                                    foreach ($meeting_platforms as $platform): 
+                                        if ($platform['platform_type'] == 'video'):
+                                    ?>
+                                    <option value="<?= htmlspecialchars($platform['platform_name']) ?>" 
+                                            <?= $platform['platform_name'] == $default_platform ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($platform['platform_name']) ?>
+                                    </option>
+                                    <?php 
+                                        endif;
+                                    endforeach; 
+                                    ?>
+                                <?php else: ?>
+                                    <!-- Fallback if configuration not set -->
+                                    <option value="Zoom" selected>Zoom</option>
+                                    <option value="Google Meet">Google Meet</option>
+                                    <option value="Microsoft Teams">Microsoft Teams</option>
+                                    <option value="Skype">Skype</option>
+                                <?php endif; ?>
                                 <option value="Other">Other</option>
                             </select>
                         </div>
@@ -675,6 +719,55 @@ textarea.form-control {
                     <span>Interviewer Assignment</span>
                 </div>
                 
+                <?php 
+                $allow_multiple = isset($interview_config) && $interview_config->allow_multiple_interviewers;
+                $max_interviewers = isset($interview_config) ? $interview_config->max_interviewers : 3;
+                ?>
+                
+                <?php if ($allow_multiple): ?>
+                <!-- Multiple Interviewers Mode -->
+                <div class="info-box" style="background: #e8f5e9; border-left-color: #4caf50;">
+                    <i class="fas fa-users" style="color: #4caf50;"></i>
+                    <strong>Panel Interview Mode:</strong> You can assign up to <?= $max_interviewers ?> interviewers for this interview.
+                </div>
+                
+                <div id="interviewers-container">
+                    <!-- Primary Interviewer -->
+                    <div class="form-group interviewer-group" data-interviewer-index="1">
+                        <label for="assigned_interviewer_1">
+                            Primary Interviewer <span class="required">*</span>
+                            <span class="badge" style="background: #667eea; color: white; font-size: 11px; padding: 3px 8px; border-radius: 3px;">Lead</span>
+                        </label>
+                        <select class="form-control interviewer-select" id="assigned_interviewer_1" name="assigned_interviewers[]" required>
+                            <option value="">Select primary interviewer...</option>
+                            <?php if (isset($interviewers) && !empty($interviewers)): ?>
+                                <?php foreach ($interviewers as $interviewer): ?>
+                                <option value="<?= $interviewer['u_username'] ?>" data-id="<?= $interviewer['u_id'] ?>" data-email="<?= $interviewer['u_email'] ?>">
+                                    <?= htmlspecialchars($interviewer['u_username']) ?> - <?= htmlspecialchars($interviewer['u_email']) ?>
+                                </option>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <option value="" disabled>No interviewers available</option>
+                            <?php endif; ?>
+                        </select>
+                        <div class="help-text">The main interviewer who will lead the interview</div>
+                    </div>
+                    
+                    <!-- Additional Interviewers (dynamically added) -->
+                    <div id="additional-interviewers"></div>
+                </div>
+                
+                <button type="button" class="btn" id="add-interviewer-btn" 
+                        style="background: #4caf50; color: white; padding: 10px 20px; margin-top: 10px;"
+                        onclick="addInterviewer()">
+                    <i class="fas fa-plus me-2"></i>Add Another Interviewer
+                </button>
+                <small class="text-muted d-block" style="margin-top: 5px;">
+                    You can add up to <?= $max_interviewers - 1 ?> more interviewer(s)
+                </small>
+                
+                <?php else: ?>
+                <!-- Single Interviewer Mode -->
                 <div class="form-group">
                     <label for="assigned_interviewer">Assigned Interviewer <span class="required">*</span></label>
                     <select class="form-control" id="assigned_interviewer" name="assigned_interviewer" required>
@@ -690,10 +783,12 @@ textarea.form-control {
                         <?php endif; ?>
                     </select>
                     <div class="help-text">Select the interviewer who will conduct this interview</div>
-                    <div id="interviewer_conflict_warning" class="alert alert-warning" style="display: none; margin-top: 10px;">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <span>Warning: This interviewer may have a scheduling conflict</span>
-                    </div>
+                </div>
+                <?php endif; ?>
+                
+                <div id="interviewer_conflict_warning" class="alert alert-warning" style="display: none; margin-top: 10px;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Warning: One or more interviewers may have a scheduling conflict</span>
                 </div>
             </div>
 
@@ -757,29 +852,58 @@ textarea.form-control {
                 </div>
 
                 <div class="checkbox-group">
+                    <?php 
+                    $email_enabled = !isset($interview_config) || $interview_config->enable_email_notifications;
+                    $whatsapp_enabled = !isset($interview_config) || $interview_config->enable_whatsapp_notifications;
+                    $sms_enabled = !isset($interview_config) || $interview_config->enable_sms_notifications;
+                    $calendar_enabled = !isset($interview_config) || $interview_config->enable_calendar_sync;
+                    ?>
+                    
+                    <?php if ($email_enabled): ?>
                     <div class="checkbox-item">
                         <input type="checkbox" id="send_email" name="send_email" value="1" checked>
                         <i class="fas fa-envelope"></i>
                         <label for="send_email">Send interview invitation via Email</label>
                     </div>
+                    <?php endif; ?>
                     
+                    <?php if ($whatsapp_enabled): ?>
                     <div class="checkbox-item">
                         <input type="checkbox" id="send_whatsapp" name="send_whatsapp" value="1">
                         <i class="fab fa-whatsapp"></i>
                         <label for="send_whatsapp">Send WhatsApp notification (Sri Lanka context)</label>
                     </div>
+                    <?php endif; ?>
                     
+                    <?php if ($sms_enabled): ?>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="send_sms" name="send_sms" value="1">
+                        <i class="fas fa-sms"></i>
+                        <label for="send_sms">Send SMS notification (requires SMS gateway)</label>
+                    </div>
+                    <?php endif; ?>
+                    
+                    <?php if ($calendar_enabled): ?>
                     <div class="checkbox-item">
                         <input type="checkbox" id="sync_calendar" name="sync_calendar" value="1">
                         <i class="fas fa-calendar-plus"></i>
                         <label for="sync_calendar">Add to Google Calendar automatically</label>
                     </div>
+                    <?php endif; ?>
                     
                     <div class="checkbox-item">
                         <input type="checkbox" id="send_reminder" name="send_reminder" value="1" checked>
                         <i class="fas fa-clock"></i>
-                        <label for="send_reminder">Send reminder 24 hours before interview</label>
+                        <label for="send_reminder">Send reminder <?= isset($interview_config) ? $interview_config->reminder_hours_before : 24 ?> hours before interview</label>
                     </div>
+                    
+                    <?php if (!$email_enabled && !$whatsapp_enabled && !$sms_enabled && !$calendar_enabled): ?>
+                    <div class="alert alert-warning" style="margin-top: 10px;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        All notification channels are disabled in configuration. Please enable them in 
+                        <a href="<?= base_url('Setup/interview_configuration') ?>" target="_blank">Interview Configuration</a>.
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -1101,6 +1225,162 @@ textarea.form-control {
         }, 2000);
     };
 
+    // Fill venue details from saved locations
+    window.fillVenueDetails = function(selectElement) {
+        var selectedOption = selectElement.options[selectElement.selectedIndex];
+        
+        if (selectedOption.value === 'custom' || selectedOption.value === '') {
+            // Clear fields for custom entry
+            document.getElementById('venue_location').value = '';
+            document.getElementById('venue_room').value = '';
+            document.getElementById('venue_location').readOnly = false;
+            document.getElementById('venue_room').readOnly = false;
+        } else if (selectedOption.value) {
+            // Fill from saved location
+            var address = selectedOption.getAttribute('data-address');
+            var room = selectedOption.getAttribute('data-room');
+            
+            document.getElementById('venue_location').value = address || '';
+            document.getElementById('venue_room').value = room || '';
+            
+            // Highlight the fields
+            document.getElementById('venue_location').style.background = '#e8f5e9';
+            document.getElementById('venue_room').style.background = '#e8f5e9';
+            
+            setTimeout(function() {
+                document.getElementById('venue_location').style.background = '';
+                document.getElementById('venue_room').style.background = '';
+            }, 2000);
+        }
+    };
+
+    // Multiple Interviewers Management
+    var interviewerCount = 1;
+    var maxInterviewers = <?= isset($interview_config) ? $interview_config->max_interviewers : 3 ?>;
+    var allowMultiple = <?= isset($interview_config) && $interview_config->allow_multiple_interviewers ? 'true' : 'false' ?>;
+    
+    window.addInterviewer = function() {
+        if (interviewerCount >= maxInterviewers) {
+            alert('Maximum number of interviewers (' + maxInterviewers + ') reached.');
+            return;
+        }
+        
+        interviewerCount++;
+        
+        var interviewerHtml = '<div class="form-group interviewer-group" data-interviewer-index="' + interviewerCount + '" style="position: relative; padding: 15px; background: #f8f9fa; border-radius: 8px; margin-top: 15px;">' +
+            '<button type="button" class="btn" onclick="removeInterviewer(' + interviewerCount + ')" ' +
+            'style="position: absolute; top: 10px; right: 10px; background: #f44336; color: white; padding: 5px 10px; font-size: 12px; border-radius: 4px;">' +
+            '<i class="fas fa-times"></i> Remove' +
+            '</button>' +
+            '<label for="assigned_interviewer_' + interviewerCount + '">' +
+            'Additional Interviewer #' + (interviewerCount - 1) +
+            '</label>' +
+            '<select class="form-control interviewer-select" id="assigned_interviewer_' + interviewerCount + '" name="assigned_interviewers[]">' +
+            '<option value="">Select interviewer...</option>';
+        
+        // Add interviewer options
+        <?php if (isset($interviewers) && !empty($interviewers)): ?>
+            <?php foreach ($interviewers as $interviewer): ?>
+            interviewerHtml += '<option value="<?= $interviewer['u_username'] ?>" data-id="<?= $interviewer['u_id'] ?>" data-email="<?= $interviewer['u_email'] ?>">' +
+                '<?= htmlspecialchars($interviewer['u_username']) ?> - <?= htmlspecialchars($interviewer['u_email']) ?>' +
+                '</option>';
+            <?php endforeach; ?>
+        <?php endif; ?>
+        
+        interviewerHtml += '</select>' +
+            '<div class="help-text">Additional panel member</div>' +
+            '</div>';
+        
+        document.getElementById('additional-interviewers').insertAdjacentHTML('beforeend', interviewerHtml);
+        
+        // Update button state
+        if (interviewerCount >= maxInterviewers) {
+            document.getElementById('add-interviewer-btn').disabled = true;
+            document.getElementById('add-interviewer-btn').style.opacity = '0.5';
+            document.getElementById('add-interviewer-btn').style.cursor = 'not-allowed';
+        }
+        
+        // Add change listener to prevent duplicates
+        updateInterviewerListeners();
+    };
+    
+    window.removeInterviewer = function(index) {
+        var element = document.querySelector('[data-interviewer-index="' + index + '"]');
+        if (element) {
+            element.remove();
+            interviewerCount--;
+            
+            // Re-enable add button
+            document.getElementById('add-interviewer-btn').disabled = false;
+            document.getElementById('add-interviewer-btn').style.opacity = '1';
+            document.getElementById('add-interviewer-btn').style.cursor = 'pointer';
+            
+            // Renumber remaining interviewers
+            renumberInterviewers();
+        }
+    };
+    
+    function renumberInterviewers() {
+        var additionalInterviewers = document.querySelectorAll('#additional-interviewers .interviewer-group');
+        additionalInterviewers.forEach(function(group, index) {
+            var label = group.querySelector('label');
+            if (label) {
+                label.innerHTML = 'Additional Interviewer #' + (index + 1);
+            }
+        });
+    }
+    
+    function updateInterviewerListeners() {
+        var selects = document.querySelectorAll('.interviewer-select');
+        selects.forEach(function(select) {
+            select.addEventListener('change', function() {
+                checkDuplicateInterviewers();
+            });
+        });
+    }
+    
+    function checkDuplicateInterviewers() {
+        var selects = document.querySelectorAll('.interviewer-select');
+        var selectedValues = [];
+        var hasDuplicate = false;
+        
+        selects.forEach(function(select) {
+            if (select.value) {
+                if (selectedValues.includes(select.value)) {
+                    hasDuplicate = true;
+                    select.style.borderColor = '#f44336';
+                } else {
+                    selectedValues.push(select.value);
+                    select.style.borderColor = '#ddd';
+                }
+            }
+        });
+        
+        if (hasDuplicate) {
+            if (!document.getElementById('duplicate-warning')) {
+                var warning = document.createElement('div');
+                warning.id = 'duplicate-warning';
+                warning.className = 'alert alert-warning';
+                warning.style.marginTop = '10px';
+                warning.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' +
+                    '<strong>Warning:</strong> You have selected the same interviewer multiple times. Each interviewer should be unique.';
+                document.getElementById('interviewers-container').appendChild(warning);
+            }
+        } else {
+            var warning = document.getElementById('duplicate-warning');
+            if (warning) {
+                warning.remove();
+            }
+        }
+        
+        return !hasDuplicate;
+    }
+    
+    // Initialize listeners if multiple interviewers are allowed
+    if (allowMultiple) {
+        updateInterviewerListeners();
+    }
+
     
     // Form validation before submit
     document.getElementById('interviewForm').addEventListener('submit', function(e) {
@@ -1204,4 +1484,218 @@ textarea.form-control {
     selectInterviewType('online');
     
 })();
+</script>
+
+<!-- Modern Confirmation Modal -->
+<div class="modal fade modern-modal" id="confirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalTitle">
+                    <i class="fas fa-question-circle"></i>
+                    <span id="confirmModalTitleText">Confirm Action</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="confirmModalBody">
+                Are you sure you want to proceed?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-gradient" id="confirmModalAction">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modern Alert Modal -->
+<div class="modal fade modern-modal" id="alertModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="alertModalTitle">
+                    <i class="fas fa-info-circle"></i>
+                    <span id="alertModalTitleText">Notification</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="alertModalBody">
+                Message content here
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-gradient" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Modern Modal Styles */
+.modern-modal .modal-content {
+    border-radius: 16px;
+    border: none;
+    box-shadow: 0 10px 40px rgba(0,0,0,.15);
+}
+.modern-modal .modal-header {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    border-radius: 16px 16px 0 0;
+    padding: 20px 24px;
+    border: none;
+}
+.modern-modal .modal-title {
+    font-weight: 600;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.modern-modal .btn-close {
+    filter: brightness(0) invert(1);
+    opacity: 0.8;
+}
+.modern-modal .btn-close:hover {
+    opacity: 1;
+}
+.modern-modal .modal-body {
+    padding: 24px;
+    font-size: 15px;
+    color: #333;
+    line-height: 1.6;
+}
+.modern-modal .modal-footer {
+    border: none;
+    padding: 16px 24px 24px;
+    gap: 10px;
+}
+.modern-modal .btn-gradient {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border: none;
+    color: #fff;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.modern-modal .btn-gradient:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    color: #fff;
+}
+.modern-modal .btn-outline-secondary {
+    border: 2px solid #e0e0e0;
+    color: #666;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+.modern-modal .btn-outline-secondary:hover {
+    background: #f5f5f5;
+    border-color: #ccc;
+    color: #333;
+}
+.modern-modal.success-modal .modal-header {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+.modern-modal.danger-modal .modal-header {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+.modern-modal.info-modal .modal-header {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+.modern-modal.warning-modal .modal-header {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+</style>
+
+<script>
+// Modern Alert and Confirm Functions - Override default alert()
+var confirmModalCallback = null;
+
+// Override native alert
+window.alert = function(message) {
+    var title = 'Notification';
+    var type = 'info';
+    
+    // Parse message for type indicators
+    if (message.includes('✅') || message.toLowerCase().includes('success')) {
+        type = 'success';
+        title = 'Success';
+    } else if (message.toLowerCase().includes('error') || message.toLowerCase().includes('failed')) {
+        type = 'danger';
+        title = 'Error';
+    } else if (message.toLowerCase().includes('warning')) {
+        type = 'warning';
+        title = 'Warning';
+    }
+    
+    showAlert(title, message, type);
+};
+
+function showAlert(title, message, type) {
+    type = type || 'info';
+    var modal = document.getElementById('alertModal');
+    if (!modal) return; // Fallback if modal not loaded yet
+    
+    var modalInstance = new bootstrap.Modal(modal);
+    
+    modal.className = 'modal fade modern-modal';
+    if (type === 'danger') modal.classList.add('danger-modal');
+    else if (type === 'warning') modal.classList.add('warning-modal');
+    else if (type === 'success') modal.classList.add('success-modal');
+    else if (type === 'info') modal.classList.add('info-modal');
+    
+    var icon = 'fa-info-circle';
+    if (type === 'danger') icon = 'fa-times-circle';
+    else if (type === 'warning') icon = 'fa-exclamation-triangle';
+    else if (type === 'success') icon = 'fa-check-circle';
+    
+    document.querySelector('#alertModalTitle i').className = 'fas ' + icon;
+    document.getElementById('alertModalTitleText').textContent = title;
+    document.getElementById('alertModalBody').innerHTML = message.replace(/\n/g, '<br>');
+    
+    modalInstance.show();
+}
+
+function showConfirm(title, message, callback, type) {
+    type = type || 'primary';
+    var modal = document.getElementById('confirmModal');
+    if (!modal) return; // Fallback if modal not loaded yet
+    
+    var modalInstance = new bootstrap.Modal(modal);
+    
+    modal.className = 'modal fade modern-modal';
+    if (type === 'danger') modal.classList.add('danger-modal');
+    else if (type === 'warning') modal.classList.add('warning-modal');
+    else if (type === 'success') modal.classList.add('success-modal');
+    else if (type === 'info') modal.classList.add('info-modal');
+    
+    var icon = 'fa-question-circle';
+    if (type === 'danger') icon = 'fa-exclamation-triangle';
+    else if (type === 'warning') icon = 'fa-exclamation-circle';
+    else if (type === 'success') icon = 'fa-check-circle';
+    else if (type === 'info') icon = 'fa-info-circle';
+    
+    document.querySelector('#confirmModalTitle i').className = 'fas ' + icon;
+    document.getElementById('confirmModalTitleText').textContent = title;
+    document.getElementById('confirmModalBody').textContent = message;
+    
+    confirmModalCallback = callback;
+    modalInstance.show();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var confirmBtn = document.getElementById('confirmModalAction');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', function() {
+            if (confirmModalCallback) {
+                confirmModalCallback();
+                confirmModalCallback = null;
+            }
+            var modal = bootstrap.Modal.getInstance(document.getElementById('confirmModal'));
+            if (modal) modal.hide();
+        });
+    }
+});
 </script>

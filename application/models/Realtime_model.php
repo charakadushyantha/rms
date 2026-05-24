@@ -23,11 +23,24 @@ class Realtime_model extends CI_Model {
     public function get_pipeline_overview() {
         $stages = $this->get_pipeline_stages();
         
+        // If no stages exist, return empty array
+        if (empty($stages)) {
+            return [];
+        }
+        
         foreach ($stages as &$stage) {
             // Get candidates in this stage (only their LATEST pipeline entry)
-            $sql = "SELECT cp.*, c.name, c.email, c.phone, c.position_applied
+            // Using candidate_details table instead of candidates
+            $sql = "SELECT cp.*, 
+                    cd.cd_id as id,
+                    cd.cd_name as name, 
+                    cd.cd_email as email, 
+                    cd.cd_phone as phone, 
+                    cd.cd_job_title as job_title,
+                    cd.cd_status,
+                    DATEDIFF(NOW(), cp.moved_at) as days_in_stage
                     FROM candidate_pipeline cp
-                    INNER JOIN candidates c ON c.id = cp.candidate_id
+                    INNER JOIN candidate_details cd ON cd.cd_id = cp.candidate_id
                     INNER JOIN (
                         SELECT candidate_id, MAX(id) as latest_id
                         FROM candidate_pipeline
@@ -36,9 +49,15 @@ class Realtime_model extends CI_Model {
                     WHERE cp.stage_id = ?
                     ORDER BY cp.moved_at DESC";
             
-            $query = $this->db->query($sql, [$stage['id']]);
-            $stage['candidates'] = $query->result_array();
-            $stage['count'] = count($stage['candidates']);
+            try {
+                $query = $this->db->query($sql, [$stage['id']]);
+                $stage['candidates'] = $query->result_array();
+                $stage['count'] = count($stage['candidates']);
+            } catch (Exception $e) {
+                // If query fails, set empty candidates
+                $stage['candidates'] = [];
+                $stage['count'] = 0;
+            }
         }
         
         return $stages;
@@ -65,11 +84,13 @@ class Realtime_model extends CI_Model {
     public function get_dashboard_metrics() {
         $metrics = [];
         
-        // Total candidates in pipeline
-        $metrics['total_candidates'] = $this->db->count_all('candidate_pipeline');
+        // Total candidates in pipeline (unique candidates)
+        $this->db->select('COUNT(DISTINCT candidate_id) as count');
+        $result = $this->db->get('candidate_pipeline')->row();
+        $metrics['total_candidates'] = $result->count ?? 0;
         
         // Candidates by stage
-        $this->db->select('ps.name, COUNT(*) as count');
+        $this->db->select('ps.name, COUNT(DISTINCT cp.candidate_id) as count');
         $this->db->from('candidate_pipeline cp');
         $this->db->join('pipeline_stages ps', 'ps.id = cp.stage_id');
         $this->db->group_by('cp.stage_id');
@@ -80,14 +101,15 @@ class Realtime_model extends CI_Model {
         $result = $this->db->get('candidate_pipeline')->row();
         $metrics['avg_days_in_pipeline'] = round($result->avg_days ?? 0, 1);
         
-        // Urgent candidates
-        $this->db->where('urgency_level', 'high');
-        $metrics['urgent_count'] = $this->db->count_all_results('candidate_pipeline');
+        // Urgent candidates (candidates in pipeline for more than 7 days)
+        $this->db->select('COUNT(DISTINCT candidate_id) as count');
+        $this->db->where('DATEDIFF(NOW(), moved_at) >', 7);
+        $result = $this->db->get('candidate_pipeline')->row();
+        $metrics['urgent_count'] = $result->count ?? 0;
         
-        // Today's interviews
-        $this->db->where('DATE(interview_date)', date('Y-m-d'));
-        $this->db->where('status', 'scheduled');
-        $metrics['today_interviews'] = $this->db->count_all_results('interview_panels');
+        // Today's interviews from calendar_events
+        $this->db->where('DATE(ce_start_date)', date('Y-m-d'));
+        $metrics['todays_interviews'] = $this->db->count_all_results('calendar_events');
         
         return $metrics;
     }
@@ -96,14 +118,84 @@ class Realtime_model extends CI_Model {
      * Get recent activity
      */
     public function get_recent_activity($limit = 20) {
-        $this->db->select('pal.*, u.username, c.name as candidate_name');
-        $this->db->from('pipeline_activity_log pal');
-        $this->db->join('users u', 'u.id = pal.user_id', 'left');
-        $this->db->join('candidates c', 'c.id = pal.candidate_id', 'left');
-        $this->db->order_by('pal.created_at', 'DESC');
+        // Check if pipeline_activity_log table has data
+        $count = $this->db->count_all('pipeline_activity_log');
+        
+        if ($count > 0) {
+            $this->db->select('pal.*, u.u_username as username, cd.cd_name as candidate_name');
+            $this->db->from('pipeline_activity_log pal');
+            $this->db->join('users u', 'u.u_id = pal.user_id', 'left');
+            $this->db->join('candidate_details cd', 'cd.cd_id = pal.candidate_id', 'left');
+            $this->db->order_by('pal.created_at', 'DESC');
+            $this->db->limit($limit);
+            
+            $activities = $this->db->get()->result_array();
+            
+            // Format activities
+            foreach ($activities as &$activity) {
+                $activity['description'] = $this->format_activity_description($activity);
+                $activity['time_ago'] = $this->time_ago($activity['created_at']);
+            }
+            
+            return $activities;
+        }
+        
+        // Fallback: Generate activity from candidate_pipeline changes
+        $this->db->select('cp.*, cd.cd_name as candidate_name, ps.name as stage_name, u.u_username as username');
+        $this->db->from('candidate_pipeline cp');
+        $this->db->join('candidate_details cd', 'cd.cd_id = cp.candidate_id', 'left');
+        $this->db->join('pipeline_stages ps', 'ps.id = cp.stage_id', 'left');
+        $this->db->join('users u', 'u.u_id = cp.moved_by', 'left');
+        $this->db->order_by('cp.moved_at', 'DESC');
         $this->db->limit($limit);
         
-        return $this->db->get()->result_array();
+        $activities = $this->db->get()->result_array();
+        
+        // Format activities
+        foreach ($activities as &$activity) {
+            $activity['description'] = ($activity['username'] ?? 'Someone') . ' moved ' . 
+                                      ($activity['candidate_name'] ?? 'a candidate') . ' to ' . 
+                                      ($activity['stage_name'] ?? 'a stage');
+            $activity['time_ago'] = $this->time_ago($activity['moved_at']);
+            $activity['created_at'] = $activity['moved_at'];
+        }
+        
+        return $activities;
+    }
+    
+    /**
+     * Format activity description
+     */
+    private function format_activity_description($activity) {
+        $user = $activity['username'] ?? 'Someone';
+        $candidate = $activity['candidate_name'] ?? 'a candidate';
+        $action = $activity['action_type'] ?? 'updated';
+        
+        switch ($action) {
+            case 'stage_change':
+                return "$user moved $candidate to a new stage";
+            case 'interview_scheduled':
+                return "$user scheduled an interview for $candidate";
+            case 'note_added':
+                return "$user added a note for $candidate";
+            default:
+                return "$user performed an action on $candidate";
+        }
+    }
+    
+    /**
+     * Convert timestamp to time ago format
+     */
+    private function time_ago($datetime) {
+        $timestamp = strtotime($datetime);
+        $diff = time() - $timestamp;
+        
+        if ($diff < 60) return $diff . ' seconds ago';
+        if ($diff < 3600) return floor($diff / 60) . ' minutes ago';
+        if ($diff < 86400) return floor($diff / 3600) . ' hours ago';
+        if ($diff < 604800) return floor($diff / 86400) . ' days ago';
+        
+        return date('M j, Y', $timestamp);
     }
 
     /**
@@ -211,8 +303,8 @@ class Realtime_model extends CI_Model {
      * Get candidate by ID
      */
     public function get_candidate_by_id($id) {
-        $this->db->where('id', $id);
-        return $this->db->get('candidates')->row_array();
+        $this->db->where('cd_id', $id);
+        return $this->db->get('candidate_details')->row_array();
     }
     
     /**

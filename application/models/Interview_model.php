@@ -262,12 +262,12 @@ class Interview_model extends CI_Model {
     public function get_today_interviews() {
         $today = date('Y-m-d');
         
-        $this->db->select('interviews.*, interview_flows.job_title as position');
+        $this->db->select('interviews.*, interview_flows.job_title');
         $this->db->from('interviews');
-        $this->db->join('interview_flows', 'interviews.flow_id = interview_flows.id');
-        $this->db->where('DATE(interviews.created_at)', $today);
+        $this->db->join('interview_flows', 'interviews.flow_id = interview_flows.id', 'left');
+        $this->db->where('DATE(interviews.interview_date)', $today);
         $this->db->where_in('interviews.status', ['pending', 'in_progress']);
-        $this->db->order_by('interviews.created_at', 'ASC');
+        $this->db->order_by('interviews.interview_start_time', 'ASC');
         
         $query = $this->db->get();
         return $query->result_array();
@@ -280,16 +280,49 @@ class Interview_model extends CI_Model {
         $start_date = date('Y-m-d');
         $end_date = date('Y-m-d', strtotime('+7 days'));
         
-        $this->db->select('interviews.*, interview_flows.job_title as position');
+        $this->db->select('interviews.*, interview_flows.job_title');
         $this->db->from('interviews');
-        $this->db->join('interview_flows', 'interviews.flow_id = interview_flows.id');
-        $this->db->where('DATE(interviews.created_at) >=', $start_date);
-        $this->db->where('DATE(interviews.created_at) <=', $end_date);
+        $this->db->join('interview_flows', 'interviews.flow_id = interview_flows.id', 'left');
+        $this->db->where('DATE(interviews.interview_date) >=', $start_date);
+        $this->db->where('DATE(interviews.interview_date) <=', $end_date);
         $this->db->where_in('interviews.status', ['pending', 'in_progress']);
-        $this->db->order_by('interviews.created_at', 'ASC');
+        $this->db->order_by('interviews.interview_date', 'ASC');
+        $this->db->order_by('interviews.interview_start_time', 'ASC');
         $this->db->limit(5);
         
         $query = $this->db->get();
         return $query->result_array();
+    }
+    
+    /**
+     * Get interviews with dates for calendar
+     */
+    public function get_interview_dates($month, $year) {
+        $this->db->select('DATE(interview_date) as date, COUNT(*) as count');
+        $this->db->from('interviews');
+        $this->db->where('MONTH(interview_date)', $month);
+        $this->db->where('YEAR(interview_date)', $year);
+        $this->db->where('interview_date IS NOT NULL');
+        $this->db->group_by('DATE(interview_date)');
+        
+        $query = $this->db->get();
+        $result = [];
+        foreach ($query->result_array() as $row) {
+            $result[$row['date']] = $row['count'];
+        }
+        return $result;
+    }
+    
+    /**
+     * Cancel interview
+     */
+    public function cancel_interview($id) {
+        $data = [
+            'status' => 'cancelled',
+            'updated_at' => date('Y-m-d H:i:s')
+        ];
+        
+        $this->db->where('id', $id);
+        return $this->db->update('interviews', $data);
     }
 }
