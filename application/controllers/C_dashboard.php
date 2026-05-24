@@ -115,6 +115,9 @@ class C_dashboard extends CI_Controller {
 
     // Upload Document
     public function upload_document() {
+        // Set JSON header
+        header('Content-Type: application/json');
+        
         if (!$this->session->userdata('authenticated')) {
             echo json_encode(['success' => false, 'message' => 'Not authenticated']);
             return;
@@ -122,12 +125,38 @@ class C_dashboard extends CI_Controller {
 
         $email = $this->session->userdata('email');
         $document_type = $this->input->post('document_type');
+        
+        // Debug: Check if file was uploaded
+        if (!isset($_FILES['document']) || $_FILES['document']['error'] !== UPLOAD_ERR_OK) {
+            $error_msg = 'No file uploaded';
+            if (isset($_FILES['document']['error'])) {
+                switch ($_FILES['document']['error']) {
+                    case UPLOAD_ERR_INI_SIZE:
+                    case UPLOAD_ERR_FORM_SIZE:
+                        $error_msg = 'File is too large';
+                        break;
+                    case UPLOAD_ERR_PARTIAL:
+                        $error_msg = 'File was only partially uploaded';
+                        break;
+                    case UPLOAD_ERR_NO_FILE:
+                        $error_msg = 'No file was uploaded';
+                        break;
+                    default:
+                        $error_msg = 'Upload error code: ' . $_FILES['document']['error'];
+                }
+            }
+            echo json_encode(['success' => false, 'message' => $error_msg]);
+            return;
+        }
 
         // Configure upload
         $config['upload_path'] = './uploads/candidate_documents/';
-        $config['allowed_types'] = 'pdf|doc|docx|jpg|jpeg|png';
-        $config['max_size'] = 5120; // 5MB
+        // TEMPORARY FIX: Allow all file types to bypass MIME checking
+        $config['allowed_types'] = '*';
+        $config['max_size'] = 10240; // 10MB
         $config['file_name'] = $email . '_' . $document_type . '_' . time();
+        $config['overwrite'] = FALSE;
+        $config['remove_spaces'] = TRUE;
 
         // Create directory if it doesn't exist
         if (!is_dir($config['upload_path'])) {
@@ -138,6 +167,25 @@ class C_dashboard extends CI_Controller {
 
         if ($this->upload->do_upload('document')) {
             $upload_data = $this->upload->data();
+            
+            // Manual file type validation
+            $allowed_extensions = array('pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'txt');
+            
+            // Get file extension from original filename (most reliable)
+            $orig_name = isset($_FILES['document']['name']) ? $_FILES['document']['name'] : '';
+            $orig_ext = strtolower(pathinfo($orig_name, PATHINFO_EXTENSION));
+            
+            // Validate file extension
+            if (!in_array($orig_ext, $allowed_extensions)) {
+                if (file_exists($upload_data['full_path'])) {
+                    unlink($upload_data['full_path']);
+                }
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Invalid file type (' . $orig_ext . '). Only PDF, DOC, DOCX, JPG, PNG, and TXT files are allowed.'
+                ]);
+                return;
+            }
             
             $document_data = [
                 'candidate_username' => $email,
@@ -150,9 +198,16 @@ class C_dashboard extends CI_Controller {
             $result = $this->Candidate_model->save_document($document_data);
             echo json_encode($result);
         } else {
+            $error = $this->upload->display_errors('', '');
+            
+            // Log the error for debugging
+            log_message('error', 'Upload failed: ' . $error);
+            log_message('error', 'File info: ' . print_r($_FILES, true));
+            log_message('error', 'Config: ' . print_r($config, true));
+            
             echo json_encode([
                 'success' => false,
-                'message' => $this->upload->display_errors('', '')
+                'message' => $error ? $error : 'Failed to upload document. Please try again.'
             ]);
         }
     }

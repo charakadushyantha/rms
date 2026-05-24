@@ -1,0 +1,227 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    VIVA QUICK REFERENCE CARD - RMS                           ║
+║                  Recruitment Management System                               ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ SETUP CHECKLIST (Before Viva)                                               │
+└──────────────────────────────────────────────────────────────────────────────┘
+□ Start XAMPP (Apache + MySQL)
+□ Import add_viva_questions.sql (10 questions)
+□ Import setup_viva_data.sql (candidates, interviews, jobs)
+□ Clear browser cache (Ctrl+Shift+R)
+□ Test login: http://localhost/rms
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ KEY URLS                                                                     │
+└──────────────────────────────────────────────────────────────────────────────┘
+Login:              http://localhost/rms
+Dashboard:          http://localhost/rms/index.php/A_dashboard
+Calendar:           http://localhost/rms/index.php/A_dashboard/Acalendar_view
+Schedule Interview: http://localhost/rms/Interview/schedule
+Questions Bank:     http://localhost/rms/questions_bank
+Job Postings:       http://localhost/rms/Job_posting
+MIS Reports:        http://localhost/rms/index.php/A_dashboard/reports_view
+Selected Candidates: http://localhost/rms/index.php/A_dashboard/Ascandidate_view
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ LOGIN CREDENTIALS                                                            │
+└──────────────────────────────────────────────────────────────────────────────┘
+Admin:
+  Username: admin
+  Password: [your admin password]
+
+Interviewers (if needed):
+  Username: interviewer1 / interviewer2 / interviewer3
+  Password: password123
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ DATABASE INFORMATION                                                         │
+└──────────────────────────────────────────────────────────────────────────────┘
+Database Name: cmsadver_rmsdb
+Server: localhost
+Port: 3306
+
+Main Tables:
+  - candidate_details (stores candidate information)
+  - calendar_events (stores interview schedules)
+  - users (stores system users)
+  - questions_bank (stores interview questions)
+  - job_postings (stores job listings)
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ DEMONSTRATION FLOW (12 minutes)                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+1. LOGIN (1 min)
+   → Show login page
+   → Enter credentials
+   → Explain authentication
+
+2. DASHBOARD (2 min)
+   → Statistics cards (Total, Selected, In Progress, Interested)
+   → Recent candidates list
+   → Candidate status chart
+   → Data table with filters
+   → Export CSV
+
+3. CALENDAR (2 min)
+   → Show scheduled interviews
+   → Demonstrate filters (All, Today, Week, Month)
+   → View interview details
+   → Edit interview
+   → Show "Upcoming Today" sidebar
+
+4. SCHEDULE INTERVIEW (2 min)
+   → Click "Schedule Interview"
+   → Select candidate from dropdown
+   → Choose interviewer
+   → Set date/time
+   → Select interview type
+   → Submit and verify
+
+5. QUESTIONS BANK (2 min)
+   → Show 10 real viva questions
+   → View question details
+   → Show categories
+   → Demonstrate edit functionality
+
+6. JOB POSTINGS (1 min)
+   → Show active jobs
+   → View job details
+   → Show edit functionality
+
+7. MIS REPORTS (1 min)
+   → Show charts with real data
+   → Explain metrics
+
+8. SELECTED CANDIDATES (1 min)
+   → Show selected candidates
+   → Interview progress timeline
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ KEY FEATURES TO HIGHLIGHT                                                    │
+└──────────────────────────────────────────────────────────────────────────────┘
+✓ 100% Real Data (No Dummy Data)
+✓ Modern Purple Gradient Theme
+✓ Responsive Design (Mobile-friendly)
+✓ Real-time Data Updates
+✓ CRUD Operations (Create, Read, Update, Delete)
+✓ Advanced Filtering & Search
+✓ CSV Export Functionality
+✓ Calendar with Smart Filtering
+✓ Interview Scheduling System
+✓ Questions Bank Management
+✓ Job Posting Management
+✓ MIS Reports with Charts
+✓ User Role Management (Admin, Recruiter, Interviewer, Candidate)
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ COMMON VIVA QUESTIONS & ANSWERS                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Q: Is this using dummy data?
+A: No, all data is real from MySQL database. I can add a candidate now to prove it.
+
+Q: What framework did you use?
+A: CodeIgniter 3 (PHP MVC framework) with Bootstrap 5 for frontend.
+
+Q: How do you prevent SQL injection?
+A: Using CodeIgniter's Active Record/Query Builder which sanitizes inputs.
+
+Q: What's the database structure?
+A: Normalized relational database with 8+ tables including candidate_details,
+   calendar_events, users, questions_bank, and job_postings.
+
+Q: How does interview scheduling work?
+A: Admin selects candidate, interviewer, date/time, and type. System stores
+   in calendar_events table and displays on calendar with filtering options.
+
+Q: Can you show the code?
+A: Yes, controllers are in application/controllers/, views in
+   application/views/, and models in application/models/.
+
+Q: What happens when you delete an interview?
+A: System removes record from calendar_events table and redirects to calendar
+   with success message. Can be demonstrated live.
+
+Q: How do you handle authentication?
+A: Session-based authentication. Users login, session stores credentials,
+   each page checks session before loading. Logout destroys session.
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ TECHNICAL SPECIFICATIONS                                                     │
+└──────────────────────────────────────────────────────────────────────────────┘
+Backend:        PHP 7.4+ with CodeIgniter 3
+Frontend:       HTML5, CSS3, JavaScript, Bootstrap 5
+Database:       MySQL 5.7+
+Charts:         Chart.js
+Tables:         DataTables.js
+Icons:          Font Awesome 6
+Server:         Apache (XAMPP)
+Architecture:   MVC (Model-View-Controller)
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ DATA COUNTS (After Setup)                                                    │
+└──────────────────────────────────────────────────────────────────────────────┘
+Candidates:     8 real candidates
+Interviewers:   4 interviewers
+Interviews:     10 scheduled (past, today, future)
+Questions:      10 viva questions
+Job Postings:   5 active jobs
+Recruiters:     2 recruiters
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ TROUBLESHOOTING                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+Issue: Page not loading
+Fix: Check XAMPP (Apache + MySQL running), clear cache (Ctrl+Shift+R)
+
+Issue: Database error
+Fix: Check database.php config, verify database name is correct
+
+Issue: Login not working
+Fix: Verify admin user exists in users table, check password hash
+
+Issue: No data showing
+Fix: Import setup_viva_data.sql, refresh page
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ CONFIDENCE BOOSTERS                                                          │
+└──────────────────────────────────────────────────────────────────────────────┘
+✓ All pages tested and working
+✓ No PHP errors or warnings
+✓ All CRUD operations functional
+✓ Real data from database
+✓ Professional UI design
+✓ Responsive on all devices
+✓ Export functionality works
+✓ Filters and search working
+✓ Calendar fully functional
+✓ Questions bank populated
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ FINAL CHECKLIST (5 minutes before viva)                                     │
+└──────────────────────────────────────────────────────────────────────────────┘
+□ XAMPP running (Apache + MySQL green)
+□ Browser cache cleared (Ctrl+Shift+R)
+□ Test login works
+□ Dashboard loads with data
+□ Calendar shows interviews
+□ Questions bank shows 10 questions
+□ Job postings show 5 jobs
+□ All filters working
+□ Export CSV works
+□ No error messages
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ EMERGENCY CONTACTS                                                           │
+└──────────────────────────────────────────────────────────────────────────────┘
+phpMyAdmin:     http://localhost/phpmyadmin
+Error Logs:     xampp/php/logs/php_error_log
+Apache Logs:    xampp/apache/logs/error.log
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                         YOU'VE GOT THIS! 🎓✨                                ║
+║                  Stay calm, confident, and demonstrate!                      ║
+╚══════════════════════════════════════════════════════════════════════════════╝

@@ -1,0 +1,149 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                         IMPORT INSTRUCTIONS                                  ║
+║                    Fix for SQL Import Error                                  ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+ERROR ENCOUNTERED:
+------------------
+SQL Error (1054): Unknown column 'jp_salary_range' in 'field list'
+
+CAUSE:
+------
+The job_postings table structure doesn't match the SQL script columns.
+
+SOLUTION:
+---------
+Use the SIMPLE version that only imports essential data.
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                         STEP-BY-STEP IMPORT                                  ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+STEP 1: Import Viva Questions
+------------------------------
+1. Open phpMyAdmin: http://localhost/phpmyadmin
+2. Select database: cmsadver_rmsdb
+3. Click "Import" tab
+4. Choose file: add_viva_questions.sql
+5. Click "Go"
+6. ✅ Should see: "10 rows inserted"
+
+STEP 2: Import Essential Data (USE THIS ONE!)
+----------------------------------------------
+1. Still in phpMyAdmin
+2. Click "Import" tab
+3. Choose file: setup_viva_data_simple.sql  ← USE THIS FILE!
+4. Click "Go"
+5. ✅ Should see: "Success" messages
+
+WHAT GETS IMPORTED:
+-------------------
+✓ 8 Real Candidates (Sri Lankan names)
+✓ 4 Interviewers (interviewer1, interviewer2, interviewer3, hr_manager)
+✓ 10 Scheduled Interviews (past, today, future)
+
+WHAT'S SKIPPED:
+---------------
+✗ Job Postings (due to table structure mismatch)
+  → You can add these manually through the web interface if needed
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                         VERIFICATION                                         ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+After import, run these queries in phpMyAdmin SQL tab:
+
+SELECT COUNT(*) as total_candidates FROM candidate_details;
+-- Should show: 8
+
+SELECT COUNT(*) as total_interviewers FROM users WHERE u_role = 'Interviewer';
+-- Should show: 4
+
+SELECT COUNT(*) as total_interviews FROM calendar_events;
+-- Should show: 10
+
+SELECT COUNT(*) as total_questions FROM questions_bank;
+-- Should show: 10
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                         TEST THE SYSTEM                                      ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+1. Go to: http://localhost/rms
+2. Login as admin
+3. Check Dashboard:
+   ✓ Should show 8 candidates
+   ✓ Statistics should show real numbers
+   ✓ Recent candidates list should show names
+   ✓ Chart should display data
+
+4. Check Calendar:
+   ✓ Go to: http://localhost/rms/index.php/A_dashboard/Acalendar_view
+   ✓ Should show 10 interviews
+   ✓ Filter by "Today" should show 2 interviews
+   ✓ "Upcoming Today" sidebar should show interviews
+
+5. Check Questions Bank:
+   ✓ Go to: http://localhost/rms/questions_bank
+   ✓ Should show 10 questions
+   ✓ Click "View" on any question
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    ADDING JOB POSTINGS MANUALLY                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+If you need job postings for your viva:
+
+1. Go to: http://localhost/rms/Job_posting
+2. Click "Create New Job Posting"
+3. Fill in:
+   - Job Title: Software Engineer
+   - Description: Looking for talented software engineer...
+   - Status: Active
+4. Submit
+5. Repeat for 2-3 more jobs
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                         TROUBLESHOOTING                                      ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Problem: Import fails with "Duplicate entry"
+Solution: Data already exists. Skip or delete existing data first.
+
+Problem: No data showing on dashboard
+Solution: 
+  1. Clear browser cache (Ctrl+Shift+R)
+  2. Verify data imported (run verification queries)
+  3. Check database connection in application/config/database.php
+
+Problem: Interviews not showing on calendar
+Solution:
+  1. Check calendar_events table has data
+  2. Clear browser cache
+  3. Check for JavaScript errors in browser console (F12)
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                         FILES SUMMARY                                        ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+✅ add_viva_questions.sql          - 10 viva questions (IMPORT THIS)
+✅ setup_viva_data_simple.sql      - Essential data only (IMPORT THIS)
+❌ setup_viva_data.sql             - Full version (HAS ERROR - DON'T USE)
+
+📖 VIVA_PREPARATION_GUIDE.md      - Complete viva guide
+📝 VIVA_QUICK_REFERENCE.txt       - Quick reference card
+✅ DASHBOARD_NO_DUMMY_DATA_CONFIRMED.md - Verification report
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                         QUICK START                                          ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+1. Import: add_viva_questions.sql
+2. Import: setup_viva_data_simple.sql
+3. Go to: http://localhost/rms
+4. Login and verify data shows
+5. You're ready for viva! 🎓
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                         GOOD LUCK! 🎓✨                                      ║
+╚══════════════════════════════════════════════════════════════════════════════╝
