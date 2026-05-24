@@ -1,165 +1,140 @@
-╔══════════════════════════════════════════════════════════════════╗
-║          SELECTED CANDIDATES PAGE - QUICK TEST GUIDE            ║
-║                      Version 2.1 - May 24, 2026                 ║
-╚══════════════════════════════════════════════════════════════════╝
+╔═══════════════════════════════════════════════════════════════╗
+║                                                               ║
+║     DOCUMENT UPLOAD/VIEW/DOWNLOAD - QUICK TEST GUIDE         ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
 
-📍 URL: http://localhost/rms/index.php/A_dashboard/Ascandidate_view
+┌───────────────────────────────────────────────────────────────┐
+│ STEP 1: CLEAR CACHE                                           │
+└───────────────────────────────────────────────────────────────┘
+Press: Ctrl + Shift + R (or Ctrl + F5)
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌───────────────────────────────────────────────────────────────┐
+│ STEP 2: OPEN DOCUMENTS PAGE                                   │
+└───────────────────────────────────────────────────────────────┘
+URL: http://localhost/rms/C_dashboard/documents
 
-⚠️  STEP 1: HARD REFRESH (CRITICAL!)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Expected: Page loads without errors ✅
 
-Press one of these key combinations:
+┌───────────────────────────────────────────────────────────────┐
+│ STEP 3: UPLOAD A FILE                                         │
+└───────────────────────────────────────────────────────────────┘
+1. Select document type: "Resume"
+2. Choose a PDF file
+3. Click "Upload Document"
 
-   Windows:  Ctrl + Shift + R
-        OR:  Ctrl + F5
-        OR:  Shift + F5
+Expected: Success message + page reloads ✅
 
-   This clears the cache and loads the new version!
+┌───────────────────────────────────────────────────────────────┐
+│ STEP 4: VIEW THE DOCUMENT                                     │
+└───────────────────────────────────────────────────────────────┘
+Click the BLUE EYE ICON (👁️)
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Expected: Opens in new tab ✅
 
-✅ STEP 2: VERIFY PAGE LOADED
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌───────────────────────────────────────────────────────────────┐
+│ STEP 5: DOWNLOAD THE DOCUMENT                                 │
+└───────────────────────────────────────────────────────────────┘
+Click the BLUE DOWNLOAD ICON (⬇️)
 
-You should see:
+Expected: File downloads to your computer ✅
 
-   ✓ Green alert at TOP of page saying:
-     "Page Loaded Successfully! Enhanced v2.1 - Build: [timestamp]"
+┌───────────────────────────────────────────────────────────────┐
+│ STEP 6: DELETE THE DOCUMENT                                   │
+└───────────────────────────────────────────────────────────────┘
+Click the RED TRASH ICON (🗑️)
+Click "Yes, delete it" in confirmation
 
-   ✓ Green popup at BOTTOM-RIGHT for 5 seconds:
-     "Enhanced v2.1 Active"
+Expected: Document removed from list ✅
 
-   ✓ Table header shows:
-     "All Candidates [Enhanced v2.1] [Build: timestamp]"
+╔═══════════════════════════════════════════════════════════════╗
+║                      ISSUES FIXED                             ║
+╚═══════════════════════════════════════════════════════════════╝
 
-   ⚠️  If you DON'T see these, the old version is cached!
-       Try clearing browser cache completely.
+✅ Cannot redeclare error - FIXED
+✅ Unknown column error - FIXED
+✅ File type not allowed - FIXED
+✅ View functionality - ADDED
+✅ Download functionality - ADDED
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+╔═══════════════════════════════════════════════════════════════╗
+║                   ALLOWED FILE TYPES                          ║
+╚═══════════════════════════════════════════════════════════════╝
 
-🔍 STEP 3: OPEN CONSOLE (Optional but Recommended)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ PDF (.pdf)
+✅ Word (.doc, .docx)
+✅ Images (.jpg, .jpeg, .png)
+✅ Text (.txt)
 
-Press: F12 → Click "Console" tab
+❌ Other types will be rejected
 
-You should see:
-   === ENHANCED SCRIPT v2.1 LOADED ===
-   jQuery version: 3.6.0
-   Bootstrap version: Loaded
-   DataTables available: true
-   SweetAlert2 available: true
-   Event handlers attached successfully
+╔═══════════════════════════════════════════════════════════════╗
+║                    BUTTON REFERENCE                           ║
+╚═══════════════════════════════════════════════════════════════╝
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+👁️  VIEW BUTTON (Blue Eye Icon)
+   → Opens document in new browser tab
+   → PDF and images display inline
+   → Word docs may download
 
-🔘 STEP 4: TEST BUTTONS
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⬇️  DOWNLOAD BUTTON (Blue Download Icon)
+   → Forces file download
+   → Saves to Downloads folder
+   → Works for all file types
 
-1. Find any row in the table
-2. Click the EYE ICON (👁️) button in the Actions column
-3. A modal should pop up with candidate details
-4. You should see interview history timeline (if any interviews exist)
+🗑️  DELETE BUTTON (Red Trash Icon)
+   → Shows confirmation modal
+   → Deletes file from server
+   → Removes from database
 
-   ⚠️  If nothing happens:
-       - Check console for errors (F12 → Console)
-       - Look for red error messages
-       - Take screenshot and share
+╔═══════════════════════════════════════════════════════════════╗
+║                  TROUBLESHOOTING                              ║
+╚═══════════════════════════════════════════════════════════════╝
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Problem: Page shows error
+Solution: Clear cache (Ctrl + Shift + R)
 
-🔍 STEP 5: TEST FILTERS
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Problem: Upload fails
+Solution: Check file type is allowed
 
-Test each filter:
+Problem: View/Download doesn't work
+Solution: Check file exists in uploads/candidate_documents/
 
-   ✓ Search box - Type a name, table filters instantly
-   ✓ Status dropdown - Select a status, table filters
-   ✓ Progress dropdown - Select a range, table filters
-   ✓ Recruiter dropdown - Select a recruiter, table filters
-   ✓ Job Title dropdown - Select a job, table filters
-   ✓ Reset button (🔄) - Clears all filters
+Problem: Still having issues
+Solution: Check browser console (F12) for errors
 
-   Watch the count at bottom: "Showing X of Y candidates"
+╔═══════════════════════════════════════════════════════════════╗
+║                    FILES MODIFIED                             ║
+╚═══════════════════════════════════════════════════════════════╝
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📄 application/controllers/C_dashboard.php
+   - Fixed upload_document()
+   - Added view_document()
+   - Added download_document()
+   - Removed duplicate delete_document()
 
-📥 STEP 6: TEST EXPORT
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📄 application/views/Candidate_dashboard_view/documents.php
+   - Added view button
+   - Added download button
+   - Added file type icons
 
-1. Apply some filters (optional)
-2. Click "Export Data" button
-3. A CSV file should download: candidates_2026-05-24.csv
-4. Open it - should contain the filtered data
+╔═══════════════════════════════════════════════════════════════╗
+║                      STATUS                                   ║
+╚═══════════════════════════════════════════════════════════════╝
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ All issues fixed
+✅ All functionality added
+✅ Ready for testing
+✅ Ready for viva demonstration
 
-❌ TROUBLESHOOTING
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+╔═══════════════════════════════════════════════════════════════╗
+║              NEED MORE DETAILS?                               ║
+╚═══════════════════════════════════════════════════════════════╝
 
-Problem: Still see old data (0/4 Completed, 555 phone numbers)
-Solution: 
-   1. Clear browser cache completely
-   2. Close ALL browser windows
-   3. Reopen browser
-   4. Navigate to page
-   5. Hard refresh (Ctrl+Shift+R)
+📖 Read: DOCUMENT_UPLOAD_FIXED.md
+📋 Read: TESTING_CHECKLIST.txt
+📝 Read: FIXES_SUMMARY.md
 
-Problem: Buttons don't work
-Solution:
-   1. Open console (F12)
-   2. Look for errors
-   3. Check if "ENHANCED SCRIPT v2.1 LOADED" appears
-   4. If not, JavaScript didn't load - share screenshot
-
-Problem: Filters don't work
-Solution:
-   1. Check console for errors
-   2. Verify DataTables loaded (console shows "DataTables available: true")
-   3. Try clicking Reset button first
-
-Problem: Modal doesn't open
-Solution:
-   1. Check console when clicking button
-   2. Should see "Button clicked! Candidate ID: X"
-   3. If not, event handler didn't attach
-   4. If yes but no modal, check for AJAX errors
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-📸 IF STILL NOT WORKING
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Take 3 screenshots:
-
-   1. Full page (showing green alert with timestamp at top)
-   2. Console tab (F12 → Console) showing any messages
-   3. Network tab (F12 → Network) after clicking a button
-
-Share all three for diagnosis.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-✅ SUCCESS CHECKLIST
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-   □ Green alert visible at top
-   □ Build timestamp shows current date/time
-   □ Green popup appeared (bottom-right)
-   □ Console shows "v2.1 LOADED"
-   □ Eye buttons open modal
-   □ Modal shows candidate details
-   □ Interview timeline displays
-   □ Search filter works
-   □ All dropdown filters work
-   □ Reset button clears filters
-   □ Export button downloads CSV
-   □ Real data displayed (not 555 numbers)
-   □ Real progress shown (not 0/4)
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Last Updated: May 24, 2026 9:40 AM
-Version: 2.1
-Status: Ready for Testing ✅
+═══════════════════════════════════════════════════════════════
+                    READY TO TEST! 🚀
+═══════════════════════════════════════════════════════════════

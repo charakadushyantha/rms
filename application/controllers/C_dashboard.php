@@ -154,7 +154,13 @@ class C_dashboard extends CI_Controller {
         // TEMPORARY FIX: Allow all file types to bypass MIME checking
         $config['allowed_types'] = '*';
         $config['max_size'] = 10240; // 10MB
-        $config['file_name'] = $email . '_' . $document_type . '_' . time();
+        
+        // Get original file extension
+        $orig_name = isset($_FILES['document']['name']) ? $_FILES['document']['name'] : '';
+        $orig_ext = strtolower(pathinfo($orig_name, PATHINFO_EXTENSION));
+        
+        // Set filename WITH extension
+        $config['file_name'] = $email . '_' . $document_type . '_' . time() . '.' . $orig_ext;
         $config['overwrite'] = FALSE;
         $config['remove_spaces'] = TRUE;
 
@@ -168,12 +174,8 @@ class C_dashboard extends CI_Controller {
         if ($this->upload->do_upload('document')) {
             $upload_data = $this->upload->data();
             
-            // Manual file type validation
+            // Manual file type validation (already extracted $orig_ext above)
             $allowed_extensions = array('pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'txt');
-            
-            // Get file extension from original filename (most reliable)
-            $orig_name = isset($_FILES['document']['name']) ? $_FILES['document']['name'] : '';
-            $orig_ext = strtolower(pathinfo($orig_name, PATHINFO_EXTENSION));
             
             // Validate file extension
             if (!in_array($orig_ext, $allowed_extensions)) {
@@ -279,11 +281,24 @@ class C_dashboard extends CI_Controller {
             return;
         }
 
+        // Get file extension from the stored filename
+        $ext = strtolower(pathinfo($document['file_name'], PATHINFO_EXTENSION));
+        
+        // If no extension found, try to detect from file path
+        if (empty($ext)) {
+            $ext = strtolower(pathinfo($file_path, PATHINFO_EXTENSION));
+        }
+        
+        // Create a proper filename with extension
+        $download_filename = $document['file_name'];
+        if (!empty($ext) && strpos($download_filename, '.') === false) {
+            $download_filename .= '.' . $ext;
+        }
+
         // Force download
         $this->load->helper('download');
         $data = file_get_contents($file_path);
-        $name = $document['file_name'];
-        force_download($name, $data);
+        force_download($download_filename, $data);
     }
     
     // View Document (in browser)
@@ -319,8 +334,19 @@ class C_dashboard extends CI_Controller {
             return;
         }
 
-        // Get file extension
+        // Get file extension from the stored filename
         $ext = strtolower(pathinfo($document['file_name'], PATHINFO_EXTENSION));
+        
+        // If no extension found, try to detect from file path
+        if (empty($ext)) {
+            $ext = strtolower(pathinfo($file_path, PATHINFO_EXTENSION));
+        }
+        
+        // Create a proper filename with extension
+        $display_filename = $document['file_name'];
+        if (!empty($ext) && strpos($display_filename, '.') === false) {
+            $display_filename .= '.' . $ext;
+        }
         
         // Set appropriate content type
         $content_types = [
@@ -335,25 +361,22 @@ class C_dashboard extends CI_Controller {
         
         $content_type = isset($content_types[$ext]) ? $content_types[$ext] : 'application/octet-stream';
         
-        // Output file
-        header('Content-Type: ' . $content_type);
-        header('Content-Disposition: inline; filename="' . $document['file_name'] . '"');
-        header('Content-Length: ' . filesize($file_path));
-        readfile($file_path);
-    }
-
-    // Delete Document
-    public function delete_document() {
-        if (!$this->session->userdata('authenticated')) {
-            echo json_encode(['success' => false, 'message' => 'Not authenticated']);
-            return;
+        // Clear any previous output
+        if (ob_get_level()) {
+            ob_end_clean();
         }
-
-        $document_id = $this->input->post('document_id');
-        $email = $this->session->userdata('email');
-
-        $result = $this->Candidate_model->delete_document($document_id, $email);
-        echo json_encode($result);
+        
+        // Output file with proper headers
+        header('Content-Type: ' . $content_type);
+        header('Content-Disposition: inline; filename="' . $display_filename . '"');
+        header('Content-Length: ' . filesize($file_path));
+        header('Cache-Control: public, must-revalidate, max-age=0');
+        header('Pragma: public');
+        header('Expires: 0');
+        
+        // Read and output file
+        readfile($file_path);
+        exit;
     }
 
     // Messages/Communication Center
