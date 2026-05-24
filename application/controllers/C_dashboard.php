@@ -214,6 +214,136 @@ class C_dashboard extends CI_Controller {
 
     // Delete Document
     public function delete_document() {
+        header('Content-Type: application/json');
+        
+        if (!$this->session->userdata('authenticated')) {
+            echo json_encode(['success' => false, 'message' => 'Not authenticated']);
+            return;
+        }
+
+        $document_id = $this->input->post('document_id');
+        $email = $this->session->userdata('email');
+
+        // Get document info first
+        $this->db->where('id', $document_id);
+        $this->db->where('candidate_username', $email);
+        $document = $this->db->get('candidate_documents')->row_array();
+
+        if ($document) {
+            // Delete file from server
+            if (file_exists($document['file_path'])) {
+                unlink($document['file_path']);
+            }
+
+            // Delete from database
+            $this->db->where('id', $document_id);
+            $this->db->where('candidate_username', $email);
+            $this->db->delete('candidate_documents');
+
+            echo json_encode(['success' => true, 'message' => 'Document deleted successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Document not found']);
+        }
+    }
+    
+    // Download Document
+    public function download_document($document_id) {
+        if (!$this->session->userdata('authenticated')) {
+            show_error('Not authenticated', 403);
+            return;
+        }
+
+        $email = $this->session->userdata('email');
+        $role = $this->session->userdata('role');
+
+        // Get document info
+        $this->db->where('id', $document_id);
+        
+        // Only candidates can access their own documents
+        // Admins, recruiters, and interviewers can access any document
+        if ($role == 'Candidate') {
+            $this->db->where('candidate_username', $email);
+        }
+        
+        $document = $this->db->get('candidate_documents')->row_array();
+
+        if (!$document) {
+            show_error('Document not found', 404);
+            return;
+        }
+
+        $file_path = $document['file_path'];
+
+        if (!file_exists($file_path)) {
+            show_error('File not found on server', 404);
+            return;
+        }
+
+        // Force download
+        $this->load->helper('download');
+        $data = file_get_contents($file_path);
+        $name = $document['file_name'];
+        force_download($name, $data);
+    }
+    
+    // View Document (in browser)
+    public function view_document($document_id) {
+        if (!$this->session->userdata('authenticated')) {
+            show_error('Not authenticated', 403);
+            return;
+        }
+
+        $email = $this->session->userdata('email');
+        $role = $this->session->userdata('role');
+
+        // Get document info
+        $this->db->where('id', $document_id);
+        
+        // Only candidates can access their own documents
+        // Admins, recruiters, and interviewers can access any document
+        if ($role == 'Candidate') {
+            $this->db->where('candidate_username', $email);
+        }
+        
+        $document = $this->db->get('candidate_documents')->row_array();
+
+        if (!$document) {
+            show_error('Document not found', 404);
+            return;
+        }
+
+        $file_path = $document['file_path'];
+
+        if (!file_exists($file_path)) {
+            show_error('File not found on server', 404);
+            return;
+        }
+
+        // Get file extension
+        $ext = strtolower(pathinfo($document['file_name'], PATHINFO_EXTENSION));
+        
+        // Set appropriate content type
+        $content_types = [
+            'pdf' => 'application/pdf',
+            'doc' => 'application/msword',
+            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'txt' => 'text/plain'
+        ];
+        
+        $content_type = isset($content_types[$ext]) ? $content_types[$ext] : 'application/octet-stream';
+        
+        // Output file
+        header('Content-Type: ' . $content_type);
+        header('Content-Disposition: inline; filename="' . $document['file_name'] . '"');
+        header('Content-Length: ' . filesize($file_path));
+        readfile($file_path);
+    }
+
+    // Delete Document
+    public function delete_document() {
         if (!$this->session->userdata('authenticated')) {
             echo json_encode(['success' => false, 'message' => 'Not authenticated']);
             return;

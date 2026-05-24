@@ -31,12 +31,19 @@ $this->load->view('templates/candidate_header', $data);
     background: #f9fafb;
     border-radius: 8px;
     margin-bottom: 1rem;
+    transition: all 0.3s;
+}
+
+.document-item:hover {
+    background: #e5e7eb;
+    transform: translateX(5px);
 }
 
 .document-info {
     display: flex;
     align-items: center;
     gap: 1rem;
+    flex: 1;
 }
 
 .document-icon {
@@ -49,6 +56,21 @@ $this->load->view('templates/candidate_header', $data);
     justify-content: center;
     color: white;
     font-size: 1.5rem;
+}
+
+.document-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.document-actions .btn {
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.document-actions .btn:hover {
+    transform: scale(1.1);
 }
 
 .btn-upload {
