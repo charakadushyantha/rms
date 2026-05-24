@@ -1,0 +1,154 @@
+╔═══════════════════════════════════════════════════════════════╗
+║                                                               ║
+║              ALL ISSUES FIXED - QUICK GUIDE                   ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
+
+┌───────────────────────────────────────────────────────────────┐
+│ ✅ ISSUE #1: FILE EXTENSIONS MISSING                          │
+└───────────────────────────────────────────────────────────────┘
+
+PROBLEM:
+  Files downloading without .pdf, .doc extensions
+  Had to open with Adobe Reader manually
+
+FIXED:
+  ✅ Upload now saves files WITH extensions
+  ✅ View button opens files properly
+  ✅ Download button downloads with correct extension
+
+TEST:
+  1. Upload a PDF file
+  2. Click view button (eye icon)
+  3. Should open in browser with PDF icon
+  4. Click download button
+  5. Should download as filename.pdf
+
+┌───────────────────────────────────────────────────────────────┐
+│ ✅ ISSUE #2: CANDIDATES NOT SHOWING IN ADMIN PANEL            │
+└───────────────────────────────────────────────────────────────┘
+
+PROBLEM:
+  Candidates who register (like "Test", "candi2@gmail.com")
+  Don't appear in admin's Schedule Interview dropdown
+  Can't schedule interviews for them
+
+FIXED:
+  ✅ New candidate registrations automatically added to both:
+     - users table (for login)
+     - candidate_details table (for scheduling)
+  ✅ Existing candidates can be migrated with SQL script
+
+TEST NEW REGISTRATIONS:
+  1. Logout
+  2. Go to signup page
+  3. Register as new candidate
+  4. Login as admin
+  5. Go to Schedule Interview
+  6. Click "Select Existing Candidate"
+  7. New candidate should appear! ✅
+
+FIX EXISTING CANDIDATES:
+  1. Open phpMyAdmin
+  2. Select database: cmsadver_rmsdb
+  3. Go to SQL tab
+  4. Run: fix_existing_candidates.sql
+  5. Existing candidates now visible! ✅
+
+╔═══════════════════════════════════════════════════════════════╗
+║                    FILES MODIFIED                             ║
+╚═══════════════════════════════════════════════════════════════╝
+
+✅ application/controllers/C_dashboard.php
+   - upload_document() - Adds extension to filename
+   - view_document() - Detects extension properly
+   - download_document() - Downloads with extension
+
+✅ application/models/Signup_model.php
+   - Create_rec() - Adds candidates to candidate_details table
+
+✅ fix_existing_candidates.sql - NEW
+   - Migrates existing candidates to candidate_details
+
+╔═══════════════════════════════════════════════════════════════╗
+║                   TESTING STEPS                               ║
+╚═══════════════════════════════════════════════════════════════╝
+
+STEP 1: Clear Cache
+  Press: Ctrl + Shift + R
+
+STEP 2: Test File Upload
+  URL: http://localhost/rms/C_dashboard/documents
+  - Upload PDF file
+  - Check filename has .pdf extension
+  - Click view - opens in browser
+  - Click download - downloads as .pdf
+
+STEP 3: Fix Existing Candidates
+  - Open phpMyAdmin
+  - Run: fix_existing_candidates.sql
+  - Check results
+
+STEP 4: Test Candidate Visibility
+  URL: http://localhost/rms/Interview/schedule
+  - Click "Select Existing Candidate"
+  - All candidates should appear
+  - Including "Test" (candi2@gmail.com)
+
+STEP 5: Test New Registration
+  - Logout
+  - Register new candidate
+  - Login as admin
+  - Schedule interview
+  - New candidate should appear immediately
+
+╔═══════════════════════════════════════════════════════════════╗
+║                    BEFORE vs AFTER                            ║
+╚═══════════════════════════════════════════════════════════════╝
+
+BEFORE:
+  ❌ Files: testcandidate@rms.com_resume_1779600181
+  ❌ Candidates: Only show in users table
+  ❌ Admin: Can't see self-registered candidates
+
+AFTER:
+  ✅ Files: testcandidate@rms.com_resume_1779600181.pdf
+  ✅ Candidates: Show in both users AND candidate_details
+  ✅ Admin: Can see ALL candidates including self-registered
+
+╔═══════════════════════════════════════════════════════════════╗
+║                  TROUBLESHOOTING                              ║
+╚═══════════════════════════════════════════════════════════════╝
+
+Problem: Files still no extension
+Solution: Delete old files, upload new ones
+
+Problem: Candidates still not showing
+Solution: Run fix_existing_candidates.sql
+
+Problem: New candidates not appearing
+Solution: Check Signup_model.php was updated
+
+╔═══════════════════════════════════════════════════════════════╗
+║                      STATUS                                   ║
+╚═══════════════════════════════════════════════════════════════╝
+
+✅ File extension issue - FIXED
+✅ Candidate visibility issue - FIXED
+✅ Code updated - COMPLETE
+✅ SQL script created - READY
+✅ Ready for testing - YES
+✅ Ready for viva - YES
+
+═══════════════════════════════════════════════════════════════
+                  ALL ISSUES RESOLVED! 🎉
+═══════════════════════════════════════════════════════════════
+
+Next Steps:
+1. Clear browser cache (Ctrl + Shift + R)
+2. Run fix_existing_candidates.sql in phpMyAdmin
+3. Test file upload
+4. Test candidate visibility
+5. Ready for viva demonstration!
+
+═══════════════════════════════════════════════════════════════
